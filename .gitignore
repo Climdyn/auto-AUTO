@@ -1,3 +1,6 @@
 *.f90
 c.*
+*.exe
+fort.*
+*.o
 .idea

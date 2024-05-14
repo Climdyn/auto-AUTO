@@ -12,7 +12,7 @@ try:
     else:
         sys.path.append(auto_directory + '/python/auto')
         sys.path.append(auto_directory + '/python')
-except:
+except KeyError:
     warnings.warn('Unable to find auto directory environment variable.')
 
 import parseC
