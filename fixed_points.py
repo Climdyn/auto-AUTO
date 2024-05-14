@@ -20,6 +20,9 @@ except KeyError:
 import AUTOCommands as ac
 import runAUTO as ra
 
+# TODO: Add solutions plot
+# TODO: Add save as pickle object
+
 
 class FixedPointContinuation(object):
 
@@ -27,20 +30,20 @@ class FixedPointContinuation(object):
 
         self.config_object = config_object
         self.model_name = model_name
-        self.runner = ra.runAUTO()
-        ac.load(model_name, runner=self.runner)
         self.continuation = list()
         self.branch_number = None
 
     def make_continuation(self, initial_data, store_name="", only_forward=False, **continuation_kwargs):
+        runner = ra.runAUTO()
+        ac.load(self.model_name, runner=runner)
         U_dic = {i + 1: initial_data[i] for i in range(self.config_object.ndim)}
-        cf = ac.run(self.model_name, U=U_dic, runner=self.runner, **continuation_kwargs)
+        cf = ac.run(self.model_name, U=U_dic, runner=runner, **continuation_kwargs)
         if not only_forward:
             if 'DS' in continuation_kwargs:
                 continuation_kwargs['DS'] = - continuation_kwargs['DS']
-                cb = ac.run(self.model_name, U=U_dic, runner=self.runner, **continuation_kwargs)
+                cb = ac.run(self.model_name, U=U_dic, runner=runner, **continuation_kwargs)
             else:
-                cb = ac.run(self.model_name, DS='-', U=U_dic, runner=self.runner, **continuation_kwargs)
+                cb = ac.run(self.model_name, DS='-', U=U_dic, runner=runner, **continuation_kwargs)
         else:
             cb = None
         self.continuation = list([cf, cb])
@@ -109,8 +112,8 @@ class FixedPointContinuation(object):
                     else:
                         ls = '--'
                     plot_kwargs['ls'] = ls
-                    l = ax.plot(self.continuation[branches][var1][pidx:abs(idx)], self.continuation[branches][var2][pidx:abs(idx)], **plot_kwargs)
-                    c = l[0].get_color()
+                    lines_list = ax.plot(self.continuation[branches][var1][pidx:abs(idx)], self.continuation[branches][var2][pidx:abs(idx)], **plot_kwargs)
+                    c = lines_list[0].get_color()
                     plot_kwargs['color'] = c
                     pidx = abs(idx)
                 if excluded_labels != 'all':
