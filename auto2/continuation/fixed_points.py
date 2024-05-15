@@ -86,10 +86,10 @@ class FixedPointContinuation(Continuation):
                     return None
 
         if idx >= 0:
-            return self.continuation[0].data[0].diagnostics[idx]
+            return self.continuation[0].data[0].diagnostics[idx]['Eigenvalues']
         else:
             if self.continuation[1] is not None:
-                return self.continuation[1].data[0].diagnostics[-idx]
+                return self.continuation[1].data[0].diagnostics[-idx]['Eigenvalues']
             else:
                 warnings.warn('No backward branch to show the diagnostic for.')
                 return None

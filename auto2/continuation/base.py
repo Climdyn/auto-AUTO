@@ -21,6 +21,8 @@ except KeyError:
 import auto.AUTOCommands as ac
 
 # TODO: 3D plot of solutions
+# TODO: add MAX to plot of PO branches
+
 
 class Continuation(ABC):
 
