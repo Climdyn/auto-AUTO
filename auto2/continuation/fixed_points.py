@@ -175,6 +175,97 @@ class FixedPointContinuation(object):
             s = self.diagnostics()
             print(s)
 
+    def point_diagnostic(self, idx):
+        if isinstance(idx, str):
+            if idx[0] == '-':
+                idx = self.find_solution_index(idx)
+                if idx is not None:
+                    return self.continuation[1].data[0].diagnostics[idx]['Text']
+                else:
+                    warnings.warn('No backward branch to show the diagnostic for.')
+                    return None
+            else:
+                idx = self.find_solution_index(idx)
+                if idx is not None:
+                    return self.continuation[0].data[0].diagnostics[idx]
+                else:
+                    warnings.warn('No backward branch to show the diagnostic for.')
+                    return None
+
+        if idx >= 0:
+            return self.continuation[0].data[0].diagnostics[idx]
+        else:
+            if self.continuation[1] is not None:
+                return self.continuation[1].data[0].diagnostics[-idx]['Text']
+            else:
+                warnings.warn('No backward branch to show the diagnostic for.')
+                return None
+
+    def point_stability(self, idx):
+        if isinstance(idx, str):
+            if idx[0] == '-':
+                idx = self.find_solution_index(idx)
+                if idx is not None:
+                    return self.continuation[1].data[0].diagnostics[idx]['Eigenvalues']
+                else:
+                    warnings.warn('No backward branch to show the diagnostic for.')
+                    return None
+            else:
+                idx = self.find_solution_index(idx)
+                if idx is not None:
+                    return self.continuation[0].data[0].diagnostics[idx]['Eigenvalues']
+                else:
+                    warnings.warn('No backward branch to show the diagnostic for.')
+                    return None
+
+        if idx >= 0:
+            return self.continuation[0].data[0].diagnostics[idx]
+        else:
+            if self.continuation[1] is not None:
+                return self.continuation[1].data[0].diagnostics[-idx]
+            else:
+                warnings.warn('No backward branch to show the diagnostic for.')
+                return None
+
+    def find_solution_index(self, lab):
+        if self.continuation:
+            if lab[0] == "-":
+                if self.solutions_label['backward'] is not None:
+                    lab = lab[1:]
+                    tgt = lab[:2]
+                    sn = int(lab[2:])
+                    idx = 0
+                    count = 0
+                    for la in self.solutions_label['backward']:
+                        if la == tgt:
+                            count += 1
+                        if count >= sn:
+                            break
+                        idx += 1
+                    else:
+                        warnings.warn('No solution found.')
+                        return None
+                    return self.solutions_index['backward'][idx]
+                else:
+                    return None
+            else:
+                tgt = lab[:2]
+                sn = int(lab[2:])
+                idx = 0
+                count = 0
+                for la in self.solutions_label['forward']:
+                    if la == tgt:
+                        count += 1
+                    if count >= sn:
+                        break
+                    idx += 1
+                else:
+                    warnings.warn('No solution found.')
+                    return None
+                return self.solutions_index['forward'][idx]
+        else:
+            return None
+
     @property
     def stability(self):
         if self.continuation:
@@ -201,3 +292,52 @@ class FixedPointContinuation(object):
         else:
             return None
 
+    @property
+    def solutions_index(self):
+        if self.continuation:
+            d = dict()
+            idx = self.continuation[0].data[0].labels.getIndices()
+            d['forward'] = idx
+            if self.continuation[1] is not None:
+                idx = self.continuation[1].data[0].labels.getIndices()
+                d['backward'] = idx
+            else:
+                d['backward'] = None
+            return d
+        else:
+            return None
+
+    @property
+    def solutions_label(self):
+        indices = self.solutions_index
+        if indices is not None:
+            d = dict()
+            idx = indices['forward']
+            sl = list()
+            for i in idx:
+                sl.append(str(self.continuation[0].data[0].labels.by_index[i].keys()).split("'")[1])
+            d['forward'] = sl
+            if indices['backward'] is not None:
+                idx = indices['backward']
+                sl = list()
+                for i in idx:
+                    sl.append(str(self.continuation[1].data[0].labels.by_index[i].keys()).split("'")[1])
+                d['backward'] = sl
+            else:
+                d['backward'] = None
+            return d
+        else:
+            return None
+
+    @property
+    def number_of_solutions(self):
+        sl = list()
+        if self.continuation:
+            sl.append(self.continuation[0].data[0].getLabels()[-1])
+            if self.continuation[1] is not None:
+                sl.append(self.continuation[1].data[0].getLabels()[-1])
+            else:
+                sl.append(0)
+            return sl
+        else:
+            return None
