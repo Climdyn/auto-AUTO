@@ -10,12 +10,12 @@ try:
         if auto_directory in path:
             break
     else:
-        sys.path.append(auto_directory + '/python/auto')
+        # sys.path.append(auto_directory + '/python/auto')
         sys.path.append(auto_directory + '/python')
 except KeyError:
     warnings.warn('Unable to find auto directory environment variable.')
 
-import parseC
+import auto.parseC as parseC
 
 
 class ConfigParser(object):

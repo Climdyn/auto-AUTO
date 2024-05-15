@@ -12,15 +12,15 @@ try:
         if auto_directory in path:
             break
     else:
-        sys.path.append(auto_directory + '/python/auto')
+        # sys.path.append(auto_directory + '/python/auto')
         sys.path.append(auto_directory + '/python')
 except KeyError:
     warnings.warn('Unable to find auto directory environment variable.')
 
-import AUTOCommands as ac
-import runAUTO as ra
+import auto.AUTOCommands as ac
+import auto.runAUTO as ra
+from auto.parseS import AUTOSolution
 
-# TODO: Allow starting from solution
 # TODO: Define as subclass of base class
 
 
@@ -32,20 +32,41 @@ class FixedPointContinuation(object):
         self.model_name = model_name
         self.continuation = list()
         self.branch_number = None
+        self.initial_data = None
 
     def make_continuation(self, initial_data, store_name="", only_forward=False, **continuation_kwargs):
         runner = ra.runAUTO()
         ac.load(self.model_name, runner=runner)
-        u = {i + 1: initial_data[i] for i in range(self.config_object.ndim)}
-        cf = ac.run(self.model_name, U=u, runner=runner, **continuation_kwargs)
-        if not only_forward:
-            if 'DS' in continuation_kwargs:
-                continuation_kwargs['DS'] = - continuation_kwargs['DS']
-                cb = ac.run(self.model_name, U=u, runner=runner, **continuation_kwargs)
+
+        if 'MXBF' in continuation_kwargs:
+            warnings.warn('Disabling automatic continuation of branch points (MXBF set to 0)')
+        continuation_kwargs['MXBF'] = 0
+
+        self.initial_data = initial_data
+
+        if isinstance(initial_data, AUTOSolution):
+            cf = ac.run(initial_data, runner=runner, **continuation_kwargs)
+            if not only_forward:
+                if 'DS' in continuation_kwargs:
+                    continuation_kwargs['DS'] = - continuation_kwargs['DS']
+                    cb = ac.run(initial_data, runner=runner, **continuation_kwargs)
+                else:
+                    cb = ac.run(initial_data, DS='-', runner=runner, **continuation_kwargs)
             else:
-                cb = ac.run(self.model_name, DS='-', U=u, runner=runner, **continuation_kwargs)
+                cb = None
+
         else:
-            cb = None
+            u = {i + 1: initial_data[i] for i in range(self.config_object.ndim)}
+            cf = ac.run(self.model_name, U=u, runner=runner, **continuation_kwargs)
+            if not only_forward:
+                if 'DS' in continuation_kwargs:
+                    continuation_kwargs['DS'] = - continuation_kwargs['DS']
+                    cb = ac.run(self.model_name, U=u, runner=runner, **continuation_kwargs)
+                else:
+                    cb = ac.run(self.model_name, DS='-', U=u, runner=runner, **continuation_kwargs)
+            else:
+                cb = None
+
         self.continuation = list([cf, cb])
         self.branch_number = self.continuation[0].data[0].BR
 
@@ -347,14 +368,14 @@ class FixedPointContinuation(object):
             if lab not in lab_list:
                 lab_list.append(lab)
         for lab in lab_list:
-            sl.extend(self.continuation[0].data[0].getLabel(lab))
+            sl.extend(self.continuation[0].getLabel(lab))
         if self.continuation[1] is not None:
             lab_list = list()
             for lab in self.solutions_label['backward']:
                 if lab not in lab_list:
                     lab_list.append(lab)
             for lab in lab_list:
-                sl.extend(self.continuation[1].data[0].getLabel(lab))
+                sl.extend(self.continuation[1].getLabel(lab))
         return sl
 
     def plot_solutions(self, variables=(0, 1), ax=None, figsize=(10, 8), markersize=12., marker='x', plot_kwargs=None,
@@ -436,6 +457,7 @@ class FixedPointContinuation(object):
         return ax
 
 
+# Should be moved to a general util module later
 _solution_type = {1: 'BP',
                   2: 'LP',
                   3: 'HB',
