@@ -23,13 +23,13 @@ from auto.parseS import AUTOSolution
 from auto2.continuation.base import Continuation
 
 
-class FixedPointContinuation(Continuation):
+class PeriodicOrbitContinuation(Continuation):
 
     def __init__(self, model_name, config_object):
 
         Continuation.__init__(self, model_name, config_object)
 
-    def make_continuation(self, initial_data, store_name="", only_forward=False, **continuation_kwargs):
+    def make_continuation(self, initial_data, store_name="", only_forward=True, **continuation_kwargs):
         runner = ra.runAUTO()
         ac.load(self.model_name, runner=runner)
 
@@ -51,14 +51,13 @@ class FixedPointContinuation(Continuation):
                 cb = None
 
         else:
-            u = {i + 1: initial_data[i] for i in range(self.config_object.ndim)}
-            cf = ac.run(self.model_name, U=u, runner=runner, **continuation_kwargs)
+            cf = ac.run(self.model_name, dat=initial_data, runner=runner, **continuation_kwargs)
             if not only_forward:
                 if 'DS' in continuation_kwargs:
                     continuation_kwargs['DS'] = - continuation_kwargs['DS']
-                    cb = ac.run(self.model_name, U=u, runner=runner, **continuation_kwargs)
+                    cb = ac.run(self.model_name, dat=initial_data, runner=runner, **continuation_kwargs)
                 else:
-                    cb = ac.run(self.model_name, DS='-', U=u, runner=runner, **continuation_kwargs)
+                    cb = ac.run(self.model_name, DS='-', dat=initial_data, runner=runner, **continuation_kwargs)
             else:
                 cb = None
 
@@ -68,7 +67,7 @@ class FixedPointContinuation(Continuation):
         if store_name:
             self.auto_save(store_name)
 
-    def point_stability(self, idx):
+    def orbit_stability(self, idx):
         if isinstance(idx, str):
             if idx[0] == '-':
                 idx = self.find_solution_index(idx)
@@ -94,8 +93,8 @@ class FixedPointContinuation(Continuation):
                 warnings.warn('No backward branch to show the diagnostic for.')
                 return None
 
-    def plot_solutions(self, variables=(0, 1), ax=None, figsize=(10, 8), markersize=12., marker='x', linestyle=' ',
-                       linewidth=12., plot_kwargs=None, labels=None, indices=None, parameter=None, value=None,
+    def plot_solutions(self, variables=(0, 1), ax=None, figsize=(10, 8), markersize=12., marker='', linestyle='-',
+                       linewidth=1.2, plot_kwargs=None, labels=None, indices=None, parameter=None, value=None,
                        variables_name=None, tol=0.01):
 
         if ax is None:
@@ -105,7 +104,36 @@ class FixedPointContinuation(Continuation):
         if plot_kwargs is None:
             plot_kwargs = dict()
 
-        solutions_list = self.get_filtered_solutions_list(labels, indices, parameter, value, tol)
+        solutions_list = list()
+        if self.continuation:
+            solutions_list = self.solutions_list
+
+            if labels is not None:
+                if not isinstance(labels, (list, tuple)):
+                    labels = [labels]
+                new_solutions_list = list()
+                for sol in solutions_list:
+                    if sol['TY'] in labels:
+                        new_solutions_list.append(sol)
+                solutions_list = new_solutions_list
+            elif indices is not None:
+                if not isinstance(indices, (list, tuple)):
+                    indices = [indices]
+                new_solutions_list = list()
+                for sol in solutions_list:
+                    if sol['PT'] - 1 in indices:
+                        new_solutions_list.append(sol)
+                solutions_list = new_solutions_list
+            elif parameter is not None:
+                if value is not None:
+                    new_solutions_list = list()
+                    for sol in solutions_list:
+                        if abs(sol[parameter] - value) < tol:
+                            new_solutions_list.append(sol)
+                    solutions_list = new_solutions_list
+
+                else:
+                    solutions_list = list()
 
         keys = self.config_object.variables
 
@@ -144,4 +172,3 @@ class FixedPointContinuation(Continuation):
                 ax.set_xlabel(variables_name[0])
                 ax.set_ylabel(variables_name[1])
         return ax
-

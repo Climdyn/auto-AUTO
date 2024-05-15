@@ -3,6 +3,7 @@
 
 from auto2.parsers.config import ConfigParser
 from auto2.continuation.fixed_points import FixedPointContinuation
+from auto2.continuation.periodic_orbits import PeriodicOrbitContinuation
 import numpy as np
 
 c = ConfigParser('c.qgs_land-atmosphere_auto')
@@ -15,7 +16,13 @@ fp.make_continuation(ic, ICP=['C_go1'], PAR={1: 0., 2: 0., 3: 0.085, 4: 0.02})
 
 # fp.auto_save('fp1')
 
-s = fp.continuation[0].getLabel('BP')[1]
+s = fp.get_filtered_solutions_list(labels='BP')[1]
 
 fp2 = FixedPointContinuation('qgs_land-atmosphere_auto', c)
 fp2.make_continuation(s, ISW=-1)
+
+s = fp.get_filtered_solutions_list(labels='HB')[0]
+
+hp = PeriodicOrbitContinuation('qgs_land-atmosphere_auto', c)
+
+hp.make_continuation(s, ICP=['C_go1', 'T'], IPS=2)
