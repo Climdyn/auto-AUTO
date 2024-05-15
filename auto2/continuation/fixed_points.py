@@ -21,9 +21,10 @@ import AUTOCommands as ac
 import runAUTO as ra
 
 # TODO: Add solutions plot
-# TODO: Add save as pickle object
 # TODO: Add diagnostics for given point
 # TODO: Add stability info for given point
+# TODO: Allow starting from solution
+# TODO: Define as subclass of base class
 
 
 class FixedPointContinuation(object):
@@ -38,28 +39,39 @@ class FixedPointContinuation(object):
     def make_continuation(self, initial_data, store_name="", only_forward=False, **continuation_kwargs):
         runner = ra.runAUTO()
         ac.load(self.model_name, runner=runner)
-        U_dic = {i + 1: initial_data[i] for i in range(self.config_object.ndim)}
-        cf = ac.run(self.model_name, U=U_dic, runner=runner, **continuation_kwargs)
+        u = {i + 1: initial_data[i] for i in range(self.config_object.ndim)}
+        cf = ac.run(self.model_name, U=u, runner=runner, **continuation_kwargs)
         if not only_forward:
             if 'DS' in continuation_kwargs:
                 continuation_kwargs['DS'] = - continuation_kwargs['DS']
-                cb = ac.run(self.model_name, U=U_dic, runner=runner, **continuation_kwargs)
+                cb = ac.run(self.model_name, U=u, runner=runner, **continuation_kwargs)
             else:
-                cb = ac.run(self.model_name, DS='-', U=U_dic, runner=runner, **continuation_kwargs)
+                cb = ac.run(self.model_name, DS='-', U=u, runner=runner, **continuation_kwargs)
         else:
             cb = None
         self.continuation = list([cf, cb])
         self.branch_number = self.continuation[0].data[0].BR
 
         if store_name:
-            self.save(store_name)
+            self.auto_save(store_name)
 
-    def save(self, store_name):
+    def auto_save(self, store_name):
 
         if self.continuation:
             ac.save(self.continuation[0], store_name + '_forward')
             if self.continuation[1] is not None:
                 ac.save(self.continuation[1], store_name + '_backward')
+
+    def auto_load(self, store_name):
+
+        self.continuation = list()
+        r = ac.loadbd(store_name + '_forward')
+        self.continuation.append(r)
+        try:
+            r = ac.loadbd(store_name + '_backward')
+            self.continuation.append(r)
+        except:
+            self.continuation.append(None)
 
     def plot_branches(self, variables=(0, 1), ax=None, figsize=(10, 8), markersize=12., plot_kwargs=None, marker_kwargs=None,
                       excluded_labels=('UZ', 'EP'), variables_name=None):
@@ -188,3 +200,4 @@ class FixedPointContinuation(object):
             return n
         else:
             return None
+
