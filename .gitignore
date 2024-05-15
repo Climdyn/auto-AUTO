@@ -4,3 +4,4 @@ c.*
 fort.*
 *.o
 .idea
+__pycache__

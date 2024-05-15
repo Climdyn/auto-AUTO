@@ -22,6 +22,8 @@ import runAUTO as ra
 
 # TODO: Add solutions plot
 # TODO: Add save as pickle object
+# TODO: Add diagnostics for given point
+# TODO: Add stability info for given point
 
 
 class FixedPointContinuation(object):

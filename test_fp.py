@@ -1,8 +1,8 @@
 
 # temporary test file - to be removed later
 
-from config import ConfigParser
-from fixed_points import FixedPointContinuation
+from auto2.parsers.config import ConfigParser
+from auto2.continuation.fixed_points import FixedPointContinuation
 import numpy as np
 
 c = ConfigParser('c.qgs_land-atmosphere_auto')
