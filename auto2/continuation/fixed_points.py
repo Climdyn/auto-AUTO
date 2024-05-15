@@ -20,9 +20,6 @@ except KeyError:
 import AUTOCommands as ac
 import runAUTO as ra
 
-# TODO: Add solutions plot
-# TODO: Add diagnostics for given point
-# TODO: Add stability info for given point
 # TODO: Allow starting from solution
 # TODO: Define as subclass of base class
 
@@ -341,3 +338,113 @@ class FixedPointContinuation(object):
             return sl
         else:
             return None
+
+    @property
+    def solutions_list(self):
+        sl = list()
+        lab_list = list()
+        for lab in self.solutions_label['forward']:
+            if lab not in lab_list:
+                lab_list.append(lab)
+        for lab in lab_list:
+            sl.extend(self.continuation[0].data[0].getLabel(lab))
+        if self.continuation[1] is not None:
+            lab_list = list()
+            for lab in self.solutions_label['backward']:
+                if lab not in lab_list:
+                    lab_list.append(lab)
+            for lab in lab_list:
+                sl.extend(self.continuation[1].data[0].getLabel(lab))
+        return sl
+
+    def plot_solutions(self, variables=(0, 1), ax=None, figsize=(10, 8), markersize=12., marker='x', plot_kwargs=None,
+                       labels=None, indices=None, parameter=None, value=None, variables_name=None, tol=0.01):
+
+        if ax is None:
+            fig = plt.figure(figsize=figsize)
+            ax = fig.gca()
+
+        if plot_kwargs is None:
+            plot_kwargs = dict()
+
+        solutions_list = list()
+        if self.continuation:
+            solutions_list = self.solutions_list
+
+            if labels is not None:
+                if not isinstance(labels, (list, tuple)):
+                    labels = [labels]
+                new_solutions_list = list()
+                for sol in solutions_list:
+                    if _solution_type[sol['TY number']] in labels:
+                        new_solutions_list.append(sol)
+                solutions_list = new_solutions_list
+            elif indices is not None:
+                if not isinstance(indices, (list, tuple)):
+                    indices = [indices]
+                new_solutions_list = list()
+                for sol in solutions_list:
+                    if sol['PT'] - 1 in indices:
+                        new_solutions_list.append(sol)
+                solutions_list = new_solutions_list
+            elif parameter is not None:
+                if value is not None:
+                    new_solutions_list = list()
+                    for sol in solutions_list:
+                        if abs(sol[parameter] - value) < tol:
+                            new_solutions_list.append(sol)
+                    solutions_list = new_solutions_list
+
+                else:
+                    solutions_list = list()
+
+        keys = self.config_object.variables
+
+        if variables[0] in keys:
+            var1 = variables[0]
+        else:
+            try:
+                var1 = keys[variables[0]]
+            except:
+                var1 = keys[0]
+
+        if variables[1] in keys:
+            var2 = variables[1]
+        else:
+            try:
+                var2 = keys[variables[1]]
+            except:
+                var2 = keys[1]
+
+        for sol in solutions_list:
+            x = sol[var1]
+            y = sol[var2]
+            line_list = ax.plot(x, y, marker=marker, markersize=markersize, **plot_kwargs)
+            c = line_list[0].get_color()
+            plot_kwargs['color'] = c
+
+        if variables_name is None:
+            ax.set_xlabel(var1)
+            ax.set_ylabel(var2)
+        else:
+            if isinstance(variables_name, dict):
+                ax.set_xlabel(variables_name[var1])
+                ax.set_ylabel(variables_name[var2])
+            else:
+                ax.set_xlabel(variables_name[0])
+                ax.set_ylabel(variables_name[1])
+        return ax
+
+
+_solution_type = {1: 'BP',
+                  2: 'LP',
+                  3: 'HB',
+                  4: 'UZ',
+                  -4: 'UZ',
+                  5: 'LP',
+                  6: 'BP',
+                  7: 'PD',
+                  8: 'TR',
+                  9: 'EP',
+                  -9: 'MX',
+                  }
