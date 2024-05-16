@@ -3,6 +3,8 @@ import sys
 import warnings
 
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
+from matplotlib.colors import TABLEAU_COLORS
 
 try:
     auto_directory = os.environ['AUTO_DIR']
@@ -37,7 +39,7 @@ class BifurcationDiagram(object):
         self.fp_computed = False
         self.po_computed = False
 
-    def compute_fixed_points_diagram(self, initial_points=None, **continuation_kwargs):
+    def compute_fixed_points_diagram(self, initial_points=None, extra_comparison_parameters=None, **continuation_kwargs):
 
         if self.fp_computed:
             warnings.warn('Fixed point bifurcation diagram already computed. Aborting.')
@@ -68,9 +70,14 @@ class BifurcationDiagram(object):
                 cpar = continuation_kwargs['ICP'][0]
                 if isinstance(cpar, int):
                     cpar = self.config_object.parnames[cpar]
-                if fp.same_solutions_as(psol['continuation'], cpar):
-                    warnings.warn('Not saving results of initial point '+str(ncomp)+' because it already exists (branch '+str(n)+'.'
-                                  '\n Skipping to next one.')  # should be a log instead
+                if extra_comparison_parameters is not None:
+                    cpar_list = extra_comparison_parameters.copy()
+                    cpar_list.append(par)
+                else:
+                    cpar_list = [cpar]
+                if fp.same_solutions_as(psol['continuation'], cpar_list):
+                    warnings.warn('Not saving results of initial point '+str(ncomp)+' because it already exists (branch '+str(n)+').'
+                                  '\nSkipping to next one.')  # should be a log instead
                     break
             else:
                 self.branches[fp.branch_number] = {'parameters': parameters, 'continuation': fp, 'continuation_kwargs': used_continuation_kwargs}
@@ -79,7 +86,7 @@ class BifurcationDiagram(object):
 
         self.fp_computed = True
 
-    def plot_fixed_points_diagram(self, variables=(0, 1), ax=None, figsize=(10, 8), **kwargs):
+    def plot_fixed_points_diagram(self, variables=(0, 1), ax=None, figsize=(10, 8), cmap=None, **kwargs):
 
         if 'plot_kwargs' not in kwargs:
             kwargs['plot_kwargs'] = dict()
@@ -88,9 +95,46 @@ class BifurcationDiagram(object):
             fig = plt.figure(figsize=figsize)
             ax = fig.gca()
 
-        for b in self.branches:
-            kwargs['plot_kwargs']['label'] = 'BR '+str(b)
-            self.branches[b]['continuation'].plot_branche_parts(variables, ax=ax, **kwargs)
+        if cmap is not None:
+            cmap = plt.get_cmap(cmap)
 
-        # legend must be created separately
-        # ax.legend()
+        handles = list()
+        for i, b in enumerate(self.branches):
+            kwargs['plot_kwargs']['label'] = 'BR '+str(b)
+            if cmap is None:
+                kwargs['plot_kwargs']['color'] = list(TABLEAU_COLORS.keys())[i]
+            else:
+                kwargs['plot_kwargs']['color'] = cmap(i / self.number_of_branches)
+            self.branches[b]['continuation'].plot_branche_parts(variables, ax=ax, **kwargs)
+            kwargs['plot_kwargs']['ls'] = '-'
+            handles.append(Line2D([], [], **(kwargs['plot_kwargs'])))
+
+        ax.legend(handles=handles)
+
+    def plot_fixed_points_diagram_3D(self, variables=(0, 1), ax=None, figsize=(10, 8), cmap=None, **kwargs):
+
+        if 'plot_kwargs' not in kwargs:
+            kwargs['plot_kwargs'] = dict()
+
+        if ax is None:
+            fig = plt.figure(figsize=figsize)
+            ax = fig.add_subplot(projection='3d')
+
+        if cmap is not None:
+            cmap = plt.get_cmap(cmap)
+
+        handles = list()
+        for i, b in enumerate(self.branches):
+            kwargs['plot_kwargs']['label'] = 'BR '+str(b)
+            if cmap is None:
+                kwargs['plot_kwargs']['color'] = list(TABLEAU_COLORS.keys())[i]
+            else:
+                kwargs['plot_kwargs']['color'] = cmap(i / self.number_of_branches)
+            self.branches[b]['continuation'].plot_branche_parts_3D(variables, ax=ax, **kwargs)
+            kwargs['plot_kwargs']['ls'] = '-'
+            handles.append(Line2D([], [], **(kwargs['plot_kwargs'])))
+
+        ax.legend(handles=handles)
+    @property
+    def number_of_branches(self):
+        return len(self.branches.keys())

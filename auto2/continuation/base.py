@@ -4,6 +4,7 @@ import sys
 import warnings
 
 import matplotlib.pyplot as plt
+import numpy as np
 
 try:
     auto_directory = os.environ['AUTO_DIR']
@@ -368,6 +369,110 @@ class Continuation(ABC):
                 ax.set_ylabel(variables_name[1])
         return ax
 
+    def plot_branche_parts_3D(self, variables=(0, 1, 2), ax=None, figsize=(10, 8), markersize=12., plot_kwargs=None, marker_kwargs=None,
+                           excluded_labels=('UZ', 'EP'), variables_name=None):
+
+        if not self.continuation:
+            return None
+
+        if ax is None:
+            fig = plt.figure(figsize=figsize)
+            ax = fig.add_subplot(projection='3d')
+
+        if plot_kwargs is None:
+            plot_kwargs = dict()
+
+        if marker_kwargs is None:
+            marker_kwargs = dict()
+
+        vars = self.available_variables
+
+        for var in vars:
+            try:
+                if variables[0] in var:
+                    var1 = var
+                    break
+            except:
+                pass
+        else:
+            try:
+                var1 = vars[variables[0]]
+            except:
+                var1 = vars[0]
+
+        for var in vars:
+            try:
+                if variables[1] in var:
+                    var2 = var
+                    break
+            except:
+                pass
+        else:
+            try:
+                var2 = vars[variables[1]]
+            except:
+                var2 = vars[1]
+
+        for var in vars:
+            try:
+                if variables[2] in var:
+                    var3 = var
+                    break
+            except:
+                pass
+        else:
+            try:
+                var3 = vars[variables[2]]
+            except:
+                var3 = vars[2]
+
+        for branche_part in [0, 1]:
+
+            if self.continuation[branche_part] is not None:
+
+                labels = list()
+                for j, coords in enumerate(zip(self.continuation[branche_part][var1], self.continuation[branche_part][var2], self.continuation[branche_part][var3])):
+                    lab = self.continuation[branche_part].data[0].getIndex(j)['TY name']
+                    if lab == 'No Label':
+                        pass
+                    else:
+                        labels.append((coords, lab))
+
+                pidx = 0
+                for idx in self.stability[branche_part]:
+                    if idx < 0:
+                        ls = '-'
+                    else:
+                        ls = '--'
+                    plot_kwargs['ls'] = ls
+                    lines_list = ax.plot(self.continuation[branche_part][var1][pidx:abs(idx)], self.continuation[branche_part][var2][pidx:abs(idx)],
+                                         self.continuation[branche_part][var3][pidx:abs(idx)], **plot_kwargs)
+                    c = lines_list[0].get_color()
+                    plot_kwargs['color'] = c
+                    pidx = abs(idx)
+                if excluded_labels != 'all':
+                    for label in labels:
+                        coords = label[0]
+                        lab = label[1]
+                        if lab not in excluded_labels:
+                            ax.text(coords[0], coords[1], coords[2], r'${\bf ' + lab + r'}$', fontdict={'family': 'sans-serif', 'size': markersize}, va='center', ha='center',
+                                    **marker_kwargs, clip_on=True)
+
+        if variables_name is None:
+            ax.set_xlabel(var1)
+            ax.set_ylabel(var2)
+            ax.set_zlabel(var3)
+        else:
+            if isinstance(variables_name, dict):
+                ax.set_xlabel(variables_name[var1])
+                ax.set_ylabel(variables_name[var2])
+                ax.set_zlabel(variables_name[var3])
+            else:
+                ax.set_xlabel(variables_name[0])
+                ax.set_ylabel(variables_name[1])
+                ax.set_zlabel(variables_name[2])
+        return ax
+
     def plot_solutions(self, variables=(0, 1), ax=None, figsize=(10, 8), markersize=None, marker=None, linestyle=None,
                        linewidth=None, plot_kwargs=None, labels=None, indices=None, parameter=None, value=None,
                        variables_name=None, tol=0.01):
@@ -499,4 +604,26 @@ class Continuation(ABC):
                 ax.set_ylabel(variables_name[1])
                 ax.set_zlabel(variables_name[2])
         return ax
+
+    def same_solutions_as(self, other, parameters, solutions_type=('HB', 'BP', 'UZ', 'PD'), tol=2.e-2):
+        for i, parameter in enumerate(parameters):
+            if isinstance(parameter, int):
+                parameter = self.config_object.parnames[parameter]
+            if i == 0:
+                ssol = np.squeeze(np.array(self.solutions_parameters(parameter, solutions_type)))[np.newaxis, ...]
+                osol = np.squeeze(np.array(other.solutions_parameters(parameter, solutions_type)))[np.newaxis, ...]
+            else:
+                ssol = np.concatenate((ssol, np.squeeze(np.array(self.solutions_parameters(parameter, solutions_type)))[np.newaxis, ...]), axis=0)
+                osol = np.concatenate((osol, np.squeeze(np.array(other.solutions_parameters(parameter, solutions_type)))[np.newaxis, ...]), axis=0)
+
+        osol.sort()
+        ssol.sort()
+
+        if ssol.shape != osol.shape:
+            return False
+        else:
+            dif = ssol - osol
+            return np.all(np.abs(dif) < tol)
+
+
 
