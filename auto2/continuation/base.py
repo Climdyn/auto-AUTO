@@ -32,6 +32,12 @@ class Continuation(ABC):
         self.branch_number = None
         self.initial_data = None
 
+        # plots default behaviours
+        self._default_marker = None
+        self._default_markersize = None
+        self._default_linestyle = None
+        self._default_linewidth = None
+
     @abstractmethod
     def make_continuation(self, initial_data, store_name="", only_forward=False, **continuation_kwargs):
         pass
@@ -358,9 +364,134 @@ class Continuation(ABC):
                 ax.set_ylabel(variables_name[1])
         return ax
 
-    @abstractmethod
-    def plot_solutions(self, variables=(0, 1), ax=None, figsize=(10, 8), markersize=12., marker='x', linestyle='-',
-                       linewidth=1.2, plot_kwargs=None, labels=None, indices=None, parameter=None, value=None,
+    def plot_solutions(self, variables=(0, 1), ax=None, figsize=(10, 8), markersize=None, marker=None, linestyle=None,
+                       linewidth=None, plot_kwargs=None, labels=None, indices=None, parameter=None, value=None,
                        variables_name=None, tol=0.01):
-        pass
 
+        if markersize is None:
+            markersize = self._default_markersize
+        if marker is None:
+            marker = self._default_marker
+        if linestyle is None:
+            linestyle = self._default_linestyle
+        if linewidth is None:
+            linewidth = self._default_linewidth
+
+        if ax is None:
+            fig = plt.figure(figsize=figsize)
+            ax = fig.gca()
+
+        if plot_kwargs is None:
+            plot_kwargs = dict()
+
+        solutions_list = self.get_filtered_solutions_list(labels, indices, parameter, value, tol)
+
+        keys = self.config_object.variables
+
+        if variables[0] in keys:
+            var1 = variables[0]
+        else:
+            try:
+                var1 = keys[variables[0]]
+            except:
+                var1 = keys[0]
+
+        if variables[1] in keys:
+            var2 = variables[1]
+        else:
+            try:
+                var2 = keys[variables[1]]
+            except:
+                var2 = keys[1]
+
+        for sol in solutions_list:
+            x = sol[var1]
+            y = sol[var2]
+            line_list = ax.plot(x, y, marker=marker, markersize=markersize, linestyle=linestyle, linewidth=linewidth,
+                                **plot_kwargs)
+            c = line_list[0].get_color()
+            plot_kwargs['color'] = c
+
+        if variables_name is None:
+            ax.set_xlabel(var1)
+            ax.set_ylabel(var2)
+        else:
+            if isinstance(variables_name, dict):
+                ax.set_xlabel(variables_name[var1])
+                ax.set_ylabel(variables_name[var2])
+            else:
+                ax.set_xlabel(variables_name[0])
+                ax.set_ylabel(variables_name[1])
+        return ax
+
+    def plot_solutions_3D(self, variables=(0, 1, 2), ax=None, figsize=(10, 8), markersize=None, marker=None, linestyle=None,
+                       linewidth=None, plot_kwargs=None, labels=None, indices=None, parameter=None, value=None,
+                       variables_name=None, tol=0.01):
+
+        if markersize is None:
+            markersize = self._default_markersize
+        if marker is None:
+            marker = self._default_marker
+        if linestyle is None:
+            linestyle = self._default_linestyle
+        if linewidth is None:
+            linewidth = self._default_linewidth
+
+        if ax is None:
+            fig = plt.figure(figsize=figsize)
+            ax = fig.add_subplot(projection='3d')
+
+        if plot_kwargs is None:
+            plot_kwargs = dict()
+
+        solutions_list = self.get_filtered_solutions_list(labels, indices, parameter, value, tol)
+
+        vars = self.config_object.variables
+
+        if variables[0] in vars:
+            var1 = variables[0]
+        else:
+            try:
+                var1 = vars[variables[0]]
+            except:
+                var1 = vars[0]
+
+        if variables[1] in vars:
+            var2 = variables[1]
+        else:
+            try:
+                var2 = vars[variables[1]]
+            except:
+                var2 = vars[1]
+
+        if variables[2] in vars:
+            var3 = variables[2]
+        else:
+            try:
+                var3 = vars[variables[2]]
+            except:
+                var3 = vars[2]
+
+        for sol in solutions_list:
+            x = sol[var1]
+            y = sol[var2]
+            z = sol[var3]
+            line_list = ax.plot(x, y, z, marker=marker, markersize=markersize, linestyle=linestyle, linewidth=linewidth,
+                                **plot_kwargs)
+            c = line_list[0].get_color()
+            plot_kwargs['color'] = c
+
+        if variables_name is None:
+            ax.set_xlabel(var1)
+            ax.set_ylabel(var2)
+            ax.set_zlabel(var3)
+        else:
+            if isinstance(variables_name, dict):
+                ax.set_xlabel(variables_name[var1])
+                ax.set_ylabel(variables_name[var2])
+                ax.set_zlabel(variables_name[var3])
+            else:
+                ax.set_xlabel(variables_name[0])
+                ax.set_ylabel(variables_name[1])
+                ax.set_zlabel(variables_name[2])
+        return ax
