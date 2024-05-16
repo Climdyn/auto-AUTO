@@ -344,7 +344,7 @@ class Continuation(ABC):
                         ls = '-'
                     else:
                         ls = '--'
-                    plot_kwargs['ls'] = ls
+                    plot_kwargs['linestyle'] = ls
                     lines_list = ax.plot(self.continuation[branche_part][var1][pidx:abs(idx)], self.continuation[branche_part][var2][pidx:abs(idx)], **plot_kwargs)
                     c = lines_list[0].get_color()
                     plot_kwargs['color'] = c
@@ -444,7 +444,7 @@ class Continuation(ABC):
                         ls = '-'
                     else:
                         ls = '--'
-                    plot_kwargs['ls'] = ls
+                    plot_kwargs['linestyle'] = ls
                     lines_list = ax.plot(self.continuation[branche_part][var1][pidx:abs(idx)], self.continuation[branche_part][var2][pidx:abs(idx)],
                                          self.continuation[branche_part][var3][pidx:abs(idx)], **plot_kwargs)
                     c = lines_list[0].get_color()

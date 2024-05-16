@@ -106,12 +106,12 @@ class BifurcationDiagram(object):
             else:
                 kwargs['plot_kwargs']['color'] = cmap(i / self.number_of_branches)
             self.branches[b]['continuation'].plot_branche_parts(variables, ax=ax, **kwargs)
-            kwargs['plot_kwargs']['ls'] = '-'
+            kwargs['plot_kwargs']['linestyle'] = '-'
             handles.append(Line2D([], [], **(kwargs['plot_kwargs'])))
 
         ax.legend(handles=handles)
 
-    def plot_fixed_points_diagram_3D(self, variables=(0, 1), ax=None, figsize=(10, 8), cmap=None, **kwargs):
+    def plot_fixed_points_diagram_3D(self, variables=(0, 1, 2), ax=None, figsize=(10, 8), cmap=None, **kwargs):
 
         if 'plot_kwargs' not in kwargs:
             kwargs['plot_kwargs'] = dict()
@@ -131,7 +131,7 @@ class BifurcationDiagram(object):
             else:
                 kwargs['plot_kwargs']['color'] = cmap(i / self.number_of_branches)
             self.branches[b]['continuation'].plot_branche_parts_3D(variables, ax=ax, **kwargs)
-            kwargs['plot_kwargs']['ls'] = '-'
+            kwargs['plot_kwargs']['linestyle'] = '-'
             handles.append(Line2D([], [], **(kwargs['plot_kwargs'])))
 
         ax.legend(handles=handles)
