@@ -5,7 +5,6 @@ import warnings
 
 import matplotlib.pyplot as plt
 
-auto_directory = os.environ['AUTO_DIR']
 try:
     auto_directory = os.environ['AUTO_DIR']
 
@@ -19,8 +18,6 @@ except KeyError:
     warnings.warn('Unable to find auto directory environment variable.')
 
 import auto.AUTOCommands as ac
-
-# TODO: 3D plot of solutions
 
 
 class Continuation(ABC):
@@ -244,6 +241,13 @@ class Continuation(ABC):
                     sl.extend(self.continuation[1].getLabel(lab))
         return sl
 
+    def solutions_parameters(self, parameter, solution_types=('HB', 'BP', 'UZ', 'PD')):
+        sl = self.get_filtered_solutions_list(labels=solution_types)
+        params = list()
+        for s in sl:
+            params.append(s[parameter])
+        return params
+
     def get_filtered_solutions_list(self, labels=None, indices=None, parameter=None, value=None, tol=0.01):
 
         solutions_list = self.solutions_list
@@ -277,8 +281,8 @@ class Continuation(ABC):
 
         return solutions_list
 
-    def plot_branches(self, variables=(0, 1), ax=None, figsize=(10, 8), markersize=12., plot_kwargs=None, marker_kwargs=None,
-                      excluded_labels=('UZ', 'EP'), variables_name=None):
+    def plot_branche_parts(self, variables=(0, 1), ax=None, figsize=(10, 8), markersize=12., plot_kwargs=None, marker_kwargs=None,
+                           excluded_labels=('UZ', 'EP'), variables_name=None):
 
         if not self.continuation:
             return None
@@ -495,3 +499,4 @@ class Continuation(ABC):
                 ax.set_ylabel(variables_name[1])
                 ax.set_zlabel(variables_name[2])
         return ax
+

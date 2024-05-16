@@ -3,8 +3,8 @@ import sys
 import warnings
 
 import matplotlib.pyplot as plt
+import numpy as np
 
-auto_directory = os.environ['AUTO_DIR']
 try:
     auto_directory = os.environ['AUTO_DIR']
 
@@ -99,3 +99,19 @@ class FixedPointContinuation(Continuation):
             else:
                 warnings.warn('No backward branch to show the diagnostic for.')
                 return None
+
+    def same_solutions_as(self, other, parameter, solutions_type=('HB', 'BP', 'UZ', 'PD'), tol=2.e-2):
+        ssol = np.array(self.solutions_parameters(parameter, solutions_type))
+        osol = np.array(other.solutions_parameters(parameter, solutions_type))
+
+        osol.sort()
+        ssol.sort()
+
+        if len(ssol) != len(osol):
+            return False
+        else:
+            dif = ssol - osol
+            return np.all(np.abs(dif) < tol)
+
+
+

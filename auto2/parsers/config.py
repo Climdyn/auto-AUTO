@@ -51,6 +51,14 @@ class ConfigParser(object):
         return [p for n, p in parameters_list]
 
     @property
+    def parnames(self):
+        return self['parnames']
+
+    @property
+    def unames(self):
+        return self['unames']
+
+    @property
     def ndim(self):
         return self['NDIM']
 
