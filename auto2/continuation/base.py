@@ -21,7 +21,6 @@ except KeyError:
 import auto.AUTOCommands as ac
 
 # TODO: 3D plot of solutions
-# TODO: add MAX to plot of PO branches
 
 
 class Continuation(ABC):
@@ -288,44 +287,54 @@ class Continuation(ABC):
         if marker_kwargs is None:
             marker_kwargs = dict()
 
-        keys = self.available_variables
+        vars = self.available_variables
 
-        if variables[0] in keys:
-            var1 = variables[0]
+        for var in vars:
+            try:
+                if variables[0] in var:
+                    var1 = var
+                    break
+            except:
+                pass
         else:
             try:
-                var1 = keys[variables[0]]
+                var1 = vars[variables[0]]
             except:
-                var1 = keys[0]
+                var1 = vars[0]
 
-        if variables[1] in keys:
-            var2 = variables[1]
+        for var in vars:
+            try:
+                if variables[1] in var:
+                    var2 = var
+                    break
+            except:
+                pass
         else:
             try:
-                var2 = keys[variables[1]]
+                var2 = vars[variables[1]]
             except:
-                var2 = keys[1]
+                var2 = vars[1]
 
-        for branches in [0, 1]:
+        for branche_part in [0, 1]:
 
-            if self.continuation[branches] is not None:
+            if self.continuation[branche_part] is not None:
 
                 labels = list()
-                for j, coords in enumerate(zip(self.continuation[branches][var1], self.continuation[branches][var2])):
-                    lab = self.continuation[branches].data[0].getIndex(j)['TY name']
+                for j, coords in enumerate(zip(self.continuation[branche_part][var1], self.continuation[branche_part][var2])):
+                    lab = self.continuation[branche_part].data[0].getIndex(j)['TY name']
                     if lab == 'No Label':
                         pass
                     else:
                         labels.append((coords, lab))
 
                 pidx = 0
-                for idx in self.stability[branches]:
+                for idx in self.stability[branche_part]:
                     if idx < 0:
                         ls = '-'
                     else:
                         ls = '--'
                     plot_kwargs['ls'] = ls
-                    lines_list = ax.plot(self.continuation[branches][var1][pidx:abs(idx)], self.continuation[branches][var2][pidx:abs(idx)], **plot_kwargs)
+                    lines_list = ax.plot(self.continuation[branche_part][var1][pidx:abs(idx)], self.continuation[branche_part][var2][pidx:abs(idx)], **plot_kwargs)
                     c = lines_list[0].get_color()
                     plot_kwargs['color'] = c
                     pidx = abs(idx)
