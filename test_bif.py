@@ -67,4 +67,4 @@ for p in fixed_points:
 
 b = BifurcationDiagram('qgs_land-atmosphere_auto')
 
-b.compute_fixed_points_diagram(initial_points, extra_comparison_parameters=['psi_a_2'], ICP=['C_go1'], PAR={'C_go1': 300., 2: 300. * 0.4, 3: 0.085, 4: 0.02})
+b.compute_fixed_points_diagram(initial_points, extra_comparison_parameters=['psi_a_2'], comparison_tol=[2.e-2, 1.e-4], ICP=['C_go1'], PAR={'C_go1': 300., 2: 300. * 0.4, 3: 0.085, 4: 0.02})

@@ -39,7 +39,7 @@ class BifurcationDiagram(object):
         self.fp_computed = False
         self.po_computed = False
 
-    def compute_fixed_points_diagram(self, initial_points=None, extra_comparison_parameters=None, **continuation_kwargs):
+    def compute_fixed_points_diagram(self, initial_points=None, extra_comparison_parameters=None, comparison_tol=2.e-2, **continuation_kwargs):
 
         if self.fp_computed:
             warnings.warn('Fixed point bifurcation diagram already computed. Aborting.')
@@ -75,7 +75,7 @@ class BifurcationDiagram(object):
                     cpar_list.append(par)
                 else:
                     cpar_list = [cpar]
-                if fp.same_solutions_as(psol['continuation'], cpar_list):
+                if fp.same_solutions_as(psol['continuation'], cpar_list, tol=comparison_tol):
                     warnings.warn('Not saving results of initial point '+str(ncomp)+' because it already exists (branch '+str(n)+').'
                                   '\nSkipping to next one.')  # should be a log instead
                     break

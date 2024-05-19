@@ -249,7 +249,39 @@ class Continuation(ABC):
             params.append(s[parameter])
         return params
 
-    def get_filtered_solutions_list(self, labels=None, indices=None, parameter=None, value=None, tol=0.01):
+    def get_filtered_solutions_list(self, labels=None, indices=None, parameters=None, values=None, tol=0.01):
+
+        if parameters is not None:
+            if isinstance(parameters, (list, tuple)):
+                parameters = np.array(parameters)
+
+            elif isinstance(parameters, str):
+                parameters = np.array(parameters)[np.newaxis]
+
+            if values is not None:
+                if isinstance(values, (float, int)):
+                    values = [values] * parameters.shape[0]
+
+                elif isinstance(values, (list, tuple)):
+                    values = np.array(values)
+
+                if len(values.shape) == 1:
+                    values = values[:, np.newaxis]
+
+                if isinstance(values, np.ndarray):
+                    if values.shape[0] != parameters.shape[0]:
+                        warnings.warn('Wrong number of values provided for the number of parameters test requested.')
+                        return list()
+            else:
+                warnings.warn('No values provided for the parameters specified.')
+                return list()
+
+            if isinstance(tol, (list, tuple)):
+                tol = np.array(tol)
+            elif isinstance(tol, float):
+                tol = np.array([tol] * values.shape[0])
+            else:
+                tol = np.array(tol)
 
         solutions_list = self.solutions_list
 
@@ -269,16 +301,16 @@ class Continuation(ABC):
                 if sol['PT'] - 1 in indices:
                     new_solutions_list.append(sol)
             solutions_list = new_solutions_list
-        elif parameter is not None:
-            if value is not None:
-                new_solutions_list = list()
-                for sol in solutions_list:
-                    if abs(sol[parameter] - value) < tol:
+        elif parameters is not None:
+            new_solutions_list = list()
+            for sol in solutions_list:
+                for val in values.T:
+                    for i, param in enumerate(parameters):
+                        if abs(sol[param] - val[i]) > tol[i]:
+                            break
+                    else:
                         new_solutions_list.append(sol)
-                solutions_list = new_solutions_list
-
-            else:
-                solutions_list = list()
+            solutions_list = new_solutions_list
 
         return solutions_list
 
@@ -606,6 +638,10 @@ class Continuation(ABC):
         return ax
 
     def same_solutions_as(self, other, parameters, solutions_type=('HB', 'BP', 'UZ', 'PD'), tol=2.e-2):
+
+        if isinstance(tol, (list, tuple)):
+            tol = np.array(tol)
+
         for i, parameter in enumerate(parameters):
             if isinstance(parameter, int):
                 parameter = self.config_object.parnames[parameter]
@@ -623,7 +659,68 @@ class Continuation(ABC):
             return False
         else:
             dif = ssol - osol
-            return np.all(np.abs(dif) < tol)
+            return np.all(np.abs(dif).T < tol)
 
+    def solutions_part_of(self, other, parameters, solutions_type=('HB', 'BP', 'UZ', 'PD'), tol=2.e-2, return_parameters=False, return_solutions=False):
 
+        if isinstance(tol, (list, tuple)):
+            tol = np.array(tol)
 
+        for i, parameter in enumerate(parameters):
+            if isinstance(parameter, int):
+                parameter = self.config_object.parnames[parameter]
+            if i == 0:
+                ssol = np.squeeze(np.array(self.solutions_parameters(parameter, solutions_type)))[np.newaxis, ...]
+                osol = np.squeeze(np.array(other.solutions_parameters(parameter, solutions_type)))[np.newaxis, ...]
+            else:
+                ssol = np.concatenate((ssol, np.squeeze(np.array(self.solutions_parameters(parameter, solutions_type)))[np.newaxis, ...]), axis=0)
+                osol = np.concatenate((osol, np.squeeze(np.array(other.solutions_parameters(parameter, solutions_type)))[np.newaxis, ...]), axis=0)
+
+        osol.sort()
+        ssol.sort()
+        idx_list = list()
+        for i in range(ssol.shape[1]):
+            for j in range(osol.shape[1]):
+                dif = ssol[:, i] - osol[:, j]
+                if np.all(np.abs(dif) < tol):
+                    idx_list.append(i)
+
+        res = [len(idx_list) > 1]
+        if return_parameters:
+            res.append(ssol[:, idx_list])
+        if return_solutions:
+            res.append(self.get_filtered_solutions_list(parameters=parameters, values=ssol[:, idx_list], tol=tol))
+
+        return res
+
+    def branch_possibly_cross(self, other, parameters, solutions_type=('HB', 'BP', 'UZ', 'PD'), tol=2.e-2, return_parameters=False, return_solutions=False):
+
+        if isinstance(tol, (list, tuple)):
+            tol = np.array(tol)
+
+        for i, parameter in enumerate(parameters):
+            if isinstance(parameter, int):
+                parameter = self.config_object.parnames[parameter]
+            if i == 0:
+                ssol = np.squeeze(np.array(self.solutions_parameters(parameter, solutions_type)))[np.newaxis, ...]
+                osol = np.squeeze(np.array(other.solutions_parameters(parameter, solutions_type)))[np.newaxis, ...]
+            else:
+                ssol = np.concatenate((ssol, np.squeeze(np.array(self.solutions_parameters(parameter, solutions_type)))[np.newaxis, ...]), axis=0)
+                osol = np.concatenate((osol, np.squeeze(np.array(other.solutions_parameters(parameter, solutions_type)))[np.newaxis, ...]), axis=0)
+
+        osol.sort()
+        ssol.sort()
+        idx_list = list()
+        for i in range(ssol.shape[1]):
+            for j in range(osol.shape[1]):
+                dif = ssol[:, i] - osol[:, j]
+                if np.all(np.abs(dif) < tol):
+                    idx_list.append(i)
+
+        res = [len(idx_list) == 1]
+        if return_parameters:
+            res.append(ssol[:, idx_list])
+        if return_solutions:
+            res.append(self.get_filtered_solutions_list(parameters=parameters, values=ssol[:, idx_list], tol=tol))
+
+        return res
