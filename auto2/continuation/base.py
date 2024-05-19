@@ -652,8 +652,13 @@ class Continuation(ABC):
         ssol = self.solutions_parameters(parameters, solutions_type)
         osol = other.solutions_parameters(parameters, solutions_type)
 
-        osol.sort()
-        ssol.sort()
+        npar = ssol.shape[0]
+
+        osort = np.squeeze(np.argsort(np.ascontiguousarray(osol.T).view(','.join(['f8'] * npar)), order=['f'+str(i) for i in range(npar)], axis=0).T)
+        ssort = np.squeeze(np.argsort(np.ascontiguousarray(ssol.T).view(','.join(['f8'] * npar)), order=['f'+str(i) for i in range(npar)], axis=0).T)
+
+        ssol = ssol[:, ssort]
+        osol = osol[:, osort]
 
         if ssol.shape != osol.shape:
             return False
@@ -669,8 +674,12 @@ class Continuation(ABC):
         ssol = self.solutions_parameters(parameters, solutions_type)
         osol = other.solutions_parameters(parameters, solutions_type)
 
-        osol.sort()
-        ssol.sort()
+        ssort = np.argsort(ssol[0])
+        osort = np.argsort(osol[0])
+
+        ssol = ssol[:, ssort]
+        osol = osol[:, osort]
+
         idx_list = list()
         for i in range(ssol.shape[1]):
             for j in range(osol.shape[1]):
@@ -694,8 +703,12 @@ class Continuation(ABC):
         ssol = self.solutions_parameters(parameters, solutions_type)
         osol = other.solutions_parameters(parameters, solutions_type)
 
-        osol.sort()
-        ssol.sort()
+        ssort = np.argsort(ssol[0])
+        osort = np.argsort(osol[0])
+
+        ssol = ssol[:, ssort]
+        osol = osol[:, osort]
+
         idx_list = list()
         for i in range(ssol.shape[1]):
             for j in range(osol.shape[1]):
