@@ -242,12 +242,17 @@ class Continuation(ABC):
                     sl.extend(self.continuation[1].getLabel(lab))
         return sl
 
-    def solutions_parameters(self, parameter, solution_types=('HB', 'BP', 'UZ', 'PD')):
+    def solutions_parameters(self, parameters, solution_types=('HB', 'BP', 'UZ', 'PD')):
+        if not isinstance(parameters, (tuple, list)):
+            parameters = [parameters]
         sl = self.get_filtered_solutions_list(labels=solution_types)
-        params = list()
-        for s in sl:
-            params.append(s[parameter])
-        return params
+        params = dict()
+        for param in parameters:
+            par_list = list()
+            for s in sl:
+                par_list.append(float(s[param]))
+            params[param] = par_list
+        return np.squeeze(np.array(list(params.values())))
 
     def get_filtered_solutions_list(self, labels=None, indices=None, parameters=None, values=None, tol=0.01):
 
@@ -259,8 +264,10 @@ class Continuation(ABC):
                 parameters = np.array(parameters)[np.newaxis]
 
             if values is not None:
+
                 if isinstance(values, (float, int)):
                     values = [values] * parameters.shape[0]
+                    values = np.array(values)
 
                 elif isinstance(values, (list, tuple)):
                     values = np.array(values)
@@ -268,10 +275,10 @@ class Continuation(ABC):
                 if len(values.shape) == 1:
                     values = values[:, np.newaxis]
 
-                if isinstance(values, np.ndarray):
-                    if values.shape[0] != parameters.shape[0]:
-                        warnings.warn('Wrong number of values provided for the number of parameters test requested.')
-                        return list()
+                if values.shape[0] != parameters.shape[0]:
+                    warnings.warn('Wrong number of values provided for the number of parameters test requested.')
+                    return list()
+
             else:
                 warnings.warn('No values provided for the parameters specified.')
                 return list()
@@ -642,15 +649,8 @@ class Continuation(ABC):
         if isinstance(tol, (list, tuple)):
             tol = np.array(tol)
 
-        for i, parameter in enumerate(parameters):
-            if isinstance(parameter, int):
-                parameter = self.config_object.parnames[parameter]
-            if i == 0:
-                ssol = np.squeeze(np.array(self.solutions_parameters(parameter, solutions_type)))[np.newaxis, ...]
-                osol = np.squeeze(np.array(other.solutions_parameters(parameter, solutions_type)))[np.newaxis, ...]
-            else:
-                ssol = np.concatenate((ssol, np.squeeze(np.array(self.solutions_parameters(parameter, solutions_type)))[np.newaxis, ...]), axis=0)
-                osol = np.concatenate((osol, np.squeeze(np.array(other.solutions_parameters(parameter, solutions_type)))[np.newaxis, ...]), axis=0)
+        ssol = self.solutions_parameters(parameters, solutions_type)
+        osol = other.solutions_parameters(parameters, solutions_type)
 
         osol.sort()
         ssol.sort()
@@ -666,15 +666,8 @@ class Continuation(ABC):
         if isinstance(tol, (list, tuple)):
             tol = np.array(tol)
 
-        for i, parameter in enumerate(parameters):
-            if isinstance(parameter, int):
-                parameter = self.config_object.parnames[parameter]
-            if i == 0:
-                ssol = np.squeeze(np.array(self.solutions_parameters(parameter, solutions_type)))[np.newaxis, ...]
-                osol = np.squeeze(np.array(other.solutions_parameters(parameter, solutions_type)))[np.newaxis, ...]
-            else:
-                ssol = np.concatenate((ssol, np.squeeze(np.array(self.solutions_parameters(parameter, solutions_type)))[np.newaxis, ...]), axis=0)
-                osol = np.concatenate((osol, np.squeeze(np.array(other.solutions_parameters(parameter, solutions_type)))[np.newaxis, ...]), axis=0)
+        ssol = self.solutions_parameters(parameters, solutions_type)
+        osol = other.solutions_parameters(parameters, solutions_type)
 
         osol.sort()
         ssol.sort()
@@ -698,15 +691,8 @@ class Continuation(ABC):
         if isinstance(tol, (list, tuple)):
             tol = np.array(tol)
 
-        for i, parameter in enumerate(parameters):
-            if isinstance(parameter, int):
-                parameter = self.config_object.parnames[parameter]
-            if i == 0:
-                ssol = np.squeeze(np.array(self.solutions_parameters(parameter, solutions_type)))[np.newaxis, ...]
-                osol = np.squeeze(np.array(other.solutions_parameters(parameter, solutions_type)))[np.newaxis, ...]
-            else:
-                ssol = np.concatenate((ssol, np.squeeze(np.array(self.solutions_parameters(parameter, solutions_type)))[np.newaxis, ...]), axis=0)
-                osol = np.concatenate((osol, np.squeeze(np.array(other.solutions_parameters(parameter, solutions_type)))[np.newaxis, ...]), axis=0)
+        ssol = self.solutions_parameters(parameters, solutions_type)
+        osol = other.solutions_parameters(parameters, solutions_type)
 
         osol.sort()
         ssol.sort()
