@@ -665,6 +665,18 @@ class Continuation(ABC):
             dif = ssol - osol
             return np.all(np.abs(dif).T < tol)
 
+    def solutions_in(self, other, parameters, solutions_type=('HB', 'BP', 'UZ', 'PD'), tol=2.e-2, return_parameters=False, return_solutions=False):
+        res, params, sol = self.solutions_part_of(other, parameters, solutions_type, tol, True, True)
+        if res:
+            res = [params.shape[1] == self.number_of_solutions]
+        else:
+            res = [res]
+        if return_parameters:
+            res.append(params)
+        if return_solutions:
+            res.append(sol)
+        return res
+
     def solutions_part_of(self, other, parameters, solutions_type=('HB', 'BP', 'UZ', 'PD'), tol=2.e-2, return_parameters=False, return_solutions=False):
 
         if isinstance(tol, (list, tuple)):
