@@ -646,19 +646,18 @@ class Continuation(ABC):
 
     def same_solutions_as(self, other, parameters, solutions_type=('HB', 'BP', 'UZ', 'PD'), tol=2.e-2):
 
-        if isinstance(tol, (list, tuple)):
-            tol = np.array(tol)
-
         ssol = self.solutions_parameters(parameters, solutions_type)
         osol = other.solutions_parameters(parameters, solutions_type)
 
         npar = ssol.shape[0]
+        if isinstance(tol, float):
+            tol = [tol] * npar
 
-        osort = np.squeeze(np.argsort(np.ascontiguousarray(osol.T).view(','.join(['f8'] * npar)), order=['f'+str(i) for i in range(npar)], axis=0).T)
-        ssort = np.squeeze(np.argsort(np.ascontiguousarray(ssol.T).view(','.join(['f8'] * npar)), order=['f'+str(i) for i in range(npar)], axis=0).T)
+        if isinstance(tol, (list, tuple)):
+            tol = np.array(tol)
 
-        ssol = ssol[:, ssort]
-        osol = osol[:, osort]
+        ssol = _sort_arrays(ssol, npar, tol)
+        osol = _sort_arrays(osol, npar, tol)
 
         if ssol.shape != osol.shape:
             return False
@@ -674,11 +673,15 @@ class Continuation(ABC):
         ssol = self.solutions_parameters(parameters, solutions_type)
         osol = other.solutions_parameters(parameters, solutions_type)
 
-        ssort = np.argsort(ssol[0])
-        osort = np.argsort(osol[0])
+        npar = ssol.shape[0]
+        if isinstance(tol, float):
+            tol = [tol] * npar
 
-        ssol = ssol[:, ssort]
-        osol = osol[:, osort]
+        if isinstance(tol, (list, tuple)):
+            tol = np.array(tol)
+
+        ssol = _sort_arrays(ssol, npar, tol)
+        osol = _sort_arrays(osol, npar, tol)
 
         idx_list = list()
         for i in range(ssol.shape[1]):
@@ -703,11 +706,15 @@ class Continuation(ABC):
         ssol = self.solutions_parameters(parameters, solutions_type)
         osol = other.solutions_parameters(parameters, solutions_type)
 
-        ssort = np.argsort(ssol[0])
-        osort = np.argsort(osol[0])
+        npar = ssol.shape[0]
+        if isinstance(tol, float):
+            tol = [tol] * npar
 
-        ssol = ssol[:, ssort]
-        osol = osol[:, osort]
+        if isinstance(tol, (list, tuple)):
+            tol = np.array(tol)
+
+        ssol = _sort_arrays(ssol, npar, tol)
+        osol = _sort_arrays(osol, npar, tol)
 
         idx_list = list()
         for i in range(ssol.shape[1]):
@@ -723,3 +730,22 @@ class Continuation(ABC):
             res.append(self.get_filtered_solutions_list(parameters=parameters, values=ssol[:, idx_list], tol=tol))
 
         return res
+
+
+def _sort_arrays(sol, npar, tol):
+
+    srt = np.squeeze(np.argsort(np.ascontiguousarray(sol.T).view(','.join(['f8'] * npar)), order=['f' + str(i) for i in range(npar)], axis=0).T)
+
+    ssol = sol[:, srt]
+
+    for n in range(1, npar):
+        while True:
+            nc = 0
+            for i in range(ssol.shape[1] - 1):
+                if abs(ssol[n - 1, i + 1] - ssol[n - 1, i]) < tol[n - 1] and ssol[n, i + 1] < ssol[n, i]:
+                    nc += 1
+                    ssol[:, i + 1], ssol[:, i] = ssol[:, i], ssol[:, i + 1]
+            if nc == 0:
+                break
+
+    return ssol
