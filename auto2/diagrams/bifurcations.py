@@ -32,9 +32,9 @@ class BifurcationDiagram(object):
         self.initial_points = None
         self.model_name = model_name
         self.config_object = ConfigParser('c.'+model_name)
-        self.points_list = None
-        self.solutions_list = None
-        self.variables_list = None
+        self.points_list = None  # TODO: to be implemented as property
+        self.solutions_list = None  # TODO: to be implemented as property
+        self.variables_list = None  # TODO: to be implemented as property
         self.branches = dict()
         self.fp_computed = False
         self.po_computed = False
@@ -47,6 +47,10 @@ class BifurcationDiagram(object):
 
         if initial_points is not None:
             self.initial_points = initial_points
+
+        if 'MNX' not in continuation_kwargs:
+            continuation_kwargs['NMX'] = 9000
+            warnings.warn('NMX parameters was not set, so setting it to 9000 points.')
 
         br_num = 1
         ncomp = 0
@@ -66,23 +70,81 @@ class BifurcationDiagram(object):
             fp = FixedPointContinuation(model_name=self.model_name, config_object=self.config_object)
             fp.make_continuation(initial_data, **used_continuation_kwargs)
 
+            valid_branch = False
             for n, psol in self.branches.items():
                 cpar = continuation_kwargs['ICP'][0]
                 if isinstance(cpar, int):
                     cpar = self.config_object.parnames[cpar]
                 if extra_comparison_parameters is not None:
-                    cpar_list = extra_comparison_parameters.copy()
-                    cpar_list.append(par)
+                    cpar_list = [cpar]
+                    cpar_list.extend(extra_comparison_parameters)
                 else:
                     cpar_list = [cpar]
+
                 if fp.same_solutions_as(psol['continuation'], cpar_list, tol=comparison_tol):
                     warnings.warn('Not saving results of initial point '+str(ncomp)+' because it already exists (branch '+str(n)+').'
                                   '\nSkipping to next one.')  # should be a log instead
                     break
+                elif fp.solutions_in(psol['continuation'], cpar_list, tol=comparison_tol):
+                    warnings.warn('Not saving results of initial point ' + str(ncomp) + ' because it is already in branch ' + str(n) + '.'
+                                  '\nSkipping to next one.')  # should be a log instead
+                    break
+                elif fp.solutions_part_of(psol['continuation'], cpar_list, tol=comparison_tol, forward=True):
+                    warnings.warn('Not storing full results of initial point ' + str(ncomp) + ' because it merges with branch ' + str(n) + '.'
+                                  '\nSaving only the relevant part.')  # should be a log instead
+                    _, common_solutions = fp.solutions_part_of(psol['continuation'], cpar_list, tol=comparison_tol, return_solutions=True, forward=True)
+                    first_sol = common_solutions[0]
+                    used_continuation_kwargs['NMX'] = first_sol['PT']+1
+                    fp.make_forward_continuation(initial_data, **used_continuation_kwargs)
+                    valid_branch = True
+                elif fp.solutions_part_of(psol['continuation'], cpar_list, tol=comparison_tol, forward=False):
+                    warnings.warn('Not storing full results of initial point ' + str(
+                        ncomp) + ' because it merges with branch ' + str(n) + '.'
+                                                                              '\nSaving only the relevant part.')  # should be a log instead
+                    _, common_solutions = fp.solutions_part_of(psol['continuation'], cpar_list, tol=comparison_tol,
+                                                               return_solutions=True, forward=False)
+                    first_sol = common_solutions[0]
+                    used_continuation_kwargs['NMX'] = first_sol['PT'] + 1
+                    fp.make_backward_continuation(initial_data, **used_continuation_kwargs)
+                    valid_branch = True
+                elif fp.branch_possibly_cross(psol['continuation'], cpar_list, tol=comparison_tol, forward=True):
+                    warnings.warn('Not storing full results of initial point ' + str(ncomp) + ' because it connects to branch ' + str(n) + '.'
+                                  '\nSaving only the relevant part.')  # should be a log instead
+                    _, sol = fp.branch_possibly_cross(psol['continuation'], cpar_list, tol=comparison_tol,
+                                                      return_solutions=True, forward=True)
+                    used_continuation_kwargs['NMX'] = sol['PT'] + 1
+                    fp.make_forward_continuation(initial_data, **used_continuation_kwargs)
+                    valid_branch = True
+                    break
+                elif fp.branch_possibly_cross(psol['continuation'], cpar_list, tol=comparison_tol, forward=False):
+                    warnings.warn('Not storing full results of initial point ' + str(
+                        ncomp) + ' because it connects to branch ' + str(n) + '.'
+                                                                              '\nSaving only the relevant part.')  # should be a log instead
+                    _, sol = fp.branch_possibly_cross(psol['continuation'], cpar_list, tol=comparison_tol,
+                                                      return_solutions=True, forward=False)
+                    used_continuation_kwargs['NMX'] = sol['PT'] + 1
+                    fp.make_backward_continuation(initial_data, **used_continuation_kwargs)
+                    valid_branch = True
+                    break
             else:
+                valid_branch = True
+
+            if valid_branch:
                 self.branches[fp.branch_number] = {'parameters': parameters, 'continuation': fp, 'continuation_kwargs': used_continuation_kwargs}
                 br_num += 1
             ncomp += 1
+
+        # while True:
+        #
+        #     for branch in self.branches:
+        #         branching_points = branch['continuation'].get_filtered_solutions_list(labels='BP')
+        #         used_continuation_kwargs = continuation_kwargs.copy()
+        #         used_continuation_kwargs['ISW'] = -1
+        #
+        #         for bp in branching_points:
+        #             used_continuation_kwargs['IBR'] = br_num
+        #             fp = FixedPointContinuation(model_name=self.model_name, config_object=self.config_object)
+        #             fp.make_continuation(bp, **used_continuation_kwargs)
 
         self.fp_computed = True
 
@@ -135,6 +197,7 @@ class BifurcationDiagram(object):
             handles.append(Line2D([], [], **(kwargs['plot_kwargs'])))
 
         ax.legend(handles=handles)
+
     @property
     def number_of_branches(self):
         return len(self.branches.keys())

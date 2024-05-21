@@ -224,37 +224,49 @@ class Continuation(ABC):
             return None
 
     @property
-    def solutions_list(self):
-        sl = list()
+    def full_solutions_list(self):
+        sd = self.solutions_list_by_direction
+        if sd['backward']:
+            sl = sd['backward'][1:]
+        else:
+            sl = list()
+        sl.extend(sd['forward'])
+        return sl
+
+    @property
+    def solutions_list_by_direction(self):
+        sd = dict()
         if self.solutions_label is not None:
+            sd['forward'] = list()
+            sd['backward'] = list()
             lab_list = list()
             for lab in self.solutions_label['forward']:
                 if lab not in lab_list:
                     lab_list.append(lab)
             for lab in lab_list:
-                sl.extend(self.continuation[0].getLabel(lab))
+                sd['forward'].extend(self.continuation[0].getLabel(lab))
             if self.continuation[1] is not None:
                 lab_list = list()
                 for lab in self.solutions_label['backward']:
                     if lab not in lab_list:
                         lab_list.append(lab)
                 for lab in lab_list:
-                    sl.extend(self.continuation[1].getLabel(lab))
-        return sl
+                    sd['backward'].extend(self.continuation[1].getLabel(lab))
+        return sd
 
-    def solutions_parameters(self, parameters, solution_types=('HB', 'BP', 'UZ', 'PD')):
+    def solutions_parameters(self, parameters, solution_types=('HB', 'BP', 'UZ', 'PD'), forward=None):
         if not isinstance(parameters, (tuple, list)):
             parameters = [parameters]
-        sl = self.get_filtered_solutions_list(labels=solution_types)
+        sl = self.get_filtered_solutions_list(labels=solution_types, forward=forward)
         params = dict()
         for param in parameters:
             par_list = list()
             for s in sl:
                 par_list.append(float(s[param]))
             params[param] = par_list
-        return np.squeeze(np.array(list(params.values())))
+        return np.squeeze(np.array(list(params.values()))).reshape((len(parameters), -1))
 
-    def get_filtered_solutions_list(self, labels=None, indices=None, parameters=None, values=None, tol=0.01):
+    def get_filtered_solutions_list(self, labels=None, indices=None, parameters=None, values=None, forward=None, tol=0.01):
 
         if parameters is not None:
             if isinstance(parameters, (list, tuple)):
@@ -290,7 +302,12 @@ class Continuation(ABC):
             else:
                 tol = np.array(tol)
 
-        solutions_list = self.solutions_list
+        if forward is None:
+            solutions_list = self.full_solutions_list
+        elif forward:
+            solutions_list = self.solutions_list_by_direction['forward']
+        else:
+            solutions_list = self.solutions_list_by_direction['backward']
 
         if labels is not None:
             if not isinstance(labels, (list, tuple)):
@@ -666,7 +683,7 @@ class Continuation(ABC):
             return np.all(np.abs(dif).T < tol)
 
     def solutions_in(self, other, parameters, solutions_type=('HB', 'BP', 'UZ', 'PD'), tol=2.e-2, return_parameters=False, return_solutions=False):
-        res, params, sol = self.solutions_part_of(other, parameters, solutions_type, tol, True, True)
+        res, params, sol = self.solutions_part_of(other, parameters, solutions_type, tol, True, True, None)
         if res:
             res = [params.shape[1] == self.number_of_solutions]
         else:
@@ -675,14 +692,18 @@ class Continuation(ABC):
             res.append(params)
         if return_solutions:
             res.append(sol)
-        return res
 
-    def solutions_part_of(self, other, parameters, solutions_type=('HB', 'BP', 'UZ', 'PD'), tol=2.e-2, return_parameters=False, return_solutions=False):
+        if len(res) == 1:
+            return res[0]
+        else:
+            return res
+
+    def solutions_part_of(self, other, parameters, solutions_type=('HB', 'BP', 'UZ', 'PD'), tol=2.e-2, return_parameters=False, return_solutions=False, forward=None):
 
         if isinstance(tol, (list, tuple)):
             tol = np.array(tol)
 
-        ssol = self.solutions_parameters(parameters, solutions_type)
+        ssol = self.solutions_parameters(parameters, solutions_type, forward=forward)
         osol = other.solutions_parameters(parameters, solutions_type)
 
         npar = ssol.shape[0]
@@ -708,14 +729,17 @@ class Continuation(ABC):
         if return_solutions:
             res.append(self.get_filtered_solutions_list(parameters=parameters, values=ssol[:, idx_list], tol=tol))
 
-        return res
+        if len(res) == 1:
+            return res[0]
+        else:
+            return res
 
-    def branch_possibly_cross(self, other, parameters, solutions_type=('HB', 'BP', 'UZ', 'PD'), tol=2.e-2, return_parameters=False, return_solutions=False):
+    def branch_possibly_cross(self, other, parameters, solutions_type=('HB', 'BP', 'UZ', 'PD'), tol=2.e-2, return_parameters=False, return_solutions=False, forward=None):
 
         if isinstance(tol, (list, tuple)):
             tol = np.array(tol)
 
-        ssol = self.solutions_parameters(parameters, solutions_type)
+        ssol = self.solutions_parameters(parameters, solutions_type, forward=forward)
         osol = other.solutions_parameters(parameters, solutions_type)
 
         npar = ssol.shape[0]
@@ -739,16 +763,19 @@ class Continuation(ABC):
         if return_parameters:
             res.append(ssol[:, idx_list])
         if return_solutions:
-            res.append(self.get_filtered_solutions_list(parameters=parameters, values=ssol[:, idx_list], tol=tol))
+            res.append(self.get_filtered_solutions_list(parameters=parameters, values=ssol[:, idx_list], tol=tol)[0])
 
-        return res
+        if len(res) == 1:
+            return res[0]
+        else:
+            return res
 
 
 def _sort_arrays(sol, npar, tol):
 
     srt = np.squeeze(np.argsort(np.ascontiguousarray(sol.T).view(','.join(['f8'] * npar)), order=['f' + str(i) for i in range(npar)], axis=0).T)
 
-    ssol = sol[:, srt]
+    ssol = sol[:, srt].reshape((npar, -1))
 
     for n in range(1, npar):
         while True:
