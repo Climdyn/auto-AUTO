@@ -254,10 +254,10 @@ class Continuation(ABC):
                     sd['backward'].extend(self.continuation[1].getLabel(lab))
         return sd
 
-    def solutions_parameters(self, parameters, solution_types=('HB', 'BP', 'UZ', 'PD'), forward=None):
+    def solutions_parameters(self, parameters, solutions_types=('HB', 'BP', 'UZ', 'PD'), forward=None):
         if not isinstance(parameters, (tuple, list)):
             parameters = [parameters]
-        sl = self.get_filtered_solutions_list(labels=solution_types, forward=forward)
+        sl = self.get_filtered_solutions_list(labels=solutions_types, forward=forward)
         params = dict()
         for param in parameters:
             par_list = list()
@@ -661,10 +661,10 @@ class Continuation(ABC):
                 ax.set_zlabel(variables_name[2])
         return ax
 
-    def same_solutions_as(self, other, parameters, solutions_type=('HB', 'BP', 'UZ', 'PD'), tol=2.e-2):
+    def same_solutions_as(self, other, parameters, solutions_types=('HB', 'BP', 'UZ', 'PD'), tol=2.e-2):
 
-        ssol = self.solutions_parameters(parameters, solutions_type)
-        osol = other.solutions_parameters(parameters, solutions_type)
+        ssol = self.solutions_parameters(parameters, solutions_types)
+        osol = other.solutions_parameters(parameters, solutions_types)
 
         npar = ssol.shape[0]
         if isinstance(tol, float):
@@ -682,8 +682,8 @@ class Continuation(ABC):
             dif = ssol - osol
             return np.all(np.abs(dif).T < tol)
 
-    def solutions_in(self, other, parameters, solutions_type=('HB', 'BP', 'UZ', 'PD'), tol=2.e-2, return_parameters=False, return_solutions=False):
-        res, params, sol = self.solutions_part_of(other, parameters, solutions_type, tol, True, True, None)
+    def solutions_in(self, other, parameters, solutions_types=('HB', 'BP', 'UZ', 'PD'), tol=2.e-2, return_parameters=False, return_solutions=False):
+        res, params, sol = self.solutions_part_of(other, parameters, solutions_types, tol, True, True, None)
         if res:
             res = [params.shape[1] == self.number_of_solutions]
         else:
@@ -698,13 +698,13 @@ class Continuation(ABC):
         else:
             return res
 
-    def solutions_part_of(self, other, parameters, solutions_type=('HB', 'BP', 'UZ', 'PD'), tol=2.e-2, return_parameters=False, return_solutions=False, forward=None):
+    def solutions_part_of(self, other, parameters, solutions_types=('HB', 'BP', 'UZ', 'PD'), tol=2.e-2, return_parameters=False, return_solutions=False, forward=None):
 
         if isinstance(tol, (list, tuple)):
             tol = np.array(tol)
 
-        ssol = self.solutions_parameters(parameters, solutions_type, forward=forward)
-        osol = other.solutions_parameters(parameters, solutions_type)
+        ssol = self.solutions_parameters(parameters, solutions_types, forward=forward)
+        osol = other.solutions_parameters(parameters, solutions_types)
 
         npar = ssol.shape[0]
         if isinstance(tol, float):
@@ -734,13 +734,13 @@ class Continuation(ABC):
         else:
             return res
 
-    def branch_possibly_cross(self, other, parameters, solutions_type=('HB', 'BP', 'UZ', 'PD'), tol=2.e-2, return_parameters=False, return_solutions=False, forward=None):
+    def branch_possibly_cross(self, other, parameters, solutions_types=('HB', 'BP', 'UZ', 'PD'), tol=2.e-2, return_parameters=False, return_solutions=False, forward=None):
 
         if isinstance(tol, (list, tuple)):
             tol = np.array(tol)
 
-        ssol = self.solutions_parameters(parameters, solutions_type, forward=forward)
-        osol = other.solutions_parameters(parameters, solutions_type)
+        ssol = self.solutions_parameters(parameters, solutions_types, forward=forward)
+        osol = other.solutions_parameters(parameters, solutions_types)
 
         npar = ssol.shape[0]
         if isinstance(tol, float):
@@ -783,7 +783,10 @@ def _sort_arrays(sol, npar, tol):
             for i in range(ssol.shape[1] - 1):
                 if abs(ssol[n - 1, i + 1] - ssol[n - 1, i]) < tol[n - 1] and ssol[n, i + 1] < ssol[n, i]:
                     nc += 1
-                    ssol[:, i + 1], ssol[:, i] = ssol[:, i], ssol[:, i + 1]
+                    a = ssol[:, i + 1].copy()
+                    b = ssol[:, i].copy()
+                    ssol[:, i] = a
+                    ssol[:, i+1] = b
             if nc == 0:
                 break
 

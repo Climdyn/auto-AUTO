@@ -38,6 +38,7 @@ class BifurcationDiagram(object):
         self.branches = dict()
         self.fp_computed = False
         self.po_computed = False
+        self._comparison_solutions_types = ('HB', 'BP', 'UZ', 'PD', 'EP')
 
     def compute_fixed_points_diagram(self, initial_points=None, extra_comparison_parameters=None, comparison_tol=2.e-2, **continuation_kwargs):
 
@@ -53,7 +54,7 @@ class BifurcationDiagram(object):
             warnings.warn('NMX parameters was not set, so setting it to 9000 points.')
 
         br_num = 1
-        ncomp = 0
+        ncomp = 1
         for point in initial_points:
             parameters = point['parameters']
             initial_data = point['initial_data']
@@ -81,18 +82,19 @@ class BifurcationDiagram(object):
                 else:
                     cpar_list = [cpar]
 
-                if fp.same_solutions_as(psol['continuation'], cpar_list, tol=comparison_tol):
+                if fp.same_solutions_as(psol['continuation'], cpar_list, tol=comparison_tol, solutions_types=self._comparison_solutions_types):
                     warnings.warn('Not saving results of initial point '+str(ncomp)+' because it already exists (branch '+str(n)+').'
                                   '\nSkipping to next one.')  # should be a log instead
                     break
-                elif fp.solutions_in(psol['continuation'], cpar_list, tol=comparison_tol):
+                elif fp.solutions_in(psol['continuation'], cpar_list, tol=comparison_tol, solutions_types=self._comparison_solutions_types):
                     warnings.warn('Not saving results of initial point ' + str(ncomp) + ' because it is already in branch ' + str(n) + '.'
                                   '\nSkipping to next one.')  # should be a log instead
                     break
-                elif fp.solutions_part_of(psol['continuation'], cpar_list, tol=comparison_tol, forward=True):
+                elif fp.solutions_part_of(psol['continuation'], cpar_list, tol=comparison_tol, forward=True, solutions_types=self._comparison_solutions_types):
                     warnings.warn('Not storing full results of initial point ' + str(ncomp) + ' because it merges with branch ' + str(n) + '.'
                                   '\nSaving only the relevant part.')  # should be a log instead
-                    _, common_solutions = fp.solutions_part_of(psol['continuation'], cpar_list, tol=comparison_tol, return_solutions=True, forward=True)
+                    _, common_solutions = fp.solutions_part_of(psol['continuation'], cpar_list, tol=comparison_tol,
+                                                               return_solutions=True, forward=True, solutions_types=self._comparison_solutions_types)
                     first_sol = common_solutions[0]
                     used_continuation_kwargs['NMX'] = first_sol['PT']+1
                     fp.make_forward_continuation(initial_data, **used_continuation_kwargs)
@@ -102,7 +104,7 @@ class BifurcationDiagram(object):
                         ncomp) + ' because it merges with branch ' + str(n) + '.'
                                                                               '\nSaving only the relevant part.')  # should be a log instead
                     _, common_solutions = fp.solutions_part_of(psol['continuation'], cpar_list, tol=comparison_tol,
-                                                               return_solutions=True, forward=False)
+                                                               return_solutions=True, forward=False, solutions_types=self._comparison_solutions_types)
                     first_sol = common_solutions[0]
                     used_continuation_kwargs['NMX'] = first_sol['PT'] + 1
                     fp.make_backward_continuation(initial_data, **used_continuation_kwargs)
@@ -111,7 +113,7 @@ class BifurcationDiagram(object):
                     warnings.warn('Not storing full results of initial point ' + str(ncomp) + ' because it connects to branch ' + str(n) + '.'
                                   '\nSaving only the relevant part.')  # should be a log instead
                     _, sol = fp.branch_possibly_cross(psol['continuation'], cpar_list, tol=comparison_tol,
-                                                      return_solutions=True, forward=True)
+                                                      return_solutions=True, forward=True, solutions_types=self._comparison_solutions_types)
                     used_continuation_kwargs['NMX'] = sol['PT'] + 1
                     fp.make_forward_continuation(initial_data, **used_continuation_kwargs)
                     valid_branch = True
@@ -121,7 +123,7 @@ class BifurcationDiagram(object):
                         ncomp) + ' because it connects to branch ' + str(n) + '.'
                                                                               '\nSaving only the relevant part.')  # should be a log instead
                     _, sol = fp.branch_possibly_cross(psol['continuation'], cpar_list, tol=comparison_tol,
-                                                      return_solutions=True, forward=False)
+                                                      return_solutions=True, forward=False, solutions_types=self._comparison_solutions_types)
                     used_continuation_kwargs['NMX'] = sol['PT'] + 1
                     fp.make_backward_continuation(initial_data, **used_continuation_kwargs)
                     valid_branch = True
