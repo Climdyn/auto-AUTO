@@ -36,10 +36,17 @@ class BifurcationDiagram(object):
         self.points_list = None  # TODO: to be implemented as property
         self.solutions_list = None  # TODO: to be implemented as property
         self.variables_list = None  # TODO: to be implemented as property
-        self.branches = dict()
-        self.fp_computed = False
+        self.fp_branches = dict()
+        self.po_branches = dict()
+
         self.fp_parent = dict()
         self.fp_bp_computed = list()
+        self.po_parent = dict()
+        self.po_bp_computed = list()
+        self.po_hb_computed = dict()
+        self.po_pd_computed = dict()
+
+        self.fp_computed = False
         self.po_computed = False
         self._comparison_solutions_types = ('HB', 'BP', 'UZ', 'PD', 'EP', 'TR')
 
@@ -70,14 +77,16 @@ class BifurcationDiagram(object):
                     used_continuation_kwargs['PAR'][par] = val
 
             used_continuation_kwargs['IBR'] = br_num
+            if 'ICP' not in used_continuation_kwargs:
+                used_continuation_kwargs['ICP'] = [self.config_object.continuation_parameters[0]]
 
             fp = FixedPointContinuation(model_name=self.model_name, config_object=self.config_object)
             fp.make_continuation(initial_data, **used_continuation_kwargs)
 
-            valid_branch = self._check_continuation_against_other_branch(ncomp, fp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol)
+            valid_branch = self._check_fp_continuation_against_other_fp_branches(ncomp, fp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol)
 
             if valid_branch:
-                self.branches[fp.branch_number] = {'parameters': parameters, 'continuation': fp, 'continuation_kwargs': used_continuation_kwargs}
+                self.fp_branches[fp.branch_number] = {'parameters': parameters, 'continuation': fp, 'continuation_kwargs': used_continuation_kwargs}
                 self.fp_parent[fp.branch_number] = None
                 br_num += 1
             ncomp += 1
@@ -89,7 +98,7 @@ class BifurcationDiagram(object):
 
             new_branches = dict()
 
-            for parent_branch_number, branch in self.branches.items():
+            for parent_branch_number, branch in self.fp_branches.items():
                 branching_points = branch['continuation'].get_filtered_solutions_list(labels='BP')
 
                 if parent_branch_number not in self.fp_bp_computed:
@@ -105,7 +114,7 @@ class BifurcationDiagram(object):
                             fp = FixedPointContinuation(model_name=self.model_name, config_object=self.config_object)
                             fp.make_continuation(bp, **used_continuation_kwargs)
 
-                            valid_branch = self._check_continuation_against_other_branch(ncomp, fp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol)
+                            valid_branch = self._check_fp_continuation_against_other_fp_branches(ncomp, fp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol)
 
                             if valid_branch:
                                 new_branches[fp.branch_number] = {'parameters': bp.PAR, 'continuation': fp, 'continuation_kwargs': used_continuation_kwargs}
@@ -116,12 +125,51 @@ class BifurcationDiagram(object):
                     self.fp_bp_computed.append(parent_branch_number)
                     nrecomp += 1
 
-            self.branches.update(new_branches)
+            self.fp_branches.update(new_branches)
 
             if nrecomp == 0:
                 break
 
         self.fp_computed = True
+
+    def compute_periodic_orbits_diagram(self, levels=None, extra_comparison_parameters=None, comparison_tol=2.e-2, **continuation_kwargs):
+
+        if not self.fp_computed:
+            warnings.warn('Fixed points diagram not computed. No initial data to start with.\n'
+                          'Aborting...')
+            return None
+
+        br_num = max(self.fp_branches.keys()) + 1
+
+        # first continue all the Hopf bifurcation
+        for branch in self.fp_branches:
+
+            hb_list = branch.get_filtered_solutions_list(labels='HB')
+
+            for hb in hb_list:
+                used_continuation_kwargs = continuation_kwargs.copy()
+                used_continuation_kwargs['IBR'] = br_num
+
+                if 'IPS' not in used_continuation_kwargs:
+                    used_continuation_kwargs['IPS'] = 2
+
+                if 'ICP' not in used_continuation_kwargs:
+                    if 11 in self.config_object.parnames.keys():
+                        used_continuation_kwargs['ICP'] = [self.config_object.continuation_parameters[0], self.config_object.parnames[11]]
+                    else:
+                        used_continuation_kwargs['ICP'] = [self.config_object.continuation_parameters[0], 11]
+                else:
+                    if 11 in self.config_object.parnames.keys():
+                        if self.config_object.parnames[11] not in used_continuation_kwargs['ICP'] or 11 not in used_continuation_kwargs['ICP']:
+                            used_continuation_kwargs['ICP'].append(self.config_object.parnames[11])
+                    else:
+                        if 11 not in used_continuation_kwargs['ICP']:
+                            used_continuation_kwargs['ICP'].append(11)
+
+                hp = PeriodicOrbitContinuation(model_name=self.model_name, config_object=self.config_object)
+                hp.make_continuation(hb, **used_continuation_kwargs)
+
+                valid_branch = self._check_po_continuation_against_other_fp_branches(ncomp, hp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol)
 
     @staticmethod
     def _check_if_solutions_are_close(sol1, sol2, extra_comparison_parameters, tol):
@@ -148,13 +196,14 @@ class BifurcationDiagram(object):
         diff = ssol1 - ssol2
         return np.all(np.abs(diff) < tol)
 
-    def _check_continuation_against_other_branch(self, ncomp, continuation, continuation_kwargs, extra_comparison_parameters, tol):
+    @staticmethod
+    def _check_fp_continuation_against_other_fp_branches(self, ncomp, continuation, continuation_kwargs, extra_comparison_parameters, tol):
 
         fp = continuation
         initial_data = fp.initial_data
 
         valid_branch = False
-        for n, psol in self.branches.items():
+        for n, psol in self.fp_branches.items():
             cpar = continuation_kwargs['ICP'][0]
             if isinstance(cpar, int):
                 cpar = self.config_object.parnames[cpar]
@@ -226,13 +275,13 @@ class BifurcationDiagram(object):
             cmap = plt.get_cmap(cmap)
 
         handles = list()
-        for i, b in enumerate(self.branches):
+        for i, b in enumerate(self.fp_branches):
             kwargs['plot_kwargs']['label'] = 'BR '+str(b)
             if cmap is None:
                 kwargs['plot_kwargs']['color'] = list(TABLEAU_COLORS.keys())[i]
             else:
                 kwargs['plot_kwargs']['color'] = cmap(i / self.number_of_branches)
-            self.branches[b]['continuation'].plot_branche_parts(variables, ax=ax, **kwargs)
+            self.fp_branches[b]['continuation'].plot_branche_parts(variables, ax=ax, **kwargs)
             kwargs['plot_kwargs']['linestyle'] = '-'
             handles.append(Line2D([], [], **(kwargs['plot_kwargs'])))
 
@@ -251,13 +300,13 @@ class BifurcationDiagram(object):
             cmap = plt.get_cmap(cmap)
 
         handles = list()
-        for i, b in enumerate(self.branches):
+        for i, b in enumerate(self.fp_branches):
             kwargs['plot_kwargs']['label'] = 'BR '+str(b)
             if cmap is None:
                 kwargs['plot_kwargs']['color'] = list(TABLEAU_COLORS.keys())[i]
             else:
                 kwargs['plot_kwargs']['color'] = cmap(i / self.number_of_branches)
-            self.branches[b]['continuation'].plot_branche_parts_3D(variables, ax=ax, **kwargs)
+            self.fp_branches[b]['continuation'].plot_branche_parts_3D(variables, ax=ax, **kwargs)
             kwargs['plot_kwargs']['linestyle'] = '-'
             handles.append(Line2D([], [], **(kwargs['plot_kwargs'])))
 
@@ -265,4 +314,4 @@ class BifurcationDiagram(object):
 
     @property
     def number_of_branches(self):
-        return len(self.branches.keys())
+        return len(self.fp_branches.keys())
