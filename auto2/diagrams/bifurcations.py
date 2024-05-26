@@ -22,6 +22,7 @@ except KeyError:
 from auto2.parsers.config import ConfigParser
 from auto2.continuation.fixed_points import FixedPointContinuation
 from auto2.continuation.periodic_orbits import PeriodicOrbitContinuation
+from auto.parseS import AUTOSolution
 
 
 # TODO: add logging information
@@ -132,7 +133,7 @@ class BifurcationDiagram(object):
 
         self.fp_computed = True
 
-    def compute_periodic_orbits_diagram(self, levels=None, extra_comparison_parameters=None, comparison_tol=2.e-2, **continuation_kwargs):
+    def compute_periodic_orbits_diagram(self, end_level=None, extra_comparison_parameters=None, comparison_tol=2.e-2, **continuation_kwargs):
 
         if not self.fp_computed:
             warnings.warn('Fixed points diagram not computed. No initial data to start with.\n'
@@ -169,7 +170,8 @@ class BifurcationDiagram(object):
                 hp = PeriodicOrbitContinuation(model_name=self.model_name, config_object=self.config_object)
                 hp.make_continuation(hb, **used_continuation_kwargs)
 
-                valid_branch = self._check_po_continuation_against_other_fp_branches(ncomp, hp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol)
+                self._check_po_continuation_against_other_fp_branches(hp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol)
+                valid_branch = self._check_po_continuation_against_other_po_branches(hp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol)
 
     @staticmethod
     def _check_if_solutions_are_close(sol1, sol2, extra_comparison_parameters, tol):
@@ -196,7 +198,6 @@ class BifurcationDiagram(object):
         diff = ssol1 - ssol2
         return np.all(np.abs(diff) < tol)
 
-    @staticmethod
     def _check_fp_continuation_against_other_fp_branches(self, ncomp, continuation, continuation_kwargs, extra_comparison_parameters, tol):
 
         fp = continuation
@@ -247,7 +248,6 @@ class BifurcationDiagram(object):
                 continuation_kwargs['NMX'] = sol['PT'] + 1
                 fp.make_forward_continuation(initial_data, **continuation_kwargs)
                 valid_branch = True
-                break
             elif fp.branch_possibly_cross(psol['continuation'], cpar_list, tol=tol, forward=False):
                 warnings.warn('Not storing full results of initial point ' + str(ncomp) + ' because it connects to branch ' + str(n) + '.'
                               '\nSaving only the relevant part.')  # should be a log instead
@@ -256,11 +256,52 @@ class BifurcationDiagram(object):
                 continuation_kwargs['NMX'] = sol['PT'] + 1
                 fp.make_backward_continuation(initial_data, **continuation_kwargs)
                 valid_branch = True
-                break
         else:
             valid_branch = True
 
         return valid_branch
+
+    def _check_po_continuation_against_other_fp_branches(self, continuation, continuation_kwargs, extra_comparison_parameters, tol):
+
+        hp = continuation
+        initial_data = hp.initial_data
+
+        if isinstance(initial_data, str):
+            ini_msg = initial_data
+        elif isinstance(initial_data, AUTOSolution):
+            par_lst = hp.continuation_parameters
+            par_val = [initial_data.PAR[p] for p in continuation.continuation_parameters]
+            ini_msg = str(par_lst) + " = " + str(par_val)
+        else:
+            ini_msg = '[ unknown ]'
+
+        for n, psol in self.fp_branches.items():
+            cpar = continuation_kwargs['ICP'][0]
+            if isinstance(cpar, int):
+                cpar = self.config_object.parnames[cpar]
+            if extra_comparison_parameters is not None:
+                cpar_list = [cpar]
+                cpar_list.extend(extra_comparison_parameters)
+            else:
+                cpar_list = [cpar]
+
+            if hp.branch_possibly_cross(psol['continuation'], cpar_list, tol=tol, forward=True):
+                warnings.warn('Not storing full results of  Hopf point at ' + ini_msg + ' because it connects to branch ' + str(n) + '.'
+                              '\nSaving only the relevant part.')  # should be a log instead
+                _, sol = hp.branch_possibly_cross(psol['continuation'], cpar_list, tol=tol,
+                                                  return_solutions=True, forward=True, solutions_types=self._comparison_solutions_types)
+                continuation_kwargs['NMX'] = sol['PT'] + 1
+                hp.make_forward_continuation(initial_data, **continuation_kwargs)
+            elif hp.branch_possibly_cross(psol['continuation'], cpar_list, tol=tol, forward=False):
+                warnings.warn('Not storing full results of  Hopf point at ' + ini_msg + ' because it connects to branch ' + str(n) + '.'
+                                                                                                                                     '\nSaving only the relevant part.')  # should be a log instead
+                _, sol = hp.branch_possibly_cross(psol['continuation'], cpar_list, tol=tol,
+                                                  return_solutions=True, forward=False, solutions_types=self._comparison_solutions_types)
+                continuation_kwargs['NMX'] = sol['PT'] + 1
+                hp.make_backward_continuation(initial_data, **continuation_kwargs)
+
+    def _check_po_continuation_against_other_po_branches(self, continuation, continuation_kwargs, extra_comparison_parameters, tol):
+        pass
 
     def plot_fixed_points_diagram(self, variables=(0, 1), ax=None, figsize=(10, 8), cmap=None, **kwargs):
 
