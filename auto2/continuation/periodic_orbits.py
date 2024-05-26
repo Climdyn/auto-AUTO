@@ -73,6 +73,73 @@ class PeriodicOrbitContinuation(Continuation):
         if store_name:
             self.auto_save(store_name)
 
+    def make_forward_continuation(self, initial_data, store_name="", **continuation_kwargs):
+        runner = ra.runAUTO()
+        ac.load(self.model_name, runner=runner)
+
+        if 'MXBF' in continuation_kwargs:
+            warnings.warn('Disabling automatic continuation of branch points (MXBF set to 0)')
+        continuation_kwargs['MXBF'] = 0
+
+        if 'IBR' not in continuation_kwargs and self.branch_number is not None:
+            continuation_kwargs['IBR'] = self.branch_number
+
+        self.initial_data = initial_data
+
+        if isinstance(initial_data, AUTOSolution):
+            cf = ac.run(initial_data, runner=runner, **continuation_kwargs)
+        else:
+            cf = ac.run(self.model_name, dat=initial_data, runner=runner, **continuation_kwargs)
+
+        if not self.continuation:
+            self.continuation = list([cf, None])
+        else:
+            self.continuation[0] = cf
+
+        if self.branch_number is None:
+            self.branch_number = self.continuation[0].data[0].BR
+
+        if store_name:
+            self.auto_save(store_name)
+
+    def make_backward_continuation(self, initial_data, store_name="", **continuation_kwargs):
+        runner = ra.runAUTO()
+        ac.load(self.model_name, runner=runner)
+
+        if 'MXBF' in continuation_kwargs:
+            warnings.warn('Disabling automatic continuation of branch points (MXBF set to 0)')
+        continuation_kwargs['MXBF'] = 0
+
+        if 'IBR' not in continuation_kwargs and self.branch_number is not None:
+            continuation_kwargs['IBR'] = self.branch_number
+
+        self.initial_data = initial_data
+
+        if isinstance(initial_data, AUTOSolution):
+            if 'DS' in continuation_kwargs:
+                continuation_kwargs['DS'] = - continuation_kwargs['DS']
+                cb = ac.run(initial_data, runner=runner, **continuation_kwargs)
+            else:
+                cb = ac.run(initial_data, DS='-', runner=runner, **continuation_kwargs)
+        else:
+            if 'DS' in continuation_kwargs:
+                continuation_kwargs['DS'] = - continuation_kwargs['DS']
+                cb = ac.run(self.model_name, dat=initial_data, runner=runner, **continuation_kwargs)
+            else:
+                cb = ac.run(self.model_name, DS='-', dat=initial_data, runner=runner, **continuation_kwargs)
+
+        self.branch_number = self.continuation[0].data[0].BR
+        if not self.continuation:
+            self.continuation = list([None, cb])
+        else:
+            self.continuation[1] = cb
+
+        if self.branch_number is None:
+            self.branch_number = self.continuation[0].data[0].BR
+
+        if store_name:
+            self.auto_save(store_name)
+
     def orbit_stability(self, idx):
         if isinstance(idx, str):
             if idx[0] == '-':
