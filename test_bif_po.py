@@ -72,5 +72,5 @@ b.compute_fixed_points_diagram(initial_points, extra_comparison_parameters=['psi
 # b.compute_fixed_points_diagram(initial_points, extra_comparison_parameters=['psi_a_2'], comparison_tol=[2.e-2, 2.e-3],
 #                                ICP=['C_go1'], PAR={'C_go1': 300., 2: 300. * 0.4, 3: 0.085, 4: 0.02})
 
-b.compute_periodic_orbits_diagram(1, extra_comparison_parameters=['MAX psi_a_2', 'MAX psi_a_4', 'MAX psi_a_5'], comparison_tol=[2.e-2, 1.e-3, 1.e-3, 1.e-3],
+b.compute_periodic_orbits_diagram(1, extra_comparison_parameters=['psi_a_2', 'psi_a_4', 'psi_a_5'], comparison_tol=[2.e-2, 1.e-3, 1.e-3, 1.e-3],
                                   ICP=['C_go1'])

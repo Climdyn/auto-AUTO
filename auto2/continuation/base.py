@@ -20,6 +20,8 @@ except KeyError:
 
 import auto.AUTOCommands as ac
 
+# TODO: Check what happens if parameters are integers
+
 
 class Continuation(ABC):
 
@@ -274,7 +276,10 @@ class Continuation(ABC):
         for param in parameters:
             par_list = list()
             for s in sl:
-                par_list.append(float(s[param]))
+                try:
+                    par_list.append(max(s[param]))
+                except TypeError:
+                    par_list.append(float(s[param]))
             params[param] = par_list
         return np.squeeze(np.array(list(params.values()))).reshape((len(parameters), -1))
 
@@ -342,7 +347,11 @@ class Continuation(ABC):
             for sol in solutions_list:
                 for val in values.T:
                     for i, param in enumerate(parameters):
-                        if abs(sol[param] - val[i]) > tol[i]:
+                        if isinstance(sol[param], np.ndarray):
+                            diff = abs(max(sol[param]) - val[i])
+                        else:
+                            diff = abs(sol[param]) - val[i]
+                        if diff > tol[i]:
                             break
                     else:
                         new_solutions_list.append(sol)
@@ -776,6 +785,85 @@ class Continuation(ABC):
             res.append(ssol[:, idx_list])
         if return_solutions:
             res.append(self.get_filtered_solutions_list(parameters=parameters, values=ssol[:, idx_list], tol=tol)[0])
+
+        if len(res) == 1:
+            return res[0]
+        else:
+            return res
+
+    def check_for_repetitions(self, parameters, solutions_types=('HB', 'BP', 'UZ', 'PD', 'TR'), tol=2.e-2, return_parameters=False, return_solutions=False, forward=None):
+
+        if isinstance(tol, (list, tuple)):
+            tol = np.array(tol)
+
+        valid_solution = dict()
+        valid_solution['backward'] = list()
+        valid_solution['forward'] = list()
+        if forward:
+            valid_solution['backward'] = None
+        elif not forward:
+            valid_solution['forward'] = None
+
+        forward_dict = {'forward': True, 'backward': False}
+
+        sol = dict()
+        idx_dict = dict()
+        for direction in ['forward', 'backward']:
+            if valid_solution[direction] is not None:
+                idx_dict[direction] = list()
+                idx_list = list()
+                ssol = self.solutions_parameters(parameters, solutions_types, forward=forward_dict[direction])
+                sol[direction] = ssol
+
+                npar = ssol.shape[0]
+                if isinstance(tol, float):
+                    tol = [tol] * npar
+
+                if isinstance(tol, (list, tuple)):
+                    tol = np.array(tol)
+
+                for i in range(ssol.shape[1]-1, -1, -1):
+                    for j in range(i-1, 0, -1):
+                        dif = ssol[:, i] - ssol[:, j]
+                        if np.all(np.abs(dif) < tol):
+                            idx_list.append(i)
+                            break
+
+                for i in range(ssol.shape[1]):
+                    if i not in idx_list:
+                        valid_solution[direction].append(True)
+                        idx_dict[direction].append(i)
+
+                    else:
+                        valid_solution[direction].append(False)
+
+        if forward is None:
+            res = [valid_solution['backward'] + valid_solution['forward']]
+        elif forward:
+            res = [valid_solution['forward']]
+        else:
+            res = [valid_solution['backward']]
+
+        if return_parameters:
+            if forward is None:
+                params = np.concatenate((sol['backward'][:, idx_dict['backward']], sol['foward'][:, idx_dict['forward']]), axis=-1)
+            elif forward:
+                params = sol['forward'][:, idx_dict['forward']]
+            else:
+                params = sol['backward'][:, idx_dict['backward']]
+
+            res.append(params)
+
+        if return_solutions:
+            if forward is None:
+                sols = (self.get_filtered_solutions_list(parameters=parameters, values=sol['backward'][:, idx_dict['backward']], tol=tol) +
+                        self.get_filtered_solutions_list(parameters=parameters, values=sol['forward'][:, idx_dict['forward']], tol=tol))
+            elif forward:
+                sols = self.get_filtered_solutions_list(parameters=parameters, values=sol['forward'][:, idx_dict['forward']], tol=tol)
+            else:
+                sols = self.get_filtered_solutions_list(parameters=parameters, values=sol['backward'][:, idx_dict['backward']], tol=tol)
+
+            res.append(sols)
 
         if len(res) == 1:
             return res[0]

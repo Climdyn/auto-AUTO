@@ -173,6 +173,8 @@ class BifurcationDiagram(object):
                 hp = PeriodicOrbitContinuation(model_name=self.model_name, config_object=self.config_object)
                 hp.make_continuation(hb, **used_continuation_kwargs)
 
+                self._check_po_continuation_against_itself(hp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol)
+
                 self._check_po_continuation_against_other_fp_branches(hp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol)
                 valid_branch = self._check_po_continuation_against_other_po_branches(hp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol)
 
@@ -305,12 +307,61 @@ class BifurcationDiagram(object):
                                                   return_solutions=True, forward=True, solutions_types=self._comparison_solutions_types)
                 continuation_kwargs['NMX'] = sol['PT'] + 1
                 hp.make_forward_continuation(initial_data, **continuation_kwargs)
-            elif hp.branch_possibly_cross(psol['continuation'], cpar_list, tol=tol, forward=False):
+
+            if hp.branch_possibly_cross(psol['continuation'], cpar_list, tol=tol, forward=False):
                 warnings.warn('Not storing full results of  Hopf point at ' + ini_msg + ' because it connects to branch ' + str(n) + '.'
                                                                                                                                      '\nSaving only the relevant part.')  # should be a log instead
                 _, sol = hp.branch_possibly_cross(psol['continuation'], cpar_list, tol=tol,
                                                   return_solutions=True, forward=False, solutions_types=self._comparison_solutions_types)
                 continuation_kwargs['NMX'] = sol['PT'] + 1
+                hp.make_backward_continuation(initial_data, **continuation_kwargs)
+
+    def _check_po_continuation_against_itself(self, continuation, continuation_kwargs, extra_comparison_parameters, tol):
+
+        hp = continuation
+        initial_data = hp.initial_data
+
+        if isinstance(initial_data, str):
+            ini_msg = initial_data
+        elif isinstance(initial_data, AUTOSolution):
+            par_lst = hp.continuation_parameters
+            par_val = [initial_data.PAR[p] for p in continuation.continuation_parameters]
+            ini_msg = str(par_lst) + " = " + str(par_val)
+        else:
+            ini_msg = '[ unknown ]'
+
+        cpar = continuation_kwargs['ICP'][0]
+        if isinstance(cpar, int) and self.config_object.parameters_dict:
+            cpar = self.config_object.parameters_dict[cpar]
+        if extra_comparison_parameters is not None:
+            cpar_list = [cpar]
+            cpar_list.extend(extra_comparison_parameters)
+        else:
+            cpar_list = [cpar]
+
+        if hp.continuation[0] is not None:
+
+            if np.any(~np.array(hp.check_for_repetitions(cpar_list, tol=tol, solutions_types=self._comparison_solutions_types, forward=True))):
+                warnings.warn('Not storing full results of Hopf point at ' + ini_msg + ' because it repeats itself (forward).'
+                              '\nSaving only the relevant part.')  # should be a log instead
+
+                _, sol = hp.check_for_repetitions(cpar_list, tol=tol,
+                                                  return_solutions=True, forward=True, solutions_types=self._comparison_solutions_types)
+                last_sol = sol[-1]
+                continuation_kwargs['NMX'] = last_sol['PT'] + 1
+                print(last_sol['PT'])
+                hp.make_forward_continuation(initial_data, **continuation_kwargs)
+
+        if hp.continuation[1] is not None:
+
+            if np.any(~np.array(hp.check_for_repetitions(cpar_list, tol=tol, solutions_types=self._comparison_solutions_types, forward=False))):
+                warnings.warn('Not storing full results of Hopf point at ' + ini_msg + ' because it repeats itself (backward).'
+                              '\nSaving only the relevant part.')  # should be a log instead
+
+                _, sol = hp.check_for_repetitions(cpar_list, tol=tol,
+                                                  return_solutions=True, forward=False, solutions_types=self._comparison_solutions_types)
+                last_sol = sol[-1]
+                continuation_kwargs['NMX'] = last_sol['PT'] + 1
                 hp.make_backward_continuation(initial_data, **continuation_kwargs)
 
     def _check_po_continuation_against_other_po_branches(self, continuation, continuation_kwargs, extra_comparison_parameters, tol):
@@ -364,7 +415,7 @@ class BifurcationDiagram(object):
                 continuation_kwargs['NMX'] = first_sol['PT'] + 1
                 hp.make_backward_continuation(initial_data, **continuation_kwargs)
                 valid_branch = True
-            if hp.branch_possibly_cross(psol['continuation'], cpar_list, tol=tol, forward=True):
+            elif hp.branch_possibly_cross(psol['continuation'], cpar_list, tol=tol, forward=True):
                 warnings.warn('Not storing full results of  Hopf point at ' + ini_msg + ' because it connects to branch ' + str(n) + '.'
                               '\nSaving only the relevant part.')  # should be a log instead
                 _, sol = hp.branch_possibly_cross(psol['continuation'], cpar_list, tol=tol,
