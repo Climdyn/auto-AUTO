@@ -40,6 +40,14 @@ class Continuation(ABC):
     def make_continuation(self, initial_data, store_name="", only_forward=False, **continuation_kwargs):
         pass
 
+    @abstractmethod
+    def make_forward_continuation(self, initial_data, store_name="", **continuation_kwargs):
+        pass
+
+    @abstractmethod
+    def make_backward_continuation(self, initial_data, store_name="", **continuation_kwargs):
+        pass
+
     def auto_save(self, store_name):
         if self.continuation:
             ac.save(self.continuation[0], store_name + '_forward')
@@ -172,6 +180,10 @@ class Continuation(ABC):
             return n
         else:
             return None
+
+    @property
+    def continuation_parameters(self):
+        return self.continuation[0].c['ICP']
 
     @property
     def solutions_index(self):
