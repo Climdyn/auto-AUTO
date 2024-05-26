@@ -42,6 +42,7 @@ class BifurcationDiagram(object):
 
         self.fp_parent = dict()
         self.fp_bp_computed = list()
+        self.fp_hb_computed = list()
         self.po_parent = dict()
         self.po_bp_computed = list()
         self.po_hb_computed = dict()
@@ -141,11 +142,12 @@ class BifurcationDiagram(object):
             return None
 
         br_num = max(self.fp_branches.keys()) + 1
+        level = 0
 
         # first continue all the Hopf bifurcation
-        for branch in self.fp_branches:
+        for parent_branch_number, branch in self.fp_branches.items():
 
-            hb_list = branch.get_filtered_solutions_list(labels='HB')
+            hb_list = branch['continuation'].get_filtered_solutions_list(labels='HB')
 
             for hb in hb_list:
                 used_continuation_kwargs = continuation_kwargs.copy()
@@ -155,23 +157,34 @@ class BifurcationDiagram(object):
                     used_continuation_kwargs['IPS'] = 2
 
                 if 'ICP' not in used_continuation_kwargs:
-                    if 11 in self.config_object.parnames.keys():
-                        used_continuation_kwargs['ICP'] = [self.config_object.continuation_parameters[0], self.config_object.parnames[11]]
+                    if 11 in self.config_object.parameters_dict.keys():
+                        used_continuation_kwargs['ICP'] = [self.config_object.continuation_parameters[0], self.config_object.parameters_dict[11]]
                     else:
                         used_continuation_kwargs['ICP'] = [self.config_object.continuation_parameters[0], 11]
                 else:
-                    if 11 in self.config_object.parnames.keys():
-                        if self.config_object.parnames[11] not in used_continuation_kwargs['ICP'] or 11 not in used_continuation_kwargs['ICP']:
-                            used_continuation_kwargs['ICP'].append(self.config_object.parnames[11])
+                    if 11 in self.config_object.parameters_dict.keys():
+                        if self.config_object.parameters_dict[11] not in used_continuation_kwargs['ICP'] or 11 not in used_continuation_kwargs['ICP']:
+                            used_continuation_kwargs['ICP'].append(self.config_object.parameters_dict[11])
                     else:
                         if 11 not in used_continuation_kwargs['ICP']:
                             used_continuation_kwargs['ICP'].append(11)
 
+                print(used_continuation_kwargs)
                 hp = PeriodicOrbitContinuation(model_name=self.model_name, config_object=self.config_object)
                 hp.make_continuation(hb, **used_continuation_kwargs)
 
                 self._check_po_continuation_against_other_fp_branches(hp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol)
                 valid_branch = self._check_po_continuation_against_other_po_branches(hp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol)
+
+                if valid_branch:
+                    self.po_branches[hp.branch_number] = {'parameters': hb.PAR, 'continuation': hp, 'continuation_kwargs': used_continuation_kwargs}
+                    self.po_parent[hp.branch_number] = parent_branch_number
+                    br_num += 1
+            self.fp_hb_computed.append(parent_branch_number)
+
+        level += 1
+        if level == end_level:
+            return
 
     @staticmethod
     def _check_if_solutions_are_close(sol1, sol2, extra_comparison_parameters, tol):
@@ -206,8 +219,8 @@ class BifurcationDiagram(object):
         valid_branch = False
         for n, psol in self.fp_branches.items():
             cpar = continuation_kwargs['ICP'][0]
-            if isinstance(cpar, int):
-                cpar = self.config_object.parnames[cpar]
+            if isinstance(cpar, int) and self.config_object.parameters_dict:
+                cpar = self.config_object.parameters_dict[cpar]
             if extra_comparison_parameters is not None:
                 cpar_list = [cpar]
                 cpar_list.extend(extra_comparison_parameters)
@@ -277,8 +290,8 @@ class BifurcationDiagram(object):
 
         for n, psol in self.fp_branches.items():
             cpar = continuation_kwargs['ICP'][0]
-            if isinstance(cpar, int):
-                cpar = self.config_object.parnames[cpar]
+            if isinstance(cpar, int) and self.config_object.parameters_dict:
+                cpar = self.config_object.parameters_dict[cpar]
             if extra_comparison_parameters is not None:
                 cpar_list = [cpar]
                 cpar_list.extend(extra_comparison_parameters)
@@ -301,7 +314,76 @@ class BifurcationDiagram(object):
                 hp.make_backward_continuation(initial_data, **continuation_kwargs)
 
     def _check_po_continuation_against_other_po_branches(self, continuation, continuation_kwargs, extra_comparison_parameters, tol):
-        pass
+
+        hp = continuation
+        initial_data = hp.initial_data
+
+        if isinstance(initial_data, str):
+            ini_msg = initial_data
+        elif isinstance(initial_data, AUTOSolution):
+            par_lst = hp.continuation_parameters
+            par_val = [initial_data.PAR[p] for p in continuation.continuation_parameters]
+            ini_msg = str(par_lst) + " = " + str(par_val)
+        else:
+            ini_msg = '[ unknown ]'
+
+        valid_branch = False
+        for n, psol in self.po_branches.items():
+            cpar = continuation_kwargs['ICP'][0]
+            if isinstance(cpar, int) and self.config_object.parameters_dict:
+                cpar = self.config_object.parameters_dict[cpar]
+            if extra_comparison_parameters is not None:
+                cpar_list = [cpar]
+                cpar_list.extend(extra_comparison_parameters)
+            else:
+                cpar_list = [cpar]
+
+            if hp.same_solutions_as(psol['continuation'], cpar_list, tol=tol, solutions_types=self._comparison_solutions_types):
+                warnings.warn('Not saving results of Hopf point at ' + ini_msg + ' because it already exists (branch ' + str(n) + ').'
+                              '\nSkipping to next one.')  # should be a log instead
+                break
+            elif hp.solutions_in(psol['continuation'], cpar_list, tol=tol, solutions_types=self._comparison_solutions_types):
+                warnings.warn('Not saving results of Hopf point at ' + ini_msg + ' because it is already in branch ' + str(n) + '.'
+                              '\nSkipping to next one.')  # should be a log instead
+                break
+            elif hp.solutions_part_of(psol['continuation'], cpar_list, tol=tol, forward=True, solutions_types=self._comparison_solutions_types):
+                warnings.warn('Not storing full results of Hopf point at ' + ini_msg + ' because it merges with branch ' + str(n) + '.'
+                              '\nSaving only the relevant part.')  # should be a log instead
+                _, common_solutions = hp.solutions_part_of(psol['continuation'], cpar_list, tol=tol,
+                                                           return_solutions=True, forward=True, solutions_types=self._comparison_solutions_types)
+                first_sol = common_solutions[0]
+                continuation_kwargs['NMX'] = first_sol['PT'] + 1
+                hp.make_forward_continuation(initial_data, **continuation_kwargs)
+                valid_branch = True
+            elif hp.solutions_part_of(psol['continuation'], cpar_list, tol=tol, forward=False):
+                warnings.warn('Not storing full results of Hopf point at ' + ini_msg + ' because it merges with branch ' + str(n) + '.'
+                              '\nSaving only the relevant part.')  # should be a log instead
+                _, common_solutions = hp.solutions_part_of(psol['continuation'], cpar_list, tol=tol,
+                                                           return_solutions=True, forward=False, solutions_types=self._comparison_solutions_types)
+                first_sol = common_solutions[0]
+                continuation_kwargs['NMX'] = first_sol['PT'] + 1
+                hp.make_backward_continuation(initial_data, **continuation_kwargs)
+                valid_branch = True
+            if hp.branch_possibly_cross(psol['continuation'], cpar_list, tol=tol, forward=True):
+                warnings.warn('Not storing full results of  Hopf point at ' + ini_msg + ' because it connects to branch ' + str(n) + '.'
+                              '\nSaving only the relevant part.')  # should be a log instead
+                _, sol = hp.branch_possibly_cross(psol['continuation'], cpar_list, tol=tol,
+                                                  return_solutions=True, forward=True, solutions_types=self._comparison_solutions_types)
+                continuation_kwargs['NMX'] = sol['PT'] + 1
+                hp.make_forward_continuation(initial_data, **continuation_kwargs)
+                valid_branch = True
+            elif hp.branch_possibly_cross(psol['continuation'], cpar_list, tol=tol, forward=False):
+                warnings.warn('Not storing full results of  Hopf point at ' + ini_msg + ' because it connects to branch ' + str(n) + '.'
+                              '\nSaving only the relevant part.')  # should be a log instead
+                _, sol = hp.branch_possibly_cross(psol['continuation'], cpar_list, tol=tol,
+                                                  return_solutions=True, forward=False, solutions_types=self._comparison_solutions_types)
+                continuation_kwargs['NMX'] = sol['PT'] + 1
+                hp.make_backward_continuation(initial_data, **continuation_kwargs)
+                valid_branch = True
+        else:
+            valid_branch = True
+
+        return valid_branch
 
     def plot_fixed_points_diagram(self, variables=(0, 1), ax=None, figsize=(10, 8), cmap=None, **kwargs):
 

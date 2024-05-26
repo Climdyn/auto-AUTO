@@ -51,6 +51,16 @@ class ConfigParser(object):
         return [p for n, p in parameters_list]
 
     @property
+    def variables_dict(self):
+        variables_list = self['unames']
+        return {n: v for n, v in variables_list}
+
+    @property
+    def parameters_dict(self):
+        parameters_list = self['parnames']
+        return {n: p for n, p in parameters_list}
+
+    @property
     def parnames(self):
         return self['parnames']
 
