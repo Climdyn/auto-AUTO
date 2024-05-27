@@ -268,10 +268,21 @@ class Continuation(ABC):
                     sd['backward'].extend(self.continuation[1].getLabel(lab))
         return sd
 
-    def solutions_parameters(self, parameters, solutions_types=('HB', 'BP', 'UZ', 'PD', 'TR'), forward=None):
+    def solutions_parameters(self, parameters, solutions_types=('HB', 'BP', 'UZ', 'PD', 'TR', 'LP'), forward=None):
         if not isinstance(parameters, (tuple, list)):
             parameters = [parameters]
-        sl = self.get_filtered_solutions_list(labels=solutions_types, forward=forward)
+        if isinstance(solutions_types, (tuple, list)):
+            sl = self.get_filtered_solutions_list(labels=solutions_types, forward=forward)
+        elif isinstance(solutions_types, str):
+            if solutions_types == 'all':
+                if forward is None:
+                    sl = self.full_solutions_list
+                elif forward:
+                    sl = self.solutions_list_by_direction['forward']
+                else:
+                    sl = self.solutions_list_by_direction['backward']
+        else:
+            sl = self.full_solutions_list
         params = dict()
         for param in parameters:
             par_list = list()
@@ -682,7 +693,7 @@ class Continuation(ABC):
                 ax.set_zlabel(variables_name[2])
         return ax
 
-    def same_solutions_as(self, other, parameters, solutions_types=('HB', 'BP', 'UZ', 'PD', 'TR'), tol=2.e-2):
+    def same_solutions_as(self, other, parameters, solutions_types=('HB', 'BP', 'UZ', 'PD', 'TR', 'LP'), tol=2.e-2):
 
         ssol = self.solutions_parameters(parameters, solutions_types)
         osol = other.solutions_parameters(parameters, solutions_types)
@@ -703,7 +714,7 @@ class Continuation(ABC):
             diff = ssol - osol
             return np.all(np.abs(diff).T < tol)
 
-    def solutions_in(self, other, parameters, solutions_types=('HB', 'BP', 'UZ', 'PD', 'TR'), tol=2.e-2, return_parameters=False, return_solutions=False):
+    def solutions_in(self, other, parameters, solutions_types=('HB', 'BP', 'UZ', 'PD', 'TR', 'LP'), tol=2.e-2, return_parameters=False, return_solutions=False):
         res, params, sol = self.solutions_part_of(other, parameters, solutions_types, tol, True, True, None)
         if res:
             res = [params.shape[1] == self.number_of_solutions]
@@ -719,7 +730,7 @@ class Continuation(ABC):
         else:
             return res
 
-    def solutions_part_of(self, other, parameters, solutions_types=('HB', 'BP', 'UZ', 'PD', 'TR'), tol=2.e-2, return_parameters=False, return_solutions=False, forward=None):
+    def solutions_part_of(self, other, parameters, solutions_types=('HB', 'BP', 'UZ', 'PD', 'TR', 'LP'), tol=2.e-2, return_parameters=False, return_solutions=False, forward=None):
 
         if isinstance(tol, (list, tuple)):
             tol = np.array(tol)
@@ -755,7 +766,7 @@ class Continuation(ABC):
         else:
             return res
 
-    def branch_possibly_cross(self, other, parameters, solutions_types=('HB', 'BP', 'UZ', 'PD', 'TR'), tol=2.e-2, return_parameters=False, return_solutions=False, forward=None):
+    def branch_possibly_cross(self, other, parameters, solutions_types=('HB', 'BP', 'UZ', 'PD', 'TR', 'LP'), tol=2.e-2, return_parameters=False, return_solutions=False, forward=None):
 
         if isinstance(tol, (list, tuple)):
             tol = np.array(tol)
@@ -791,7 +802,7 @@ class Continuation(ABC):
         else:
             return res
 
-    def check_for_repetitions(self, parameters, solutions_types=('HB', 'BP', 'UZ', 'PD', 'TR'), tol=2.e-2, return_parameters=False, return_solutions=False, forward=None):
+    def check_for_repetitions(self, parameters, tol=2.e-2, return_parameters=False, return_solutions=False, forward=None):
 
         if isinstance(tol, (list, tuple)):
             tol = np.array(tol)
@@ -812,7 +823,7 @@ class Continuation(ABC):
             if valid_solution[direction] is not None:
                 idx_dict[direction] = list()
                 idx_list = list()
-                ssol = self.solutions_parameters(parameters, solutions_types, forward=forward_dict[direction])
+                ssol = self.solutions_parameters(parameters, solutions_types='all', forward=forward_dict[direction])
                 sol[direction] = ssol
 
                 npar = ssol.shape[0]

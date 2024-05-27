@@ -50,7 +50,7 @@ class BifurcationDiagram(object):
 
         self.fp_computed = False
         self.po_computed = False
-        self._comparison_solutions_types = ('HB', 'BP', 'UZ', 'PD', 'EP', 'TR')
+        self._comparison_solutions_types = ('HB', 'BP', 'UZ', 'PD', 'EP', 'TR', 'LP')
 
     def compute_fixed_points_diagram(self, initial_points=None, extra_comparison_parameters=None, comparison_tol=2.e-2, **continuation_kwargs):
 
@@ -169,7 +169,6 @@ class BifurcationDiagram(object):
                         if 11 not in used_continuation_kwargs['ICP']:
                             used_continuation_kwargs['ICP'].append(11)
 
-                print(used_continuation_kwargs)
                 hp = PeriodicOrbitContinuation(model_name=self.model_name, config_object=self.config_object)
                 hp.make_continuation(hb, **used_continuation_kwargs)
 
