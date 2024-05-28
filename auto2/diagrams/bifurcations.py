@@ -106,6 +106,7 @@ class BifurcationDiagram(object):
                 if parent_branch_number not in self.fp_bp_computed:
                     used_continuation_kwargs = continuation_kwargs.copy()
                     used_continuation_kwargs['ISW'] = -1
+                    used_continuation_kwargs['PAR'] = {}
 
                     for bp in branching_points:
                         for bpt in bp_list:
@@ -217,7 +218,7 @@ class BifurcationDiagram(object):
         fp = continuation
         initial_data = fp.initial_data
 
-        valid_branch = False
+        valid_branch = True
         for n, psol in self.fp_branches.items():
             cpar = continuation_kwargs['ICP'][0]
             if isinstance(cpar, int) and self.config_object.parameters_dict:
@@ -231,47 +232,64 @@ class BifurcationDiagram(object):
             if fp.same_solutions_as(psol['continuation'], cpar_list, tol=tol, solutions_types=self._comparison_solutions_types):
                 warnings.warn('Not saving results of initial point ' + str(ncomp) + ' because it already exists (branch ' + str(n) + ').'
                               '\nSkipping to next one.')  # should be a log instead
+                valid_branch = False
                 break
             elif fp.solutions_in(psol['continuation'], cpar_list, tol=tol, solutions_types=self._comparison_solutions_types):
                 warnings.warn('Not saving results of initial point ' + str(ncomp) + ' because it is already in branch ' + str(n) + '.'
                               '\nSkipping to next one.')  # should be a log instead
+                valid_branch = False
                 break
-            elif fp.solutions_part_of(psol['continuation'], cpar_list, tol=tol, forward=True, solutions_types=self._comparison_solutions_types):
-                warnings.warn('Not storing full results of initial point ' + str(ncomp) + ' because it merges with branch ' + str(n) + '.'
-                              '\nSaving only the relevant part.')  # should be a log instead
-                _, common_solutions = fp.solutions_part_of(psol['continuation'], cpar_list, tol=tol,
-                                                           return_solutions=True, forward=True, solutions_types=self._comparison_solutions_types)
-                first_sol = common_solutions[0]
-                continuation_kwargs['NMX'] = first_sol['PT'] + 1
-                fp.make_forward_continuation(initial_data, **continuation_kwargs)
-                valid_branch = True
-            elif fp.solutions_part_of(psol['continuation'], cpar_list, tol=tol, forward=False):
-                warnings.warn('Not storing full results of initial point ' + str(ncomp) + ' because it merges with branch ' + str(n) + '.'
-                              '\nSaving only the relevant part.')  # should be a log instead
-                _, common_solutions = fp.solutions_part_of(psol['continuation'], cpar_list, tol=tol,
-                                                           return_solutions=True, forward=False, solutions_types=self._comparison_solutions_types)
-                first_sol = common_solutions[0]
-                continuation_kwargs['NMX'] = first_sol['PT'] + 1
-                fp.make_backward_continuation(initial_data, **continuation_kwargs)
-                valid_branch = True
-            elif fp.branch_possibly_cross(psol['continuation'], cpar_list, tol=tol, forward=True):
-                warnings.warn('Not storing full results of initial point ' + str(ncomp) + ' because it connects to branch ' + str(n) + '.'
-                              '\nSaving only the relevant part.')  # should be a log instead
-                _, sol = fp.branch_possibly_cross(psol['continuation'], cpar_list, tol=tol,
-                                                  return_solutions=True, forward=True, solutions_types=self._comparison_solutions_types)
-                continuation_kwargs['NMX'] = sol['PT'] + 1
-                fp.make_forward_continuation(initial_data, **continuation_kwargs)
-                valid_branch = True
-            elif fp.branch_possibly_cross(psol['continuation'], cpar_list, tol=tol, forward=False):
-                warnings.warn('Not storing full results of initial point ' + str(ncomp) + ' because it connects to branch ' + str(n) + '.'
-                              '\nSaving only the relevant part.')  # should be a log instead
-                _, sol = fp.branch_possibly_cross(psol['continuation'], cpar_list, tol=tol,
-                                                  return_solutions=True, forward=False, solutions_types=self._comparison_solutions_types)
-                continuation_kwargs['NMX'] = sol['PT'] + 1
-                fp.make_backward_continuation(initial_data, **continuation_kwargs)
-                valid_branch = True
-        else:
-            valid_branch = True
+            else:
+                merge = False
+                if fp.solutions_part_of(psol['continuation'], cpar_list, tol=tol, forward=True, solutions_types=self._comparison_solutions_types):
+                    warnings.warn('Not storing full results of initial point ' + str(ncomp) + ' because it merges forward with branch ' + str(n) + '.'
+                                  '\nSaving only the relevant part.')  # should be a log instead
+                    _, common_solutions = fp.solutions_part_of(psol['continuation'], cpar_list, tol=tol,
+                                                               return_solutions=True, forward=True, solutions_types=self._comparison_solutions_types)
+                    first_sol = common_solutions[0]
+                    if first_sol['PT'] != 1:
+                        continuation_kwargs['NMX'] = first_sol['PT'] + 1
+                        fp.make_forward_continuation(initial_data, **continuation_kwargs)
+                        valid_branch = True
+                        merge = True
+                    else:
+                        valid_branch = False
+                if fp.solutions_part_of(psol['continuation'], cpar_list, tol=tol, forward=False):
+                    warnings.warn('Not storing full results of initial point ' + str(ncomp) + ' because it merges backward with branch ' + str(n) + '.'
+                                  '\nSaving only the relevant part.')  # should be a log instead
+                    _, common_solutions = fp.solutions_part_of(psol['continuation'], cpar_list, tol=tol,
+                                                               return_solutions=True, forward=False, solutions_types=self._comparison_solutions_types)
+                    first_sol = common_solutions[0]
+                    if first_sol['PT'] != 1:
+                        continuation_kwargs['NMX'] = first_sol['PT'] + 1
+                        fp.make_backward_continuation(initial_data, **continuation_kwargs)
+                        valid_branch = True
+                        merge = True
+                    else:
+                        valid_branch = False
+                if not merge:
+                    if fp.branch_possibly_cross(psol['continuation'], cpar_list, tol=tol, forward=True):
+                        warnings.warn('Not storing full results of initial point ' + str(ncomp) + ' because it connects forward to branch ' + str(n) + '.'
+                                      '\nSaving only the relevant part.')  # should be a log instead
+                        _, sol = fp.branch_possibly_cross(psol['continuation'], cpar_list, tol=tol,
+                                                          return_solutions=True, forward=True, solutions_types=self._comparison_solutions_types)
+                        if sol['PT'] != 1:
+                            continuation_kwargs['NMX'] = sol['PT'] + 1
+                            fp.make_forward_continuation(initial_data, **continuation_kwargs)
+                            valid_branch = True
+                        else:
+                            valid_branch = False
+                    if fp.branch_possibly_cross(psol['continuation'], cpar_list, tol=tol, forward=False):
+                        warnings.warn('Not storing full results of initial point ' + str(ncomp) + ' because it connects backward to branch ' + str(n) + '.'
+                                      '\nSaving only the relevant part.')  # should be a log instead
+                        _, sol = fp.branch_possibly_cross(psol['continuation'], cpar_list, tol=tol,
+                                                          return_solutions=True, forward=False, solutions_types=self._comparison_solutions_types)
+                        if sol['PT'] != 1:
+                            continuation_kwargs['NMX'] = sol['PT'] + 1
+                            fp.make_backward_continuation(initial_data, **continuation_kwargs)
+                            valid_branch = True
+                        else:
+                            valid_branch = False
 
         return valid_branch
 

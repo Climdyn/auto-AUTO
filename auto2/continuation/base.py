@@ -19,6 +19,7 @@ except KeyError:
     warnings.warn('Unable to find auto directory environment variable.')
 
 import auto.AUTOCommands as ac
+from auto.AUTOExceptions import AUTORuntimeError
 
 # TODO: Check what happens if parameters are integers
 
@@ -52,34 +53,46 @@ class Continuation(ABC):
 
     def auto_save(self, store_name):
         if self.continuation:
-            ac.save(self.continuation[0], store_name + '_forward')
+            if self.continuation[0] is not None:
+                ac.save(self.continuation[0], store_name + '_forward')
             if self.continuation[1] is not None:
                 ac.save(self.continuation[1], store_name + '_backward')
 
     def auto_load(self, store_name):
         self.continuation = list()
-        r = ac.loadbd(store_name + '_forward')
-        self.continuation.append(r)
+        try:
+            r = ac.loadbd(store_name + '_forward')
+            self.continuation.append(r)
+        except (FileNotFoundError, OSError, AUTORuntimeError):
+            self.continuation.append(None)
+
         try:
             r = ac.loadbd(store_name + '_backward')
             self.continuation.append(r)
-        except:
+        except (FileNotFoundError, OSError, AUTORuntimeError):
             self.continuation.append(None)
 
     @property
     def available_variables(self):
         if self.continuation:
-            return self.continuation[0].data[0].keys()
+            if self.continuation[0] is not None:
+                return self.continuation[0].data[0].keys()
+            elif self.continuation[1] is not None:
+                return self.continuation[1].data[0].keys()
+            else:
+                return None
         else:
             return None
 
     def diagnostics(self):
         if self.continuation:
-            s = 'Forward\n-----------------------\n'
-            for t in self.continuation[0].data[0].diagnostics:
-                s += t['Text']
+            s = ''
+            if self.continuation[0] is not None:
+                s += 'Forward\n-----------------------\n'
+                for t in self.continuation[0].data[0].diagnostics:
+                    s += t['Text']
             if self.continuation[1] is not None:
-                s = 'Backward\n-----------------------\n'
+                s += 'Backward\n-----------------------\n'
                 for t in self.continuation[1].data[0].diagnostics:
                     s += t['Text']
             return s
@@ -92,30 +105,37 @@ class Continuation(ABC):
             print(s)
 
     def point_diagnostic(self, idx):
-        if isinstance(idx, str):
-            if idx[0] == '-':
-                idx = self.find_solution_index(idx)
-                if idx is not None:
-                    return self.continuation[1].data[0].diagnostics[idx]['Text']
+        if self.continuation is not None:
+            if isinstance(idx, str):
+                if idx[0] == '-':
+                    idx = self.find_solution_index(idx)
+                    if idx is not None:
+                        return self.continuation[1].data[0].diagnostics[idx]['Text']
+                    else:
+                        warnings.warn('No backward branch to show the diagnostic for.')
+                        return None
                 else:
-                    warnings.warn('No backward branch to show the diagnostic for.')
-                    return None
-            else:
-                idx = self.find_solution_index(idx)
-                if idx is not None:
+                    idx = self.find_solution_index(idx)
+                    if idx is not None:
+                        return self.continuation[0].data[0].diagnostics[idx]
+                    else:
+                        warnings.warn('No forward branch to show the diagnostic for.')
+                        return None
+
+            if idx >= 0:
+                if self.continuation[0] is not None:
                     return self.continuation[0].data[0].diagnostics[idx]
                 else:
+                    warnings.warn('No forward branch to show the diagnostic for.')
+                    return None
+            else:
+                if self.continuation[1] is not None:
+                    return self.continuation[1].data[0].diagnostics[-idx]['Text']
+                else:
                     warnings.warn('No backward branch to show the diagnostic for.')
                     return None
-
-        if idx >= 0:
-            return self.continuation[0].data[0].diagnostics[idx]
         else:
-            if self.continuation[1] is not None:
-                return self.continuation[1].data[0].diagnostics[-idx]['Text']
-            else:
-                warnings.warn('No backward branch to show the diagnostic for.')
-                return None
+            return None
 
     def find_solution_index(self, lab):
         if self.continuation:
@@ -139,20 +159,23 @@ class Continuation(ABC):
                 else:
                     return None
             else:
-                tgt = lab[:2]
-                sn = int(lab[2:])
-                idx = 0
-                count = 0
-                for la in self.solutions_label['forward']:
-                    if la == tgt:
-                        count += 1
-                    if count >= sn:
-                        break
-                    idx += 1
+                if self.solutions_label['forward'] is not None:
+                    tgt = lab[:2]
+                    sn = int(lab[2:])
+                    idx = 0
+                    count = 0
+                    for la in self.solutions_label['forward']:
+                        if la == tgt:
+                            count += 1
+                        if count >= sn:
+                            break
+                        idx += 1
+                    else:
+                        warnings.warn('No solution found.')
+                        return None
+                    return self.solutions_index['forward'][idx]
                 else:
-                    warnings.warn('No solution found.')
                     return None
-                return self.solutions_index['forward'][idx]
         else:
             return None
 
@@ -160,7 +183,10 @@ class Continuation(ABC):
     def stability(self):
         if self.continuation:
             s = list()
-            s.append(self.continuation[0].data[0].stability())
+            if self.continuation[0] is not None:
+                s.append(self.continuation[0].data[0].stability())
+            else:
+                s.append(list())
             if self.continuation[1] is not None:
                 s.append(self.continuation[1].data[0].stability())
             else:
@@ -173,7 +199,10 @@ class Continuation(ABC):
     def number_of_points(self):
         if self.continuation:
             n = list()
-            n.append(self.continuation[0].data[0].stability()[1])
+            if self.continuation[0] is not None:
+                n.append(self.continuation[0].data[0].stability()[1])
+            else:
+                n.append(0)
             if self.continuation[1] is not None:
                 n.append(self.continuation[1].data[0].stability()[1])
             else:
@@ -190,8 +219,11 @@ class Continuation(ABC):
     def solutions_index(self):
         if self.continuation:
             d = dict()
-            idx = self.continuation[0].data[0].labels.getIndices()
-            d['forward'] = idx
+            if self.continuation[0] is not None:
+                idx = self.continuation[0].data[0].labels.getIndices()
+                d['forward'] = idx
+            else:
+                d['forward'] = list()
             if self.continuation[1] is not None:
                 idx = self.continuation[1].data[0].labels.getIndices()
                 d['backward'] = idx
@@ -206,11 +238,14 @@ class Continuation(ABC):
         indices = self.solutions_index
         if indices is not None:
             d = dict()
-            idx = indices['forward']
-            sl = list()
-            for i in idx:
-                sl.append(str(self.continuation[0].data[0].labels.by_index[i].keys()).split("'")[1])
-            d['forward'] = sl
+            if indices['forward']:
+                idx = indices['forward']
+                sl = list()
+                for i in idx:
+                    sl.append(str(self.continuation[0].data[0].labels.by_index[i].keys()).split("'")[1])
+                d['forward'] = sl
+            else:
+                d['forward'] = list()
             if indices['backward']:
                 idx = indices['backward']
                 sl = list()
@@ -227,7 +262,10 @@ class Continuation(ABC):
     def number_of_solutions(self):
         sl = list()
         if self.continuation:
-            sl.append(self.continuation[0].data[0].getLabels()[-1])
+            if self.continuation[0] is not None:
+                sl.append(self.continuation[0].data[0].getLabels()[-1])
+            else:
+                sl.append(0)
             if self.continuation[1] is not None:
                 sl.append(self.continuation[1].data[0].getLabels()[-1])
             else:
@@ -240,20 +278,25 @@ class Continuation(ABC):
     def full_solutions_list_by_label(self):
         sd = self.solutions_list_by_direction_and_by_label
         if sd['backward']:
-            sl = sd['backward'][-1:0:-1]
+            sl = sd['backward']
         else:
             sl = list()
-        sl.extend(sd['forward'])
+        if sd['forward']:
+            sl.extend(sd['forward'])
         return sl
 
     @property
     def full_solutions_list(self):
         sd = self.solutions_list_by_direction
         if sd['backward']:
-            sl = sd['backward'][-1:0:-1]
+            if self.solutions_label['backward'][0] == 'EP':
+                sl = sd['backward'][-1:0:-1]
+            else:
+                sl = sd['backward'][::-1]
         else:
             sl = list()
-        sl.extend(sd['forward'])
+        if sd['forward']:
+            sl.extend(sd['forward'])
         return sl
 
     @property
@@ -288,12 +331,14 @@ class Continuation(ABC):
             sd['backward'] = list()
             if self.continuation[0] is not None:
                 for lab, idx in zip(labels['forward'], indices['forward']):
-                    sol = self.continuation[0].data[0].labels.by_index[idx][lab]
-                    sd['forward'].append(sol['solution'])
+                    if 'solution' in self.continuation[0].data[0].labels.by_index[idx][lab]:
+                        sol = self.continuation[0].data[0].labels.by_index[idx][lab]['solution']
+                        sd['forward'].append(sol)
             if self.continuation[1] is not None:
                 for lab, idx in zip(labels['backward'], indices['backward']):
-                    sol = self.continuation[1].data[0].labels.by_index[idx][lab]
-                    sd['backward'].append(sol['solution'])
+                    if 'solution' in self.continuation[1].data[0].labels.by_index[idx][lab]:
+                        sol = self.continuation[1].data[0].labels.by_index[idx][lab]['solution']
+                        sd['backward'].append(sol)
         return sd
 
     def solutions_parameters(self, parameters, solutions_types=('HB', 'BP', 'UZ', 'PD', 'TR', 'LP'), forward=None):
@@ -385,15 +430,16 @@ class Continuation(ABC):
             new_solutions_list = list()
             for sol in solutions_list:
                 for val in values.T:
+                    sol_val = np.zeros_like(val)
                     for i, param in enumerate(parameters):
                         if isinstance(sol[param], np.ndarray):
-                            diff = abs(max(sol[param]) - val[i])
+                            sol_val[i] = max(sol[param])
                         else:
-                            diff = abs(sol[param]) - val[i]
-                        if diff > tol[i]:
-                            break
-                    else:
+                            sol_val[i] = float(sol[param])
+                    diff = sol_val - val
+                    if np.all(np.abs(diff) < tol):
                         new_solutions_list.append(sol)
+                        break
             solutions_list = new_solutions_list
 
         return solutions_list
@@ -782,12 +828,13 @@ class Continuation(ABC):
                 dif = ssol[:, i] - osol[:, j]
                 if np.all(np.abs(dif) < tol):
                     idx_list.append(i)
+                    break
 
         res = [len(idx_list) > 1]
         if return_parameters:
             res.append(ssol[:, idx_list])
         if return_solutions:
-            res.append(self.get_filtered_solutions_list(parameters=parameters, values=ssol[:, idx_list], tol=tol))
+            res.append(self.get_filtered_solutions_list(parameters=parameters, values=ssol[:, idx_list], tol=tol, forward=forward))
 
         if len(res) == 1:
             return res[0]
@@ -818,19 +865,20 @@ class Continuation(ABC):
                 dif = ssol[:, i] - osol[:, j]
                 if np.all(np.abs(dif) < tol):
                     idx_list.append(i)
+                    break
 
         res = [len(idx_list) == 1]
         if return_parameters:
             res.append(ssol[:, idx_list])
         if return_solutions:
-            res.append(self.get_filtered_solutions_list(parameters=parameters, values=ssol[:, idx_list], tol=tol)[0])
+            res.append(self.get_filtered_solutions_list(parameters=parameters, values=ssol[:, idx_list], tol=tol, forward=forward)[0])
 
         if len(res) == 1:
             return res[0]
         else:
             return res
 
-    def summary(self, print_summary=False):
+    def summary(self):
 
         summary_str = ""
         if self.continuation[0] is not None:
@@ -841,12 +889,15 @@ class Continuation(ABC):
         if self.continuation[1] is not None:
             summary_str += "Backward\n"
             summary_str += "========\n"
-            summary_str += self.continuation[1].summary() + "\n"
-
-        if print_summary:
-            print(summary_str)
+            summary_str += self.continuation[1].summary()
 
         return summary_str
+
+    def print_summary(self):
+
+        if self.continuation:
+            s = self.summary()
+            print(s)
 
     def check_for_repetitions(self, parameters, tol=2.e-2, return_parameters=False, return_solutions=False, forward=None):
 
@@ -895,11 +946,22 @@ class Continuation(ABC):
                         valid_solution[direction].append(False)
 
         if forward is None:
-            res = [valid_solution['backward'] + valid_solution['forward']]
+            if valid_solution['backward'] is not None:
+                res = [valid_solution['backward']]
+            else:
+                res = list([])
+            if valid_solution['forward'] is not None:
+                res[0] += valid_solution['forward']
         elif forward:
-            res = [valid_solution['forward']]
+            if valid_solution['forward'] is not None:
+                res = [valid_solution['forward']]
+            else:
+                res = list([])
         else:
-            res = [valid_solution['backward']]
+            if valid_solution['backward'] is not None:
+                res = [valid_solution['backward']]
+            else:
+                res = list([])
 
         if return_parameters:
             if forward is None:

@@ -64,10 +64,11 @@ initial_points = list()
 for p in fixed_points:
     initial_points.append({'parameters': par, 'initial_data': fixed_points[p]})
 
+print('Found ' + str(len(fixed_points)) + ' fixed points. Computing bifurcation diagram.')
 
 b = BifurcationDiagram('qgs_land-atmosphere_auto')
 
-b.compute_fixed_points_diagram(initial_points, extra_comparison_parameters=['psi_a_2', 'psi_a_5'], comparison_tol=[2.e-2, 1.e-3, 1.e-3],
+b.compute_fixed_points_diagram(initial_points, extra_comparison_parameters=['psi_a_2', 'psi_a_5'], comparison_tol=[1.e-3, 1.e-3, 1.e-3],
                                ICP=['C_go1'], PAR={'C_go1': 300., 2: 300. * 0.4, 3: 0.085, 4: 0.02})
 # b.compute_fixed_points_diagram(initial_points, extra_comparison_parameters=['psi_a_2'], comparison_tol=[2.e-2, 2.e-3],
 #                                ICP=['C_go1'], PAR={'C_go1': 300., 2: 300. * 0.4, 3: 0.085, 4: 0.02})
