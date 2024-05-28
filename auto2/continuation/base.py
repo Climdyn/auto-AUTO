@@ -428,8 +428,8 @@ class Continuation(ABC):
             solutions_list = new_solutions_list
         elif parameters is not None:
             new_solutions_list = list()
-            for sol in solutions_list:
-                for val in values.T:
+            for val in values.T:
+                for sol in solutions_list:
                     sol_val = np.zeros_like(val)
                     for i, param in enumerate(parameters):
                         if isinstance(sol[param], np.ndarray):
@@ -819,9 +819,6 @@ class Continuation(ABC):
         if isinstance(tol, (list, tuple)):
             tol = np.array(tol)
 
-        ssol = _sort_arrays(ssol, npar, tol)
-        osol = _sort_arrays(osol, npar, tol)
-
         idx_list = list()
         for i in range(ssol.shape[1]):
             for j in range(osol.shape[1]):
@@ -855,9 +852,6 @@ class Continuation(ABC):
 
         if isinstance(tol, (list, tuple)):
             tol = np.array(tol)
-
-        ssol = _sort_arrays(ssol, npar, tol)
-        osol = _sort_arrays(osol, npar, tol)
 
         idx_list = list()
         for i in range(ssol.shape[1]):
@@ -899,7 +893,8 @@ class Continuation(ABC):
             s = self.summary()
             print(s)
 
-    def check_for_repetitions(self, parameters, tol=2.e-2, return_parameters=False, return_solutions=False, forward=None):
+    def check_for_repetitions(self, parameters, tol=2.e-2, return_parameters=False, return_non_repeating_solutions=False,
+                              return_repeating_solutions=False, forward=None):
 
         if isinstance(tol, (list, tuple)):
             tol = np.array(tol)
@@ -916,9 +911,11 @@ class Continuation(ABC):
 
         sol = dict()
         idx_dict = dict()
+        ridx_dict = dict()
         for direction in ['forward', 'backward']:
             if valid_solution[direction] is not None:
                 idx_dict[direction] = list()
+                ridx_dict[direction] = list()
                 idx_list = list()
                 ssol = self.solutions_parameters(parameters, solutions_types='all', forward=forward_dict[direction])
                 sol[direction] = ssol
@@ -944,6 +941,7 @@ class Continuation(ABC):
 
                     else:
                         valid_solution[direction].append(False)
+                        ridx_dict[direction].append(i)
 
         if forward is None:
             if valid_solution['backward'] is not None:
@@ -973,7 +971,7 @@ class Continuation(ABC):
 
             res.append(params)
 
-        if return_solutions:
+        if return_non_repeating_solutions:
             if forward is None:
                 sols = (self.get_filtered_solutions_list(parameters=parameters, values=sol['backward'][:, idx_dict['backward']], tol=tol) +
                         self.get_filtered_solutions_list(parameters=parameters, values=sol['forward'][:, idx_dict['forward']], tol=tol))
@@ -983,6 +981,17 @@ class Continuation(ABC):
                 sols = self.get_filtered_solutions_list(parameters=parameters, values=sol['backward'][:, idx_dict['backward']], tol=tol)
 
             res.append(sols)
+
+        if return_repeating_solutions:
+            if forward is None:
+                rsols = (self.get_filtered_solutions_list(parameters=parameters, values=sol['backward'][:, ridx_dict['backward']], tol=tol) +
+                         self.get_filtered_solutions_list(parameters=parameters, values=sol['forward'][:, ridx_dict['forward']], tol=tol))
+            elif forward:
+                rsols = self.get_filtered_solutions_list(parameters=parameters, values=sol['forward'][:, ridx_dict['forward']], tol=tol)
+            else:
+                rsols = self.get_filtered_solutions_list(parameters=parameters, values=sol['backward'][:, ridx_dict['backward']], tol=tol)
+
+            res.append(rsols)
 
         if len(res) == 1:
             return res[0]

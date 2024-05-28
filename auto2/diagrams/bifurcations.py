@@ -85,6 +85,8 @@ class BifurcationDiagram(object):
             fp = FixedPointContinuation(model_name=self.model_name, config_object=self.config_object)
             fp.make_continuation(initial_data, **used_continuation_kwargs)
 
+            self._check_fp_continuation_against_itself(ncomp, fp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol)
+
             valid_branch = self._check_fp_continuation_against_other_fp_branches(ncomp, fp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol)
 
             if valid_branch:
@@ -117,6 +119,7 @@ class BifurcationDiagram(object):
                             fp = FixedPointContinuation(model_name=self.model_name, config_object=self.config_object)
                             fp.make_continuation(bp, **used_continuation_kwargs)
 
+                            self._check_fp_continuation_against_itself(ncomp, fp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol)
                             valid_branch = self._check_fp_continuation_against_other_fp_branches(ncomp, fp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol)
 
                             if valid_branch:
@@ -212,6 +215,54 @@ class BifurcationDiagram(object):
             ssol2 = sol2[params]
         diff = ssol1 - ssol2
         return np.all(np.abs(diff) < tol)
+
+    def _check_fp_continuation_against_itself(self, ncomp, continuation, continuation_kwargs, extra_comparison_parameters, tol):
+
+        fp = continuation
+        initial_data = fp.initial_data
+
+        cpar = continuation_kwargs['ICP'][0]
+        if isinstance(cpar, int) and self.config_object.parameters_dict:
+            cpar = self.config_object.parameters_dict[cpar]
+        if extra_comparison_parameters is not None:
+            cpar_list = [cpar]
+            cpar_list.extend(extra_comparison_parameters)
+        else:
+            cpar_list = [cpar]
+
+        if fp.continuation[0] is not None:
+
+            non_repeating, sol = fp.check_for_repetitions(cpar_list, tol=tol, return_repeating_solutions=True, forward=True)
+            recompute = False
+            for i, v in enumerate(non_repeating[:-1]):
+                if not v and not non_repeating[i+1]:
+                    recompute = True
+                    break
+
+            if recompute:
+                warnings.warn('Not storing full results of initial point ' + str(ncomp) + ' because it repeats itself (forward).'
+                              '\nSaving only the relevant part.')  # should be a log instead
+
+                first_repeating_sol = sol[-1]
+                continuation_kwargs['NMX'] = first_repeating_sol['PT'] + 1
+                fp.make_forward_continuation(initial_data, **continuation_kwargs)
+
+        if fp.continuation[1] is not None:
+
+            non_repeating, sol = fp.check_for_repetitions(cpar_list, tol=tol, return_repeating_solutions=True, forward=False)
+            recompute = False
+            for i, v in enumerate(non_repeating[:-1]):
+                if not v and not non_repeating[i+1]:
+                    recompute = True
+                    break
+
+            if recompute:
+                warnings.warn('Not storing full results of initial point ' + str(ncomp) + ' because it repeats itself (backward).'
+                              '\nSaving only the relevant part.')  # should be a log instead
+
+                first_repeating_sol = sol[-1]
+                continuation_kwargs['NMX'] = first_repeating_sol['PT'] + 1
+                fp.make_backward_continuation(initial_data, **continuation_kwargs)
 
     def _check_fp_continuation_against_other_fp_branches(self, ncomp, continuation, continuation_kwargs, extra_comparison_parameters, tol):
 
@@ -363,10 +414,9 @@ class BifurcationDiagram(object):
                               '\nSaving only the relevant part.')  # should be a log instead
 
                 _, sol = hp.check_for_repetitions(cpar_list, tol=tol,
-                                                  return_solutions=True, forward=True, solutions_types=self._comparison_solutions_types)
+                                                  return_non_repeating_solutions=True, forward=True, solutions_types=self._comparison_solutions_types)
                 last_sol = sol[-1]
                 continuation_kwargs['NMX'] = last_sol['PT'] + 1
-                print(last_sol['PT'])
                 hp.make_forward_continuation(initial_data, **continuation_kwargs)
 
         if hp.continuation[1] is not None:
@@ -376,7 +426,7 @@ class BifurcationDiagram(object):
                               '\nSaving only the relevant part.')  # should be a log instead
 
                 _, sol = hp.check_for_repetitions(cpar_list, tol=tol,
-                                                  return_solutions=True, forward=False, solutions_types=self._comparison_solutions_types)
+                                                  return_non_repeating_solutions=True, forward=False, solutions_types=self._comparison_solutions_types)
                 last_sol = sol[-1]
                 continuation_kwargs['NMX'] = last_sol['PT'] + 1
                 hp.make_backward_continuation(initial_data, **continuation_kwargs)
