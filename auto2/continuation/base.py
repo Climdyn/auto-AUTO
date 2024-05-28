@@ -66,7 +66,6 @@ class Continuation(ABC):
         except:
             self.continuation.append(None)
 
-
     @property
     def available_variables(self):
         if self.continuation:
@@ -238,27 +237,38 @@ class Continuation(ABC):
             return None
 
     @property
-    def full_solutions_list(self):
-        sd = self.solutions_list_by_direction
+    def full_solutions_list_by_label(self):
+        sd = self.solutions_list_by_direction_and_by_label
         if sd['backward']:
-            sl = sd['backward'][1:]
+            sl = sd['backward'][-1:0:-1]
         else:
             sl = list()
         sl.extend(sd['forward'])
         return sl
 
     @property
-    def solutions_list_by_direction(self):
+    def full_solutions_list(self):
+        sd = self.solutions_list_by_direction
+        if sd['backward']:
+            sl = sd['backward'][-1:0:-1]
+        else:
+            sl = list()
+        sl.extend(sd['forward'])
+        return sl
+
+    @property
+    def solutions_list_by_direction_and_by_label(self):
         sd = dict()
         if self.solutions_label is not None:
             sd['forward'] = list()
             sd['backward'] = list()
-            lab_list = list()
-            for lab in self.solutions_label['forward']:
-                if lab not in lab_list:
-                    lab_list.append(lab)
-            for lab in lab_list:
-                sd['forward'].extend(self.continuation[0].getLabel(lab))
+            if self.continuation[0] is not None:
+                lab_list = list()
+                for lab in self.solutions_label['forward']:
+                    if lab not in lab_list:
+                        lab_list.append(lab)
+                for lab in lab_list:
+                    sd['forward'].extend(self.continuation[0].getLabel(lab))
             if self.continuation[1] is not None:
                 lab_list = list()
                 for lab in self.solutions_label['backward']:
@@ -266,6 +276,24 @@ class Continuation(ABC):
                         lab_list.append(lab)
                 for lab in lab_list:
                     sd['backward'].extend(self.continuation[1].getLabel(lab))
+        return sd
+
+    @property
+    def solutions_list_by_direction(self):
+        indices = self.solutions_index
+        labels = self.solutions_label
+        sd = dict()
+        if indices is not None:
+            sd['forward'] = list()
+            sd['backward'] = list()
+            if self.continuation[0] is not None:
+                for lab, idx in zip(labels['forward'], indices['forward']):
+                    sol = self.continuation[0].data[0].labels.by_index[idx][lab]
+                    sd['forward'].append(sol['solution'])
+            if self.continuation[1] is not None:
+                for lab, idx in zip(labels['backward'], indices['backward']):
+                    sol = self.continuation[1].data[0].labels.by_index[idx][lab]
+                    sd['backward'].append(sol['solution'])
         return sd
 
     def solutions_parameters(self, parameters, solutions_types=('HB', 'BP', 'UZ', 'PD', 'TR', 'LP'), forward=None):
@@ -801,6 +829,24 @@ class Continuation(ABC):
             return res[0]
         else:
             return res
+
+    def summary(self, print_summary=False):
+
+        summary_str = ""
+        if self.continuation[0] is not None:
+            summary_str += "Forward\n"
+            summary_str += "=======\n"
+            summary_str += self.continuation[0].summary() + "\n\n"
+
+        if self.continuation[1] is not None:
+            summary_str += "Backward\n"
+            summary_str += "========\n"
+            summary_str += self.continuation[1].summary() + "\n"
+
+        if print_summary:
+            print(summary_str)
+
+        return summary_str
 
     def check_for_repetitions(self, parameters, tol=2.e-2, return_parameters=False, return_solutions=False, forward=None):
 
