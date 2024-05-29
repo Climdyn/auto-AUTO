@@ -211,8 +211,8 @@ class BifurcationDiagram(object):
         ssol1 = np.zeros(npar)
         ssol2 = np.zeros_like(ssol1)
         for i, params in enumerate(comparison_parameters):
-            ssol1 = sol1[params]
-            ssol2 = sol2[params]
+            ssol1[i] = sol1[params]
+            ssol2[i] = sol2[params]
         diff = ssol1 - ssol2
         return np.all(np.abs(diff) < tol)
 
