@@ -211,9 +211,15 @@ class BifurcationDiagram(object):
 
         ssol1 = np.zeros(npar)
         ssol2 = np.zeros_like(ssol1)
-        for i, params in enumerate(comparison_parameters):
-            ssol1[i] = sol1[params]
-            ssol2[i] = sol2[params]
+        for i, param in enumerate(comparison_parameters):
+            if isinstance(sol1[param], np.ndarray):
+                ssol1[i] = max(sol1[param])
+            else:
+                ssol1[i] = float(sol1[param])
+            if isinstance(sol2[param], np.ndarray):
+                ssol2[i] = max(sol2[param])
+            else:
+                ssol2[i] = float(sol2[param])
         diff = ssol1 - ssol2
         return np.all(np.abs(diff) < tol)
 
