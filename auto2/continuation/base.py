@@ -863,9 +863,15 @@ class Continuation(ABC):
 
         res = [len(idx_list) == 1]
         if return_parameters:
-            res.append(ssol[:, idx_list])
+            if res[0]:
+                res.append(ssol[:, idx_list])
+            else:
+                res.append(np.empty(0))
         if return_solutions:
-            res.append(self.get_filtered_solutions_list(parameters=parameters, values=ssol[:, idx_list], tol=tol, forward=forward)[0])
+            if res[0]:
+                res.append(self.get_filtered_solutions_list(parameters=parameters, values=ssol[:, idx_list], tol=tol, forward=forward)[0])
+            else:
+                res.append(None)
 
         if len(res) == 1:
             return res[0]

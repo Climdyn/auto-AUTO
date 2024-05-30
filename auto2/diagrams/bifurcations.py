@@ -1,6 +1,7 @@
 import os
 import sys
 import warnings
+from copy import deepcopy
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -71,7 +72,7 @@ class BifurcationDiagram(object):
             parameters = point['parameters']
             initial_data = point['initial_data']
 
-            used_continuation_kwargs = continuation_kwargs.copy()
+            used_continuation_kwargs = deepcopy(continuation_kwargs)
             if 'PAR' not in used_continuation_kwargs:
                 used_continuation_kwargs['PAR'] = dict()
             for par, val in parameters.items():
@@ -106,7 +107,7 @@ class BifurcationDiagram(object):
                 branching_points = branch['continuation'].get_filtered_solutions_list(labels='BP')
 
                 if parent_branch_number not in self.fp_bp_computed:
-                    used_continuation_kwargs = continuation_kwargs.copy()
+                    used_continuation_kwargs = deepcopy(continuation_kwargs)
                     used_continuation_kwargs['ISW'] = -1
                     used_continuation_kwargs['PAR'] = {}
 
@@ -123,8 +124,8 @@ class BifurcationDiagram(object):
                             valid_branch = self._check_fp_continuation_against_other_fp_branches(ncomp, fp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol)
 
                             if valid_branch:
-                                new_branches[fp.branch_number] = {'parameters': bp.PAR, 'continuation': fp, 'continuation_kwargs': used_continuation_kwargs}
-                                self.fp_parent[fp.branch_number] = parent_branch_number
+                                new_branches[abs(fp.branch_number)] = {'parameters': bp.PAR, 'continuation': fp, 'continuation_kwargs': used_continuation_kwargs}
+                                self.fp_parent[abs(fp.branch_number)] = parent_branch_number
                                 br_num += 1
                             bp_list.append(bp)
                             ncomp += 1
@@ -154,7 +155,7 @@ class BifurcationDiagram(object):
             hb_list = branch['continuation'].get_filtered_solutions_list(labels='HB')
 
             for hb in hb_list:
-                used_continuation_kwargs = continuation_kwargs.copy()
+                used_continuation_kwargs = deepcopy(continuation_kwargs)
                 used_continuation_kwargs['IBR'] = br_num
 
                 if 'IPS' not in used_continuation_kwargs:
@@ -182,8 +183,8 @@ class BifurcationDiagram(object):
                 valid_branch = self._check_po_continuation_against_other_po_branches(hp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol)
 
                 if valid_branch:
-                    self.po_branches[hp.branch_number] = {'parameters': hb.PAR, 'continuation': hp, 'continuation_kwargs': used_continuation_kwargs}
-                    self.po_parent[hp.branch_number] = parent_branch_number
+                    self.po_branches[abs(hp.branch_number)] = {'parameters': hb.PAR, 'continuation': hp, 'continuation_kwargs': used_continuation_kwargs}
+                    self.po_parent[abs(hp.branch_number)] = parent_branch_number
                     br_num += 1
             self.fp_hb_computed.append(parent_branch_number)
 
@@ -240,11 +241,12 @@ class BifurcationDiagram(object):
                     break
 
             if recompute:
-                warnings.warn('Not storing full results of initial point ' + str(ncomp) + ' because it repeats itself (forward).'
-                              '\nSaving only the relevant part.')  # should be a log instead
 
                 first_repeating_sol = repeating_solutions[-1]
-                continuation_kwargs['NMX'] = first_repeating_sol['PT'] + 1
+                nmx = first_repeating_sol['PT'] + 1
+                continuation_kwargs['NMX'] = nmx
+                warnings.warn('Not storing full results of initial point ' + str(ncomp) + ' because it repeats itself (forward).'
+                              '\nSaving only the relevant part. NMX set to ' + str(nmx))  # should be a log instead
                 fp.make_forward_continuation(initial_data, **continuation_kwargs)
 
         if fp.continuation[1] is not None:
@@ -257,11 +259,13 @@ class BifurcationDiagram(object):
                     break
 
             if recompute:
-                warnings.warn('Not storing full results of initial point ' + str(ncomp) + ' because it repeats itself (backward).'
-                              '\nSaving only the relevant part.')  # should be a log instead
 
                 first_repeating_sol = repeating_solutions[-1]
                 continuation_kwargs['NMX'] = first_repeating_sol['PT'] + 1
+                nmx = first_repeating_sol['PT'] + 1
+                continuation_kwargs['NMX'] = nmx
+                warnings.warn('Not storing full results of initial point ' + str(ncomp) + ' because it repeats itself (forward).'
+                              '\nSaving only the relevant part. NMX set to ' + str(nmx))  # should be a log instead
                 fp.make_backward_continuation(initial_data, **continuation_kwargs)
 
     def _check_fp_continuation_against_other_fp_branches(self, ncomp, continuation, continuation_kwargs, extra_comparison_parameters, tol):
@@ -368,19 +372,19 @@ class BifurcationDiagram(object):
             else:
                 cpar_list = [cpar]
 
-            if hp.branch_possibly_cross(psol['continuation'], cpar_list, tol=tol, forward=True):
+            crossing, sol = hp.branch_possibly_cross(psol['continuation'], cpar_list, tol=tol, return_solutions=True, forward=True,
+                                                     solutions_types=self._comparison_solutions_types)
+            if crossing and not self._check_if_solutions_are_close(initial_data, sol, extra_comparison_parameters, tol):
                 warnings.warn('Not storing full results of Hopf point at ' + ini_msg + ' because it connects to branch ' + str(n) + '.'
                               '\nSaving only the relevant part.')  # should be a log instead
-                _, sol = hp.branch_possibly_cross(psol['continuation'], cpar_list, tol=tol,
-                                                  return_solutions=True, forward=True, solutions_types=self._comparison_solutions_types)
                 continuation_kwargs['NMX'] = sol['PT'] + 1
                 hp.make_forward_continuation(initial_data, **continuation_kwargs)
 
-            if hp.branch_possibly_cross(psol['continuation'], cpar_list, tol=tol, forward=False):
+            crossing, sol = hp.branch_possibly_cross(psol['continuation'], cpar_list, tol=tol, return_solutions=True, forward=False,
+                                                     solutions_types=self._comparison_solutions_types)
+            if crossing and not self._check_if_solutions_are_close(initial_data, sol, extra_comparison_parameters, tol):
                 warnings.warn('Not storing full results of Hopf point at ' + ini_msg + ' because it connects to branch ' + str(n) + '.'
                               '\nSaving only the relevant part.')  # should be a log instead
-                _, sol = hp.branch_possibly_cross(psol['continuation'], cpar_list, tol=tol,
-                                                  return_solutions=True, forward=False, solutions_types=self._comparison_solutions_types)
                 continuation_kwargs['NMX'] = sol['PT'] + 1
                 hp.make_backward_continuation(initial_data, **continuation_kwargs)
 
@@ -525,7 +529,7 @@ class BifurcationDiagram(object):
         if cmap is not None:
             cmap = plt.get_cmap(cmap)
 
-        handles = list()
+        new_handles = list()
         for i, b in enumerate(self.fp_branches):
             kwargs['plot_kwargs']['label'] = 'BR '+str(b)
             if cmap is None:
@@ -534,7 +538,10 @@ class BifurcationDiagram(object):
                 kwargs['plot_kwargs']['color'] = cmap(i / self.number_of_branches)
             self.fp_branches[b]['continuation'].plot_branche_parts(variables, ax=ax, **kwargs)
             kwargs['plot_kwargs']['linestyle'] = '-'
-            handles.append(Line2D([], [], **(kwargs['plot_kwargs'])))
+            new_handles.append(Line2D([], [], **(kwargs['plot_kwargs'])))
+
+        handles, _ = ax.get_legend_handles_labels()
+        handles.extend(new_handles)
 
         ax.legend(handles=handles)
 
@@ -550,7 +557,7 @@ class BifurcationDiagram(object):
         if cmap is not None:
             cmap = plt.get_cmap(cmap)
 
-        handles = list()
+        new_handles = list()
         for i, b in enumerate(self.fp_branches):
             kwargs['plot_kwargs']['label'] = 'BR '+str(b)
             if cmap is None:
@@ -559,7 +566,66 @@ class BifurcationDiagram(object):
                 kwargs['plot_kwargs']['color'] = cmap(i / self.number_of_branches)
             self.fp_branches[b]['continuation'].plot_branche_parts_3D(variables, ax=ax, **kwargs)
             kwargs['plot_kwargs']['linestyle'] = '-'
-            handles.append(Line2D([], [], **(kwargs['plot_kwargs'])))
+            new_handles.append(Line2D([], [], **(kwargs['plot_kwargs'])))
+
+        handles, _ = ax.get_legend_handles_labels()
+        handles.extend(new_handles)
+
+        ax.legend(handles=handles)
+
+    def plot_periodic_orbits_diagram(self, variables=(0, 1), ax=None, figsize=(10, 8), cmap=None, **kwargs):
+
+        if 'plot_kwargs' not in kwargs:
+            kwargs['plot_kwargs'] = dict()
+
+        if ax is None:
+            fig = plt.figure(figsize=figsize)
+            ax = fig.gca()
+
+        if cmap is not None:
+            cmap = plt.get_cmap(cmap)
+
+        new_handles = list()
+        for i, b in enumerate(self.po_branches):
+            kwargs['plot_kwargs']['label'] = 'BR '+str(b)
+            if cmap is None:
+                kwargs['plot_kwargs']['color'] = list(TABLEAU_COLORS.keys())[i]
+            else:
+                kwargs['plot_kwargs']['color'] = cmap(i / self.number_of_branches)
+            self.fp_branches[b]['continuation'].plot_branche_parts(variables, ax=ax, **kwargs)
+            kwargs['plot_kwargs']['linestyle'] = '-'
+            new_handles.append(Line2D([], [], **(kwargs['plot_kwargs'])))
+
+        handles, _ = ax.get_legend_handles_labels()
+        handles.extend(new_handles)
+
+        ax.legend(handles=handles)
+
+    def plot_periodic_orbits_diagram_3D(self, variables=(0, 1, 2), ax=None, figsize=(10, 8), cmap=None, **kwargs):
+
+        if 'plot_kwargs' not in kwargs:
+            kwargs['plot_kwargs'] = dict()
+
+        if ax is None:
+            fig = plt.figure(figsize=figsize)
+            ax = fig.add_subplot(projection='3d')
+
+        if cmap is not None:
+            cmap = plt.get_cmap(cmap)
+
+        new_handles = list()
+        for i, b in enumerate(self.po_branches):
+            kwargs['plot_kwargs']['label'] = 'BR '+str(b)
+            if cmap is None:
+                kwargs['plot_kwargs']['color'] = list(TABLEAU_COLORS.keys())[i]
+            else:
+                kwargs['plot_kwargs']['color'] = cmap(i / self.number_of_branches)
+            self.fp_branches[b]['continuation'].plot_branche_parts_3D(variables, ax=ax, **kwargs)
+            kwargs['plot_kwargs']['linestyle'] = '-'
+            new_handles.append(Line2D([], [], **(kwargs['plot_kwargs'])))
+
+        handles, _ = ax.get_legend_handles_labels()
+        handles.extend(new_handles)
 
         ax.legend(handles=handles)
 

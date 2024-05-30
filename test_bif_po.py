@@ -70,5 +70,5 @@ b = BifurcationDiagram('qgs_land-atmosphere_auto')
 b.compute_fixed_points_diagram(initial_points, extra_comparison_parameters=['psi_a_1', 'psi_a_2', 'psi_a_5'], comparison_tol=[1.e-3, 1.e-4, 1.e-4, 1.e-4],
                                ICP=['C_go1'], PAR={'C_go1': 300., 2: 300. * 0.4, 3: 0.085, 4: 0.02})
 
-b.compute_periodic_orbits_diagram(1, extra_comparison_parameters=['psi_a_2', 'psi_a_4', 'psi_a_5'], comparison_tol=[2.e-2, 1.e-3, 1.e-3, 1.e-3],
+b.compute_periodic_orbits_diagram(1, extra_comparison_parameters=['L2-NORM', 'psi_a_2', 'psi_a_4', 'psi_a_5'], comparison_tol=[1.e-3, 1.e-5, 1.e-3, 1.e-3, 1.e-4],
                                   ICP=['C_go1'])
