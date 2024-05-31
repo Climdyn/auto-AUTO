@@ -107,11 +107,13 @@ class BifurcationDiagram(object):
                 branching_points = branch['continuation'].get_filtered_solutions_list(labels='BP')
 
                 if parent_branch_number not in self.fp_bp_computed:
-                    used_continuation_kwargs = deepcopy(continuation_kwargs)
-                    used_continuation_kwargs['ISW'] = -1
-                    used_continuation_kwargs['PAR'] = {}
 
                     for bp in branching_points:
+
+                        used_continuation_kwargs = deepcopy(continuation_kwargs)
+                        used_continuation_kwargs['ISW'] = -1
+                        used_continuation_kwargs['PAR'] = {}
+
                         for bpt in bp_list:
                             if self._check_if_solutions_are_close(bp, bpt, extra_comparison_parameters, comparison_tol):
                                 break
@@ -302,55 +304,65 @@ class BifurcationDiagram(object):
                 break
             else:
                 merge = False
-                if fp.solutions_part_of(psol['continuation'], cpar_list, tol=tol, forward=True, solutions_types=self._comparison_solutions_types):
-                    warnings.warn('Not storing full results of initial point ' + str(ncomp) + ' because it merges forward with branch ' + str(n) + '.'
-                                  '\nSaving only the relevant part.')  # should be a log instead
-                    _, common_solutions = fp.solutions_part_of(psol['continuation'], cpar_list, tol=tol,
-                                                               return_solutions=True, forward=True, solutions_types=self._comparison_solutions_types)
+                part_of, common_solutions = fp.solutions_part_of(psol['continuation'], cpar_list, tol=tol,
+                                                                 return_solutions=True, forward=True, solutions_types=self._comparison_solutions_types)
+                if part_of:
                     first_sol = common_solutions[0]
-                    if first_sol['PT'] != 1:
-                        continuation_kwargs['NMX'] = first_sol['PT'] + 1
+                    nmx = first_sol['PT'] + 1
+                    if nmx > 2:
+                        warnings.warn('Not storing full results of initial point ' + str(ncomp) + ' because it merges forward with branch ' + str(n) + '.'
+                                      '\nSaving only the relevant part. NMX set to ' + str(nmx))  # should be a log instead
+                        continuation_kwargs['NMX'] = nmx
                         fp.make_forward_continuation(initial_data, **continuation_kwargs)
-                        valid_branch = True
                         merge = True
                     else:
-                        valid_branch = False
-                if fp.solutions_part_of(psol['continuation'], cpar_list, tol=tol, forward=False):
-                    warnings.warn('Not storing full results of initial point ' + str(ncomp) + ' because it merges backward with branch ' + str(n) + '.'
-                                  '\nSaving only the relevant part.')  # should be a log instead
-                    _, common_solutions = fp.solutions_part_of(psol['continuation'], cpar_list, tol=tol,
-                                                               return_solutions=True, forward=False, solutions_types=self._comparison_solutions_types)
+                        warnings.warn('Not saving forward results of initial point ' + str(ncomp) + ' because it is already in branch ' + str(n) + '.')
+                        fp.continuation[0] = None
+
+                part_of, common_solutions = fp.solutions_part_of(psol['continuation'], cpar_list, tol=tol,
+                                                                 return_solutions=True, forward=False, solutions_types=self._comparison_solutions_types)
+                if part_of:
                     first_sol = common_solutions[0]
-                    if first_sol['PT'] != 1:
-                        continuation_kwargs['NMX'] = first_sol['PT'] + 1
+                    nmx = first_sol['PT'] + 1
+                    if nmx > 2:
+                        warnings.warn('Not storing full results of initial point ' + str(ncomp) + ' because it merges backward with branch ' + str(n) + '.'
+                                      '\nSaving only the relevant part. NMX set to ' + str(nmx))  # should be a log instead
+                        continuation_kwargs['NMX'] = nmx
                         fp.make_backward_continuation(initial_data, **continuation_kwargs)
-                        valid_branch = True
                         merge = True
                     else:
-                        valid_branch = False
+                        warnings.warn('Not saving backward results of initial point ' + str(ncomp) + ' because it is already in branch ' + str(n) + '.')
+                        fp.continuation[1] = None
+
                 if not merge:
-                    if fp.branch_possibly_cross(psol['continuation'], cpar_list, tol=tol, forward=True):
-                        warnings.warn('Not storing full results of initial point ' + str(ncomp) + ' because it connects forward to branch ' + str(n) + '.'
-                                      '\nSaving only the relevant part.')  # should be a log instead
-                        _, sol = fp.branch_possibly_cross(psol['continuation'], cpar_list, tol=tol,
+                    cross, sol = fp.branch_possibly_cross(psol['continuation'], cpar_list, tol=tol,
                                                           return_solutions=True, forward=True, solutions_types=self._comparison_solutions_types)
-                        if sol['PT'] != 1:
-                            continuation_kwargs['NMX'] = sol['PT'] + 1
+                    if cross:
+                        nmx = sol['PT'] + 1
+                        if nmx > 2:
+                            warnings.warn('Not storing full results of initial point ' + str(ncomp) + ' because it connects forward to branch ' + str(n) + '.'
+                                          '\nSaving only the relevant part. NMX set to ' + str(nmx))  # should be a log instead
+                            continuation_kwargs['NMX'] = nmx
                             fp.make_forward_continuation(initial_data, **continuation_kwargs)
-                            valid_branch = True
                         else:
-                            valid_branch = False
-                    if fp.branch_possibly_cross(psol['continuation'], cpar_list, tol=tol, forward=False):
-                        warnings.warn('Not storing full results of initial point ' + str(ncomp) + ' because it connects backward to branch ' + str(n) + '.'
-                                      '\nSaving only the relevant part.')  # should be a log instead
-                        _, sol = fp.branch_possibly_cross(psol['continuation'], cpar_list, tol=tol,
+                            warnings.warn('Not saving forward results of initial point ' + str(ncomp) + ' because it is already in branch ' + str(n) + '.')
+                            fp.continuation[0] = None
+
+                    cross, sol = fp.branch_possibly_cross(psol['continuation'], cpar_list, tol=tol,
                                                           return_solutions=True, forward=False, solutions_types=self._comparison_solutions_types)
-                        if sol['PT'] != 1:
-                            continuation_kwargs['NMX'] = sol['PT'] + 1
+                    if cross:
+                        nmx = sol['PT'] + 1
+                        if nmx > 2:
+                            warnings.warn('Not storing full results of initial point ' + str(ncomp) + ' because it connects backward to branch ' + str(n) + '.'
+                                          '\nSaving only the relevant part. NMX set to ' + str(nmx))  # should be a log instead
+                            continuation_kwargs['NMX'] = nmx
                             fp.make_backward_continuation(initial_data, **continuation_kwargs)
-                            valid_branch = True
                         else:
-                            valid_branch = False
+                            warnings.warn('Not saving backward results of initial point ' + str(ncomp) + ' because it is already in branch ' + str(n) + '.')
+                            fp.continuation[1] = None
+
+                if fp.continuation[0] is None and fp.continuation[1] is None:
+                    valid_branch = False
 
         return valid_branch
 
@@ -535,21 +547,30 @@ class BifurcationDiagram(object):
         if cmap is not None:
             cmap = plt.get_cmap(cmap)
 
+        colors_list = list(TABLEAU_COLORS.keys())
         new_handles = list()
         for i, b in enumerate(self.fp_branches):
-            kwargs['plot_kwargs']['label'] = 'BR '+str(b)
             if cmap is None:
-                kwargs['plot_kwargs']['color'] = list(TABLEAU_COLORS.keys())[i]
+                kwargs['plot_kwargs']['color'] = colors_list[i]
             else:
                 kwargs['plot_kwargs']['color'] = cmap(i / self.number_of_branches)
             self.fp_branches[b]['continuation'].plot_branche_parts(variables, ax=ax, **kwargs)
+
+        for i, b in enumerate(self.fp_branches):
+            if cmap is None:
+                kwargs['plot_kwargs']['color'] = colors_list[i]
+            else:
+                kwargs['plot_kwargs']['color'] = cmap(i / self.number_of_branches)
             kwargs['plot_kwargs']['linestyle'] = '-'
+            kwargs['plot_kwargs']['label'] = 'BR '+str(b)
             new_handles.append(Line2D([], [], **(kwargs['plot_kwargs'])))
 
         handles, _ = ax.get_legend_handles_labels()
         handles.extend(new_handles)
 
         ax.legend(handles=handles)
+
+        return ax
 
     def plot_fixed_points_diagram_3D(self, variables=(0, 1, 2), ax=None, figsize=(10, 8), cmap=None, **kwargs):
 
@@ -563,21 +584,30 @@ class BifurcationDiagram(object):
         if cmap is not None:
             cmap = plt.get_cmap(cmap)
 
+        colors_list = list(TABLEAU_COLORS.keys())
         new_handles = list()
         for i, b in enumerate(self.fp_branches):
-            kwargs['plot_kwargs']['label'] = 'BR '+str(b)
             if cmap is None:
-                kwargs['plot_kwargs']['color'] = list(TABLEAU_COLORS.keys())[i]
+                kwargs['plot_kwargs']['color'] = colors_list[i]
             else:
                 kwargs['plot_kwargs']['color'] = cmap(i / self.number_of_branches)
             self.fp_branches[b]['continuation'].plot_branche_parts_3D(variables, ax=ax, **kwargs)
+
+        for i, b in enumerate(self.fp_branches):
+            if cmap is None:
+                kwargs['plot_kwargs']['color'] = colors_list[i]
+            else:
+                kwargs['plot_kwargs']['color'] = cmap(i / self.number_of_branches)
             kwargs['plot_kwargs']['linestyle'] = '-'
+            kwargs['plot_kwargs']['label'] = 'BR ' + str(b)
             new_handles.append(Line2D([], [], **(kwargs['plot_kwargs'])))
 
         handles, _ = ax.get_legend_handles_labels()
         handles.extend(new_handles)
 
         ax.legend(handles=handles)
+
+        return ax
 
     def plot_periodic_orbits_diagram(self, variables=(0, 1), ax=None, figsize=(10, 8), cmap=None, **kwargs):
 
