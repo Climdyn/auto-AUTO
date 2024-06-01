@@ -632,7 +632,7 @@ class BifurcationDiagram(object):
                 kwargs['plot_kwargs']['color'] = colors_list[i]
             else:
                 kwargs['plot_kwargs']['color'] = cmap(i / self.number_of_branches)
-            self.fp_branches[b]['continuation'].plot_branche_parts(variables, ax=ax, **kwargs)
+            self.po_branches[b]['continuation'].plot_branche_parts(variables, ax=ax, **kwargs)
 
         for i, b in enumerate(self.po_branches):
             if cmap is None:
@@ -669,7 +669,7 @@ class BifurcationDiagram(object):
                 kwargs['plot_kwargs']['color'] = colors_list[i]
             else:
                 kwargs['plot_kwargs']['color'] = cmap(i / self.number_of_branches)
-            self.fp_branches[b]['continuation'].plot_branche_parts_3D(variables, ax=ax, **kwargs)
+            self.po_branches[b]['continuation'].plot_branche_parts_3D(variables, ax=ax, **kwargs)
 
         for i, b in enumerate(self.po_branches):
             if cmap is None:
