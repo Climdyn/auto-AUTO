@@ -51,7 +51,10 @@ class BifurcationDiagram(object):
 
         self.fp_computed = False
         self.po_computed = False
+
         self._comparison_solutions_types = ('HB', 'BP', 'UZ', 'PD', 'EP', 'TR', 'LP')
+        self._figure_legend_handles = list()
+        self._figure_3d_legend_handles = list()
 
     def compute_fixed_points_diagram(self, initial_points=None, extra_comparison_parameters=None, comparison_tol=2.e-2, **continuation_kwargs):
 
@@ -557,22 +560,22 @@ class BifurcationDiagram(object):
             if cmap is None:
                 kwargs['plot_kwargs']['color'] = colors_list[i]
             else:
-                kwargs['plot_kwargs']['color'] = cmap(i / self.number_of_branches)
+                kwargs['plot_kwargs']['color'] = cmap(i / self.number_of_fp_branches)
             self.fp_branches[b]['continuation'].plot_branche_parts(variables, ax=ax, **kwargs)
 
         for i, b in enumerate(self.fp_branches):
             if cmap is None:
                 kwargs['plot_kwargs']['color'] = colors_list[i]
             else:
-                kwargs['plot_kwargs']['color'] = cmap(i / self.number_of_branches)
+                kwargs['plot_kwargs']['color'] = cmap(i / self.number_of_fp_branches)
             kwargs['plot_kwargs']['linestyle'] = '-'
             kwargs['plot_kwargs']['label'] = 'BR '+str(b)
             new_handles.append(Line2D([], [], **(kwargs['plot_kwargs'])))
 
-        handles, _ = ax.get_legend_handles_labels()
-        handles.extend(new_handles)
+        if len(self._figure_legend_handles) in (0, self.number_of_po_branches):
+            self._figure_legend_handles.extend(new_handles)
 
-        ax.legend(handles=handles)
+        ax.legend(handles=self._figure_legend_handles)
 
         return ax
 
@@ -594,22 +597,22 @@ class BifurcationDiagram(object):
             if cmap is None:
                 kwargs['plot_kwargs']['color'] = colors_list[i]
             else:
-                kwargs['plot_kwargs']['color'] = cmap(i / self.number_of_branches)
+                kwargs['plot_kwargs']['color'] = cmap(i / self.number_of_fp_branches)
             self.fp_branches[b]['continuation'].plot_branche_parts_3D(variables, ax=ax, **kwargs)
 
         for i, b in enumerate(self.fp_branches):
             if cmap is None:
                 kwargs['plot_kwargs']['color'] = colors_list[i]
             else:
-                kwargs['plot_kwargs']['color'] = cmap(i / self.number_of_branches)
+                kwargs['plot_kwargs']['color'] = cmap(i / self.number_of_fp_branches)
             kwargs['plot_kwargs']['linestyle'] = '-'
             kwargs['plot_kwargs']['label'] = 'BR ' + str(b)
             new_handles.append(Line2D([], [], **(kwargs['plot_kwargs'])))
 
-        handles, _ = ax.get_legend_handles_labels()
-        handles.extend(new_handles)
+        if len(self._figure_3d_legend_handles) in (0, self.number_of_po_branches):
+            self._figure_3d_legend_handles.extend(new_handles)
 
-        ax.legend(handles=handles)
+        ax.legend(handles=self._figure_3d_legend_handles)
 
         return ax
 
@@ -631,22 +634,22 @@ class BifurcationDiagram(object):
             if cmap is None:
                 kwargs['plot_kwargs']['color'] = colors_list[i]
             else:
-                kwargs['plot_kwargs']['color'] = cmap(i / self.number_of_branches)
+                kwargs['plot_kwargs']['color'] = cmap(i / self.number_of_po_branches)
             self.po_branches[b]['continuation'].plot_branche_parts(variables, ax=ax, **kwargs)
 
         for i, b in enumerate(self.po_branches):
             if cmap is None:
                 kwargs['plot_kwargs']['color'] = colors_list[i]
             else:
-                kwargs['plot_kwargs']['color'] = cmap(i / self.number_of_branches)
+                kwargs['plot_kwargs']['color'] = cmap(i / self.number_of_po_branches)
             kwargs['plot_kwargs']['linestyle'] = '-'
             kwargs['plot_kwargs']['label'] = 'BR '+str(b)
             new_handles.append(Line2D([], [], **(kwargs['plot_kwargs'])))
 
-        handles, _ = ax.get_legend_handles_labels()
-        handles.extend(new_handles)
+        if len(self._figure_legend_handles) in (0, self.number_of_fp_branches):
+            self._figure_legend_handles.extend(new_handles)
 
-        ax.legend(handles=handles)
+        ax.legend(handles=self._figure_legend_handles)
 
         return ax
 
@@ -668,25 +671,29 @@ class BifurcationDiagram(object):
             if cmap is None:
                 kwargs['plot_kwargs']['color'] = colors_list[i]
             else:
-                kwargs['plot_kwargs']['color'] = cmap(i / self.number_of_branches)
+                kwargs['plot_kwargs']['color'] = cmap(i / self.number_of_po_branches)
             self.po_branches[b]['continuation'].plot_branche_parts_3D(variables, ax=ax, **kwargs)
 
         for i, b in enumerate(self.po_branches):
             if cmap is None:
                 kwargs['plot_kwargs']['color'] = colors_list[i]
             else:
-                kwargs['plot_kwargs']['color'] = cmap(i / self.number_of_branches)
+                kwargs['plot_kwargs']['color'] = cmap(i / self.number_of_po_branches)
             kwargs['plot_kwargs']['linestyle'] = '-'
             kwargs['plot_kwargs']['label'] = 'BR ' + str(b)
             new_handles.append(Line2D([], [], **(kwargs['plot_kwargs'])))
 
-        handles, _ = ax.get_legend_handles_labels()
-        handles.extend(new_handles)
+        if len(self._figure_3d_legend_handles) in (0, self.number_of_fp_branches):
+            self._figure_3d_legend_handles.extend(new_handles)
 
-        ax.legend(handles=handles)
+        ax.legend(handles=self._figure_3d_legend_handles)
 
         return ax
 
     @property
-    def number_of_branches(self):
+    def number_of_fp_branches(self):
         return len(self.fp_branches.keys())
+
+    @property
+    def number_of_po_branches(self):
+        return len(self.po_branches.keys())
