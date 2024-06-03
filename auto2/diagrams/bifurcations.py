@@ -548,7 +548,7 @@ class BifurcationDiagram(object):
             fig = plt.figure(figsize=figsize)
             ax = fig.gca()
 
-        if cmap is not None:
+        if isinstance(cmap, str):
             cmap = plt.get_cmap(cmap)
 
         colors_list = list(TABLEAU_COLORS.keys())
@@ -585,7 +585,7 @@ class BifurcationDiagram(object):
             fig = plt.figure(figsize=figsize)
             ax = fig.add_subplot(projection='3d')
 
-        if cmap is not None:
+        if isinstance(cmap, str):
             cmap = plt.get_cmap(cmap)
 
         colors_list = list(TABLEAU_COLORS.keys())
@@ -622,7 +622,7 @@ class BifurcationDiagram(object):
             fig = plt.figure(figsize=figsize)
             ax = fig.gca()
 
-        if cmap is not None:
+        if isinstance(cmap, str):
             cmap = plt.get_cmap(cmap)
 
         colors_list = list(TABLEAU_COLORS.keys())
@@ -659,7 +659,7 @@ class BifurcationDiagram(object):
             fig = plt.figure(figsize=figsize)
             ax = fig.add_subplot(projection='3d')
 
-        if cmap is not None:
+        if isinstance(cmap, str):
             cmap = plt.get_cmap(cmap)
 
         colors_list = list(TABLEAU_COLORS.keys())
