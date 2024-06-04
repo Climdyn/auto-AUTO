@@ -21,7 +21,9 @@ except KeyError:
 import auto.AUTOCommands as ac
 from auto.AUTOExceptions import AUTORuntimeError
 
-# TODO: Check what happens if parameters are integers
+# TODO: - Check what happens if parameters are integers
+#       - Implement load and save method
+#       - Change continutation attribute to a dict with "forward" and "backward" entries
 
 
 class Continuation(ABC):
@@ -32,6 +34,7 @@ class Continuation(ABC):
         self.continuation = list()
         self.branch_number = None
         self.initial_data = None
+        self.auto_filename_suffix = ""
 
         # plots default behaviours
         self._default_marker = None
@@ -40,37 +43,79 @@ class Continuation(ABC):
         self._default_linewidth = None
 
     @abstractmethod
-    def make_continuation(self, initial_data, store_name="", only_forward=False, **continuation_kwargs):
+    def make_continuation(self, initial_data, auto_suffix="", only_forward=False, **continuation_kwargs):
         pass
 
     @abstractmethod
-    def make_forward_continuation(self, initial_data, store_name="", **continuation_kwargs):
+    def make_forward_continuation(self, initial_data, auto_suffix="", **continuation_kwargs):
         pass
 
     @abstractmethod
-    def make_backward_continuation(self, initial_data, store_name="", **continuation_kwargs):
+    def make_backward_continuation(self, initial_data, auto_suffix="", **continuation_kwargs):
         pass
 
-    def auto_save(self, store_name):
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        state['continuation'] = [None, None]
+        if not self.auto_filename_suffix:
+            warnings.warn('No AUTO filename suffix set. Using a default one.')
+            if self.isfixedpoint:
+                state['auto_filename_sufffix'] = "fp_"+str(self.branch_number)
+            else:
+                state['auto_filename_suffix'] = "po_" + str(self.branch_number)
+        self.auto_save(self.auto_filename_suffix)
+        return state
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+        if self.auto_filename_suffix:
+            self.auto_load(self.auto_filename_suffix)
+        else:
+            warnings.warn('No AUTO filename suffix specified. Unable to load data.')
+
+    def auto_save(self, auto_suffix):
         if self.continuation:
             if self.continuation[0] is not None:
-                ac.save(self.continuation[0], store_name + '_forward')
+                ac.save(self.continuation[0], auto_suffix + '_forward')
             if self.continuation[1] is not None:
-                ac.save(self.continuation[1], store_name + '_backward')
+                ac.save(self.continuation[1], auto_suffix + '_backward')
+        self.auto_filename_suffix = auto_suffix
 
-    def auto_load(self, store_name):
+    def auto_load(self, auto_suffix):
         self.continuation = list()
         try:
-            r = ac.loadbd(store_name + '_forward')
+            r = ac.loadbd(auto_suffix + '_forward')
             self.continuation.append(r)
         except (FileNotFoundError, OSError, AUTORuntimeError):
             self.continuation.append(None)
 
         try:
-            r = ac.loadbd(store_name + '_backward')
+            r = ac.loadbd(auto_suffix + '_backward')
             self.continuation.append(r)
         except (FileNotFoundError, OSError, AUTORuntimeError):
             self.continuation.append(None)
+
+        if self.continuation[0] is None and self.continuation[1] is None:
+            warnings.warn('Files not found. Unable to load data.')
+        else:
+            self.auto_filename_suffix = auto_suffix
+
+    def save(self):
+        pass
+
+    def load(self):
+        pass
+
+    @property
+    def isfixedpoint(self):
+        if self.config_object.parameters_dict[11] not in self.available_variables and 11 not in self.available_variables:
+            return True
+        else:
+            return False
+
+    @property
+    def isperiodicorbit(self):
+        return not self.isfixedpoint
 
     @property
     def available_variables(self):

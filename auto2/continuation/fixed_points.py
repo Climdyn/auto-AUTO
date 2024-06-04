@@ -35,7 +35,7 @@ class FixedPointContinuation(Continuation):
         self._default_linestyle = ' '
         self._default_linewidth = 1.2
 
-    def make_continuation(self, initial_data, store_name="", only_forward=False, **continuation_kwargs):
+    def make_continuation(self, initial_data, auto_suffix="", only_forward=False, **continuation_kwargs):
         runner = ra.runAUTO()
         ac.load(self.model_name, runner=runner)
 
@@ -71,10 +71,10 @@ class FixedPointContinuation(Continuation):
         self.continuation = list([cf, cb])
         self.branch_number = self.continuation[0].data[0].BR
 
-        if store_name:
-            self.auto_save(store_name)
+        if auto_suffix:
+            self.auto_save(auto_suffix)
 
-    def make_forward_continuation(self, initial_data, store_name="", **continuation_kwargs):
+    def make_forward_continuation(self, initial_data, auto_suffix="", **continuation_kwargs):
         runner = ra.runAUTO()
         ac.load(self.model_name, runner=runner)
 
@@ -102,10 +102,10 @@ class FixedPointContinuation(Continuation):
         if self.branch_number is None:
             self.branch_number = self.continuation[0].data[0].BR
 
-        if store_name:
-            self.auto_save(store_name)
+        if auto_suffix:
+            self.auto_save(auto_suffix)
 
-    def make_backward_continuation(self, initial_data, store_name="", **continuation_kwargs):
+    def make_backward_continuation(self, initial_data, auto_suffix="", **continuation_kwargs):
         runner = ra.runAUTO()
         ac.load(self.model_name, runner=runner)
 
@@ -141,8 +141,8 @@ class FixedPointContinuation(Continuation):
         if self.branch_number is None:
             self.branch_number = self.continuation[0].data[0].BR
 
-        if store_name:
-            self.auto_save(store_name)
+        if auto_suffix:
+            self.auto_save(auto_suffix)
 
     def point_stability(self, idx):
         if isinstance(idx, str):
@@ -170,3 +170,10 @@ class FixedPointContinuation(Continuation):
                 warnings.warn('No backward branch to show the diagnostic for.')
                 return None
 
+    @property
+    def isfixedpoint(self):
+        return True
+
+    @property
+    def isperiodicorbit(self):
+        return False
