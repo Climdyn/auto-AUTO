@@ -263,11 +263,11 @@ class Continuation(ABC):
         if self.continuation:
             n = list()
             if self.continuation[0] is not None:
-                n.append(self.continuation[0].data[0].stability()[1])
+                n.append(abs(self.continuation[0].data[0].stability()[-1]))
             else:
                 n.append(0)
             if self.continuation[1] is not None:
-               n.append(self.continuation[1].data[0].stability()[1])
+               n.append(abs(self.continuation[1].data[0].stability()[-1]))
             else:
                 n.append(0)
             return n
