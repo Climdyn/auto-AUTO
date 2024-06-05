@@ -26,3 +26,9 @@ s = fp.get_filtered_solutions_list(labels='HB')[0]
 hp = PeriodicOrbitContinuation('qgs_land-atmosphere_auto', c)
 
 hp.make_continuation(s, ICP=['C_go1', 'T'], IPS=2)
+
+s2 = fp.get_filtered_solutions_list(labels='HB')[1]
+
+hp2 = PeriodicOrbitContinuation('qgs_land-atmosphere_auto', c)
+
+hp2.make_continuation(s2, ICP=['C_go1', 'T'], IPS=2, NMX=385)

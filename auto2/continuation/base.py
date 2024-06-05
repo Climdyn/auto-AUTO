@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 import os
 import sys
 import warnings
+import pickle
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -20,6 +21,7 @@ except KeyError:
 
 import auto.AUTOCommands as ac
 from auto.AUTOExceptions import AUTORuntimeError
+
 
 # TODO: - Check what happens if parameters are integers
 #       - Implement load and save method
@@ -54,24 +56,16 @@ class Continuation(ABC):
     def make_backward_continuation(self, initial_data, auto_suffix="", **continuation_kwargs):
         pass
 
-    def __getstate__(self):
+    def _get_dict(self):
         state = self.__dict__.copy()
         state['continuation'] = [None, None]
-        if not self.auto_filename_suffix:
-            warnings.warn('No AUTO filename suffix set. Using a default one.')
-            if self.isfixedpoint:
-                state['auto_filename_sufffix'] = "fp_"+str(self.branch_number)
-            else:
-                state['auto_filename_suffix'] = "po_" + str(self.branch_number)
-        self.auto_save(self.auto_filename_suffix)
+        if not isinstance(self.initial_data, np.ndarray) and self.initial_data is not None:
+            state['initial_data'] = {key: self.initial_data[key] for key in ['BR', 'PT', 'TY name', 'TY number', 'Label']}
         return state
 
-    def __setstate__(self, state):
-        self.__dict__.update(state)
-        if self.auto_filename_suffix:
-            self.auto_load(self.auto_filename_suffix)
-        else:
-            warnings.warn('No AUTO filename suffix specified. Unable to load data.')
+    @abstractmethod
+    def _set_from_dict(self, state, load_initial_data=True):
+        pass
 
     def auto_save(self, auto_suffix):
         if self.continuation:
@@ -100,11 +94,35 @@ class Continuation(ABC):
         else:
             self.auto_filename_suffix = auto_suffix
 
-    def save(self):
-        pass
+    def save(self, filename=None, auto_filename_suffix=None, **kwargs):
+        if auto_filename_suffix is None:
+            warnings.warn('No AUTO filename suffix set. Using a default one.')
+            if self.isfixedpoint:
+                self.auto_filename_suffix = "fp_"+str(self.branch_number)
+            else:
+                self.auto_filename_suffix = "po_" + str(self.branch_number)
+        else:
+            self.auto_filename_suffix = auto_filename_suffix
+        self.auto_save(self.auto_filename_suffix)
+        if filename is None:
+            warnings.warn('No pickle filename prefix provided. Using a default one.')
+            if self.isfixedpoint:
+                filename = "fp_"+str(self.branch_number)+'.pickle'
+            else:
+                filename = "po_"+str(self.branch_number)+'.pickle'
+        state = self._get_dict()
+        with open(filename, 'wb') as f:
+            pickle.dump(state, f, **kwargs)
 
-    def load(self):
-        pass
+    def load(self, filename, load_initial_data=True, **kwargs):
+        try:
+            with open(filename, 'rb') as f:
+                tmp_dict = pickle.load(f, **kwargs)
+        except FileNotFoundError:
+            warnings.warn('File not found. Unable to load data.')
+            return None
+
+        self._set_from_dict(tmp_dict, load_initial_data=load_initial_data)
 
     @property
     def isfixedpoint(self):
@@ -249,7 +267,7 @@ class Continuation(ABC):
             else:
                 n.append(0)
             if self.continuation[1] is not None:
-                n.append(self.continuation[1].data[0].stability()[1])
+               n.append(self.continuation[1].data[0].stability()[1])
             else:
                 n.append(0)
             return n

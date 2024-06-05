@@ -1,8 +1,7 @@
 import os
 import sys
 import warnings
-
-import matplotlib.pyplot as plt
+import glob
 
 auto_directory = os.environ['AUTO_DIR']
 try:
@@ -21,6 +20,8 @@ import auto.AUTOCommands as ac
 import auto.runAUTO as ra
 from auto.parseS import AUTOSolution
 from auto2.continuation.base import Continuation
+
+import auto2.continuation.fixed_points as fpc
 
 
 class PeriodicOrbitContinuation(Continuation):
@@ -68,7 +69,7 @@ class PeriodicOrbitContinuation(Continuation):
                 cb = None
 
         self.continuation = list([cf, cb])
-        self.branch_number = self.continuation[0].data[0].BR
+        self.branch_number = abs(self.continuation[0].data[0].BR)
 
         if auto_suffix:
             self.auto_save(auto_suffix)
@@ -97,7 +98,7 @@ class PeriodicOrbitContinuation(Continuation):
             self.continuation[0] = cf
 
         if self.branch_number is None:
-            self.branch_number = self.continuation[0].data[0].BR
+            self.branch_number = abs(self.continuation[0].data[0].BR)
 
         if auto_suffix:
             self.auto_save(auto_suffix)
@@ -135,7 +136,7 @@ class PeriodicOrbitContinuation(Continuation):
             self.continuation[1] = cb
 
         if self.branch_number is None:
-            self.branch_number = self.continuation[0].data[0].BR
+            self.branch_number = abs(self.continuation[0].data[0].BR)
 
         if auto_suffix:
             self.auto_save(auto_suffix)
@@ -165,6 +166,49 @@ class PeriodicOrbitContinuation(Continuation):
             else:
                 warnings.warn('No backward branch to show the diagnostic for.')
                 return None
+
+    def _set_from_dict(self, state, load_initial_data=True):
+        self.__dict__.clear()
+        self.__dict__.update(state)
+        if isinstance(self.initial_data, dict) and load_initial_data:
+            branch_number = abs(self.initial_data['BR'])
+            fp_file_list = glob.glob('fp*.pickle')
+            fp_branch_numbers = list(map(lambda filename: int(filename.split('_')[1].split('.')[0]), fp_file_list))
+            if branch_number in fp_branch_numbers:
+                fp = fpc.FixedPointContinuation(self.model_name, self.config_object)
+                try:
+                    fp.load('fp_'+str(branch_number)+'.pickle', load_initial_data=False)
+
+                    for s in fp.full_solutions_list:
+                        if s['PT'] == self.initial_data['PT']:
+                            self.initial_data = s
+                            break
+                except FileNotFoundError:
+                    warnings.warn('Unable to load initial data. Parent branch was not saved.')
+                    self.initial_data = None
+            else:
+                po_file_list = glob.glob('po*.pickle')
+                po_branch_numbers = list(map(lambda s: int(s.split('_')[1].split('.')[0]), po_file_list))
+                if branch_number in po_branch_numbers:
+                    hp = PeriodicOrbitContinuation(self.model_name, self.config_object)
+                    try:
+                        hp.load('po_' + str(branch_number) + '.pickle', load_initial_data=False)
+
+                        for s in hp.full_solutions_list:
+                            if s['PT'] == self.initial_data['PT']:
+                                self.initial_data = s
+                                break
+                    except FileNotFoundError:
+                        warnings.warn('Unable to load initial data. Parent branch was not saved.')
+                        self.initial_data = None
+                else:
+                    warnings.warn('Unable to find initial data.')
+                    self.initial_data = None
+
+        if self.auto_filename_suffix:
+            self.auto_load(self.auto_filename_suffix)
+        else:
+            warnings.warn('No AUTO filename suffix specified. Unable to load data.')
 
     @property
     def isfixedpoint(self):
