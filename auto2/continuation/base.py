@@ -91,20 +91,20 @@ class Continuation(ABC):
 
     def save(self, filename=None, auto_filename_suffix=None, **kwargs):
         if auto_filename_suffix is None:
-            warnings.warn('No AUTO filename suffix set. Using a default one.')
             if self.isfixedpoint:
                 self.auto_filename_suffix = "fp_"+str(self.branch_number)
             else:
                 self.auto_filename_suffix = "po_" + str(self.branch_number)
+            warnings.warn('No AUTO filename suffix set. Using a default one: ' + self.auto_filename_suffix)
         else:
             self.auto_filename_suffix = auto_filename_suffix
         self.auto_save(self.auto_filename_suffix)
         if filename is None:
-            warnings.warn('No pickle filename prefix provided. Using a default one.')
             if self.isfixedpoint:
                 filename = "fp_"+str(self.branch_number)+'.pickle'
             else:
                 filename = "po_"+str(self.branch_number)+'.pickle'
+            warnings.warn('No pickle filename prefix provided. Using a default one: ' + filename)
         state = self._get_dict()
         with open(filename, 'wb') as f:
             pickle.dump(state, f, **kwargs)

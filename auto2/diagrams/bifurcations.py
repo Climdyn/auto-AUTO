@@ -1,6 +1,7 @@
 import os
 import sys
 import warnings
+import pickle
 from copy import deepcopy
 
 import matplotlib.pyplot as plt
@@ -31,11 +32,14 @@ from auto.parseS import AUTOSolution
 
 class BifurcationDiagram(object):
 
-    def __init__(self, model_name):
+    def __init__(self, model_name=None):
 
         self.initial_points = None
         self.model_name = model_name
-        self.config_object = ConfigParser('c.'+model_name)
+        if model_name is not None:
+            self.config_object = ConfigParser('c.'+model_name)
+        else:
+            self.config_object = None
         self.points_list = None  # TODO: to be implemented as property
         self.solutions_list = None  # TODO: to be implemented as property
         self.variables_list = None  # TODO: to be implemented as property
@@ -197,6 +201,56 @@ class BifurcationDiagram(object):
         level += 1
         if level == end_level:
             return
+
+    def _get_dict(self):
+        state = self.__dict__.copy()
+        for branch_number in self.fp_branches:
+            state['fp_branches'][branch_number]['continuation'] = None
+        for branch_number in self.po_branches:
+            state['po_branches'][branch_number]['continuation'] = None
+        state['config_object'] = None
+        return state
+
+    def _set_from_dict(self, state, load_initial_data=True):
+        self.__dict__.clear()
+        self.__dict__.update(state)
+        self.config_object = ConfigParser('c.'+self.model_name)
+        for branch_number in self.fp_branches:
+            fp = FixedPointContinuation(self.model_name, self.config_object)
+            fp.load('fp_' + str(branch_number) + '.pickle', load_initial_data=load_initial_data)
+            self.fp_branches[branch_number]['continuation'] = fp
+        for branch_number in self.po_branches:
+            po = PeriodicOrbitContinuation(self.model_name, self.config_object)
+            po.load('po_' + str(branch_number) + '.pickle', load_initial_data=load_initial_data)
+            self.fp_branches[branch_number]['continuation'] = po
+
+    def _save_fp_branches(self):
+        for branch_number in self.fp_branches:
+            self.fp_branches[branch_number]['continuation'].save()
+
+    def _save_po_branches(self):
+        for branch_number in self.po_branches:
+            self.po_branches[branch_number]['continuation'].save()
+
+    def save(self, filename=None, **kwargs):
+        self._save_fp_branches()
+        self._save_po_branches()
+        if filename is None:
+            filename = self.model_name + '.pickle'
+            warnings.warn('No filename provided. Using a default one: ' + filename)
+        state = self._get_dict()
+        with open(filename, 'wb') as f:
+            pickle.dump(state, f, **kwargs)
+
+    def load(self, filename, load_initial_data=True, **kwargs):
+        try:
+            with open(filename, 'rb') as f:
+                tmp_dict = pickle.load(f, **kwargs)
+        except FileNotFoundError:
+            warnings.warn('File not found. Unable to load data.')
+            return None
+
+        self._set_from_dict(tmp_dict, load_initial_data=load_initial_data)
 
     @staticmethod
     def _check_if_solutions_are_close(sol1, sol2, extra_comparison_parameters, tol):
