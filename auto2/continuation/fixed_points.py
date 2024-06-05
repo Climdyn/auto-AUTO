@@ -68,8 +68,9 @@ class FixedPointContinuation(Continuation):
             else:
                 cb = None
 
-        self.continuation = list([cf, cb])
-        self.branch_number = abs(self.continuation[0].data[0].BR)
+        self.continuation['forward'] = cf
+        self.continuation['backward'] = cb
+        self.branch_number = abs(self.continuation['forward'].data[0].BR)
 
         if auto_suffix:
             self.auto_save(auto_suffix)
@@ -95,12 +96,12 @@ class FixedPointContinuation(Continuation):
             cf = ac.run(self.model_name, U=u, runner=runner, **continuation_kwargs)
 
         if not self.continuation:
-            self.continuation = list([cf, None])
-        else:
-            self.continuation[0] = cf
+            self.continuation['backward'] = None
+
+        self.continuation['forward'] = cf
 
         if self.branch_number is None:
-            self.branch_number = abs(self.continuation[0].data[0].BR)
+            self.branch_number = abs(self.continuation['forward'].data[0].BR)
 
         if auto_suffix:
             self.auto_save(auto_suffix)
@@ -132,14 +133,13 @@ class FixedPointContinuation(Continuation):
             else:
                 cb = ac.run(self.model_name, DS='-', U=u, runner=runner, **continuation_kwargs)
 
-        self.branch_number = self.continuation[0].data[0].BR
         if not self.continuation:
-            self.continuation = list([None, cb])
-        else:
-            self.continuation[1] = cb
+            self.continuation['forward'] = None
+
+        self.continuation['backward'] = cb
 
         if self.branch_number is None:
-            self.branch_number = abs(self.continuation[0].data[0].BR)
+            self.branch_number = abs(self.continuation['backward'].data[0].BR)
 
         if auto_suffix:
             self.auto_save(auto_suffix)
@@ -149,23 +149,23 @@ class FixedPointContinuation(Continuation):
             if idx[0] == '-':
                 idx = self.find_solution_index(idx)
                 if idx is not None:
-                    return self.continuation[1].data[0].diagnostics[idx]['Eigenvalues']
+                    return self.continuation['backward'].data[0].diagnostics[idx]['Eigenvalues']
                 else:
                     warnings.warn('No backward branch to show the diagnostic for.')
                     return None
             else:
                 idx = self.find_solution_index(idx)
                 if idx is not None:
-                    return self.continuation[0].data[0].diagnostics[idx]['Eigenvalues']
+                    return self.continuation['forward'].data[0].diagnostics[idx]['Eigenvalues']
                 else:
                     warnings.warn('No backward branch to show the diagnostic for.')
                     return None
 
         if idx >= 0:
-            return self.continuation[0].data[0].diagnostics[idx]['Eigenvalues']
+            return self.continuation['forward'].data[0].diagnostics[idx]['Eigenvalues']
         else:
-            if self.continuation[1] is not None:
-                return self.continuation[1].data[0].diagnostics[-idx]['Eigenvalues']
+            if self.continuation['backward'] is not None:
+                return self.continuation['backward'].data[0].diagnostics[-idx]['Eigenvalues']
             else:
                 warnings.warn('No backward branch to show the diagnostic for.')
                 return None

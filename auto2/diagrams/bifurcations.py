@@ -26,7 +26,8 @@ from auto2.continuation.periodic_orbits import PeriodicOrbitContinuation
 from auto.parseS import AUTOSolution
 
 
-# TODO: add logging information
+# TODO: - Add logging information
+#       - Implement load and save method
 
 class BifurcationDiagram(object):
 
@@ -242,7 +243,7 @@ class BifurcationDiagram(object):
         else:
             cpar_list = [cpar]
 
-        if fp.continuation[0] is not None:
+        if fp.continuation['forward'] is not None:
 
             non_repeating, repeating_solutions = fp.check_for_repetitions(cpar_list, tol=tol, return_repeating_solutions=True, forward=True)
             recompute = False
@@ -260,7 +261,7 @@ class BifurcationDiagram(object):
                               '\nSaving only the relevant part. NMX set to ' + str(nmx))  # should be a log instead
                 fp.make_forward_continuation(initial_data, **continuation_kwargs)
 
-        if fp.continuation[1] is not None:
+        if fp.continuation['backward'] is not None:
 
             non_repeating, repeating_solutions = fp.check_for_repetitions(cpar_list, tol=tol, return_repeating_solutions=True, forward=False)
             recompute = False
@@ -318,7 +319,7 @@ class BifurcationDiagram(object):
                         fp.make_forward_continuation(initial_data, **continuation_kwargs)
                     else:
                         warnings.warn('Not saving forward results of initial point ' + str(ncomp) + ' because it is already in branch ' + str(n) + '.')
-                        fp.continuation[0] = None
+                        fp.continuation['forward'] = None
                 else:
                     cross_forward, sol = fp.branch_possibly_cross(psol['continuation'], cpar_list, tol=tol,
                                                                   return_solutions=True, forward=True, solutions_types=self._comparison_solutions_types)
@@ -331,7 +332,7 @@ class BifurcationDiagram(object):
                             fp.make_forward_continuation(initial_data, **continuation_kwargs)
                         else:
                             warnings.warn('Not saving forward results of initial point ' + str(ncomp) + ' because it is already in branch ' + str(n) + '.')
-                            fp.continuation[0] = None
+                            fp.continuation['forward'] = None
 
                 merge_backward, common_solutions = fp.solutions_part_of(psol['continuation'], cpar_list, tol=tol,
                                                                         return_solutions=True, forward=False, solutions_types=self._comparison_solutions_types)
@@ -345,7 +346,7 @@ class BifurcationDiagram(object):
                         fp.make_backward_continuation(initial_data, **continuation_kwargs)
                     else:
                         warnings.warn('Not saving backward results of initial point ' + str(ncomp) + ' because it is already in branch ' + str(n) + '.')
-                        fp.continuation[1] = None
+                        fp.continuation['backward'] = None
                 else:
                     cross_backward, sol = fp.branch_possibly_cross(psol['continuation'], cpar_list, tol=tol,
                                                                    return_solutions=True, forward=False, solutions_types=self._comparison_solutions_types)
@@ -358,9 +359,9 @@ class BifurcationDiagram(object):
                             fp.make_backward_continuation(initial_data, **continuation_kwargs)
                         else:
                             warnings.warn('Not saving backward results of initial point ' + str(ncomp) + ' because it is already in branch ' + str(n) + '.')
-                            fp.continuation[1] = None
+                            fp.continuation['backward'] = None
 
-                if fp.continuation[0] is None and fp.continuation[1] is None:
+                if fp.continuation['forward'] is None and fp.continuation['backward'] is None:
                     valid_branch = False
 
         return valid_branch
@@ -430,7 +431,7 @@ class BifurcationDiagram(object):
         else:
             cpar_list = [cpar]
 
-        if hp.continuation[0] is not None:
+        if hp.continuation['forward'] is not None:
 
             non_repeating, repeating_solutions = hp.check_for_repetitions(cpar_list, tol=tol, return_repeating_solutions=True, forward=True)
             recompute = False
@@ -447,7 +448,7 @@ class BifurcationDiagram(object):
                 continuation_kwargs['NMX'] = nmx
                 hp.make_forward_continuation(initial_data, **continuation_kwargs)
 
-        if hp.continuation[1] is not None:
+        if hp.continuation['backward'] is not None:
 
             non_repeating, repeating_solutions = hp.check_for_repetitions(cpar_list, tol=tol, return_repeating_solutions=True, forward=False)
             recompute = False
@@ -511,7 +512,7 @@ class BifurcationDiagram(object):
                     hp.make_forward_continuation(initial_data, **continuation_kwargs)
                 else:
                     cross_forward, sol = hp.branch_possibly_cross(psol['continuation'], cpar_list, tol=tol,
-                                                      return_solutions=True, forward=True, solutions_types=self._comparison_solutions_types)
+                                                                  return_solutions=True, forward=True, solutions_types=self._comparison_solutions_types)
                     if cross_forward:
                         nmx = sol['PT'] + 1
                         warnings.warn('Not storing full results of Hopf point at ' + ini_msg + ' because it connects forward to branch ' + str(n) + '.'
@@ -531,7 +532,7 @@ class BifurcationDiagram(object):
                     hp.make_backward_continuation(initial_data, **continuation_kwargs)
                 else:
                     cross_backward, sol = hp.branch_possibly_cross(psol['continuation'], cpar_list, tol=tol,
-                                                      return_solutions=True, forward=False, solutions_types=self._comparison_solutions_types)
+                                                                   return_solutions=True, forward=False, solutions_types=self._comparison_solutions_types)
 
                     if cross_backward:
                         nmx = sol['PT'] + 1

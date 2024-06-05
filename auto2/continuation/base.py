@@ -24,8 +24,6 @@ from auto.AUTOExceptions import AUTORuntimeError
 
 
 # TODO: - Check what happens if parameters are integers
-#       - Implement load and save method
-#       - Change continutation attribute to a dict with "forward" and "backward" entries
 
 
 class Continuation(ABC):
@@ -33,7 +31,7 @@ class Continuation(ABC):
     def __init__(self, model_name, config_object):
         self.config_object = config_object
         self.model_name = model_name
-        self.continuation = list()
+        self.continuation = dict()
         self.branch_number = None
         self.initial_data = None
         self.auto_filename_suffix = ""
@@ -58,7 +56,10 @@ class Continuation(ABC):
 
     def _get_dict(self):
         state = self.__dict__.copy()
-        state['continuation'] = [None, None]
+        state['continuation'] = {
+            'forward': None,
+            'backward': None
+        }
         if not isinstance(self.initial_data, np.ndarray) and self.initial_data is not None:
             state['initial_data'] = {key: self.initial_data[key] for key in ['BR', 'PT', 'TY name', 'TY number', 'Label']}
         return state
@@ -69,27 +70,21 @@ class Continuation(ABC):
 
     def auto_save(self, auto_suffix):
         if self.continuation:
-            if self.continuation[0] is not None:
-                ac.save(self.continuation[0], auto_suffix + '_forward')
-            if self.continuation[1] is not None:
-                ac.save(self.continuation[1], auto_suffix + '_backward')
+            for direction in ['forward', 'backward']:
+                if self.continuation[direction] is not None:
+                    ac.save(self.continuation[direction], auto_suffix + '_' + direction)
         self.auto_filename_suffix = auto_suffix
 
     def auto_load(self, auto_suffix):
-        self.continuation = list()
-        try:
-            r = ac.loadbd(auto_suffix + '_forward')
-            self.continuation.append(r)
-        except (FileNotFoundError, OSError, AUTORuntimeError):
-            self.continuation.append(None)
+        self.continuation = dict()
+        for direction in ['forward', 'backward']:
+            try:
+                r = ac.loadbd(auto_suffix + '_' + direction)
+                self.continuation[direction] = r
+            except (FileNotFoundError, OSError, AUTORuntimeError):
+                self.continuation[direction] = None
 
-        try:
-            r = ac.loadbd(auto_suffix + '_backward')
-            self.continuation.append(r)
-        except (FileNotFoundError, OSError, AUTORuntimeError):
-            self.continuation.append(None)
-
-        if self.continuation[0] is None and self.continuation[1] is None:
+        if self.continuation['forward'] is None and self.continuation['backward'] is None:
             warnings.warn('Files not found. Unable to load data.')
         else:
             self.auto_filename_suffix = auto_suffix
@@ -138,10 +133,10 @@ class Continuation(ABC):
     @property
     def available_variables(self):
         if self.continuation:
-            if self.continuation[0] is not None:
-                return self.continuation[0].data[0].keys()
-            elif self.continuation[1] is not None:
-                return self.continuation[1].data[0].keys()
+            if self.continuation['forward'] is not None:
+                return self.continuation['forward'].data[0].keys()
+            elif self.continuation['backward'] is not None:
+                return self.continuation['backward'].data[0].keys()
             else:
                 return None
         else:
@@ -150,13 +145,13 @@ class Continuation(ABC):
     def diagnostics(self):
         if self.continuation:
             s = ''
-            if self.continuation[0] is not None:
+            if self.continuation['forward'] is not None:
                 s += 'Forward\n-----------------------\n'
-                for t in self.continuation[0].data[0].diagnostics:
+                for t in self.continuation['forward'].data[0].diagnostics:
                     s += t['Text']
-            if self.continuation[1] is not None:
+            if self.continuation['backward'] is not None:
                 s += 'Backward\n-----------------------\n'
-                for t in self.continuation[1].data[0].diagnostics:
+                for t in self.continuation['backward'].data[0].diagnostics:
                     s += t['Text']
             return s
         else:
@@ -173,27 +168,27 @@ class Continuation(ABC):
                 if idx[0] == '-':
                     idx = self.find_solution_index(idx)
                     if idx is not None:
-                        return self.continuation[1].data[0].diagnostics[idx]['Text']
+                        return self.continuation['backward'].data[0].diagnostics[idx]['Text']
                     else:
                         warnings.warn('No backward branch to show the diagnostic for.')
                         return None
                 else:
                     idx = self.find_solution_index(idx)
                     if idx is not None:
-                        return self.continuation[0].data[0].diagnostics[idx]
+                        return self.continuation['forward'].data[0].diagnostics[idx]
                     else:
                         warnings.warn('No forward branch to show the diagnostic for.')
                         return None
 
             if idx >= 0:
-                if self.continuation[0] is not None:
-                    return self.continuation[0].data[0].diagnostics[idx]
+                if self.continuation['forward'] is not None:
+                    return self.continuation['forward'].data[0].diagnostics[idx]
                 else:
                     warnings.warn('No forward branch to show the diagnostic for.')
                     return None
             else:
-                if self.continuation[1] is not None:
-                    return self.continuation[1].data[0].diagnostics[-idx]['Text']
+                if self.continuation['backward'] is not None:
+                    return self.continuation['backward'].data[0].diagnostics[-idx]['Text']
                 else:
                     warnings.warn('No backward branch to show the diagnostic for.')
                     return None
@@ -245,15 +240,12 @@ class Continuation(ABC):
     @property
     def stability(self):
         if self.continuation:
-            s = list()
-            if self.continuation[0] is not None:
-                s.append(self.continuation[0].data[0].stability())
-            else:
-                s.append(list())
-            if self.continuation[1] is not None:
-                s.append(self.continuation[1].data[0].stability())
-            else:
-                s.append(list())
+            s = dict()
+            for direction in ['forward', 'backward']:
+                if self.continuation[direction] is not None:
+                    s[direction] = self.continuation[direction].data[0].stability()
+                else:
+                    s[direction] = list()
             return s
         else:
             return None
@@ -261,34 +253,39 @@ class Continuation(ABC):
     @property
     def number_of_points(self):
         if self.continuation:
-            n = list()
-            if self.continuation[0] is not None:
-                n.append(abs(self.continuation[0].data[0].stability()[-1]))
-            else:
-                n.append(0)
-            if self.continuation[1] is not None:
-               n.append(abs(self.continuation[1].data[0].stability()[-1]))
-            else:
-                n.append(0)
+            n = dict()
+            for direction in ['forward', 'backward']:
+                if self.continuation[direction] is not None:
+                    n[direction] = abs(self.continuation['forward'].data[0].stability()[-1])
+                else:
+                    n[direction] = 0
             return n
         else:
             return None
 
     @property
     def continuation_parameters(self):
-        return self.continuation[0].c['ICP']
+        if self.continuation:
+            if self.continuation['forward']:
+                return self.continuation['forward'].c['ICP']
+            elif self.continuation['backward']:
+                return self.continuation['backward'].c['ICP']
+            else:
+                return list()
+        else:
+            return list()
 
     @property
     def solutions_index(self):
         if self.continuation:
             d = dict()
-            if self.continuation[0] is not None:
-                idx = self.continuation[0].data[0].labels.getIndices()
+            if self.continuation['forward'] is not None:
+                idx = self.continuation['forward'].data[0].labels.getIndices()
                 d['forward'] = idx
             else:
                 d['forward'] = list()
-            if self.continuation[1] is not None:
-                idx = self.continuation[1].data[0].labels.getIndices()
+            if self.continuation['backward'] is not None:
+                idx = self.continuation['backward'].data[0].labels.getIndices()
                 d['backward'] = idx
             else:
                 d['backward'] = list()
@@ -305,7 +302,7 @@ class Continuation(ABC):
                 idx = indices['forward']
                 sl = list()
                 for i in idx:
-                    sl.append(str(self.continuation[0].data[0].labels.by_index[i].keys()).split("'")[1])
+                    sl.append(str(self.continuation['forward'].data[0].labels.by_index[i].keys()).split("'")[1])
                 d['forward'] = sl
             else:
                 d['forward'] = list()
@@ -313,7 +310,7 @@ class Continuation(ABC):
                 idx = indices['backward']
                 sl = list()
                 for i in idx:
-                    sl.append(str(self.continuation[1].data[0].labels.by_index[i].keys()).split("'")[1])
+                    sl.append(str(self.continuation['backward'].data[0].labels.by_index[i].keys()).split("'")[1])
                 d['backward'] = sl
             else:
                 d['backward'] = list()
@@ -323,17 +320,14 @@ class Continuation(ABC):
 
     @property
     def number_of_solutions(self):
-        sl = list()
+        sd = dict()
         if self.continuation:
-            if self.continuation[0] is not None:
-                sl.append(self.continuation[0].data[0].getLabels()[-1])
-            else:
-                sl.append(0)
-            if self.continuation[1] is not None:
-                sl.append(self.continuation[1].data[0].getLabels()[-1])
-            else:
-                sl.append(0)
-            return sl
+            for direction in ['forward', 'backward']:
+                if self.continuation[direction] is not None:
+                    sd[direction] = self.continuation[direction].data[0].getLabels()[-1]
+                else:
+                    sd[direction] = 0
+            return sd
         else:
             return None
 
@@ -368,20 +362,20 @@ class Continuation(ABC):
         if self.solutions_label is not None:
             sd['forward'] = list()
             sd['backward'] = list()
-            if self.continuation[0] is not None:
+            if self.continuation['forward'] is not None:
                 lab_list = list()
                 for lab in self.solutions_label['forward']:
                     if lab not in lab_list:
                         lab_list.append(lab)
                 for lab in lab_list:
-                    sd['forward'].extend(self.continuation[0].getLabel(lab))
-            if self.continuation[1] is not None:
+                    sd['forward'].extend(self.continuation['forward'].getLabel(lab))
+            if self.continuation['backward'] is not None:
                 lab_list = list()
                 for lab in self.solutions_label['backward']:
                     if lab not in lab_list:
                         lab_list.append(lab)
                 for lab in lab_list:
-                    sd['backward'].extend(self.continuation[1].getLabel(lab))
+                    sd['backward'].extend(self.continuation['backward'].getLabel(lab))
         return sd
 
     @property
@@ -392,15 +386,15 @@ class Continuation(ABC):
         if indices is not None:
             sd['forward'] = list()
             sd['backward'] = list()
-            if self.continuation[0] is not None:
+            if self.continuation['forward'] is not None:
                 for lab, idx in zip(labels['forward'], indices['forward']):
-                    if 'solution' in self.continuation[0].data[0].labels.by_index[idx][lab]:
-                        sol = self.continuation[0].data[0].labels.by_index[idx][lab]['solution']
+                    if 'solution' in self.continuation['forward'].data[0].labels.by_index[idx][lab]:
+                        sol = self.continuation['forward'].data[0].labels.by_index[idx][lab]['solution']
                         sd['forward'].append(sol)
-            if self.continuation[1] is not None:
+            if self.continuation['backward'] is not None:
                 for lab, idx in zip(labels['backward'], indices['backward']):
-                    if 'solution' in self.continuation[1].data[0].labels.by_index[idx][lab]:
-                        sol = self.continuation[1].data[0].labels.by_index[idx][lab]['solution']
+                    if 'solution' in self.continuation['backward'].data[0].labels.by_index[idx][lab]:
+                        sol = self.continuation['backward'].data[0].labels.by_index[idx][lab]['solution']
                         sd['backward'].append(sol)
         return sd
 
@@ -551,26 +545,26 @@ class Continuation(ABC):
             except:
                 var2 = vars[1]
 
-        for branche_part in [0, 1]:
+        for direction in ['forward', 'backward']:
 
-            if self.continuation[branche_part] is not None:
+            if self.continuation[direction] is not None:
 
                 labels = list()
-                for j, coords in enumerate(zip(self.continuation[branche_part][var1], self.continuation[branche_part][var2])):
-                    lab = self.continuation[branche_part].data[0].getIndex(j)['TY name']
+                for j, coords in enumerate(zip(self.continuation[direction][var1], self.continuation[direction][var2])):
+                    lab = self.continuation[direction].data[0].getIndex(j)['TY name']
                     if lab == 'No Label':
                         pass
                     else:
                         labels.append((coords, lab))
 
                 pidx = 0
-                for idx in self.stability[branche_part]:
+                for idx in self.stability[direction]:
                     if idx < 0:
                         ls = '-'
                     else:
                         ls = '--'
                     plot_kwargs['linestyle'] = ls
-                    lines_list = ax.plot(self.continuation[branche_part][var1][pidx:abs(idx)], self.continuation[branche_part][var2][pidx:abs(idx)], **plot_kwargs)
+                    lines_list = ax.plot(self.continuation[direction][var1][pidx:abs(idx)], self.continuation[direction][var2][pidx:abs(idx)], **plot_kwargs)
                     c = lines_list[0].get_color()
                     plot_kwargs['color'] = c
                     pidx = abs(idx)
@@ -651,27 +645,27 @@ class Continuation(ABC):
             except:
                 var3 = vars[2]
 
-        for branche_part in [0, 1]:
+        for direction in ['forward', 'backward']:
 
-            if self.continuation[branche_part] is not None:
+            if self.continuation[direction] is not None:
 
                 labels = list()
-                for j, coords in enumerate(zip(self.continuation[branche_part][var1], self.continuation[branche_part][var2], self.continuation[branche_part][var3])):
-                    lab = self.continuation[branche_part].data[0].getIndex(j)['TY name']
+                for j, coords in enumerate(zip(self.continuation[direction][var1], self.continuation[direction][var2], self.continuation[direction][var3])):
+                    lab = self.continuation[direction].data[0].getIndex(j)['TY name']
                     if lab == 'No Label':
                         pass
                     else:
                         labels.append((coords, lab))
 
                 pidx = 0
-                for idx in self.stability[branche_part]:
+                for idx in self.stability[direction]:
                     if idx < 0:
                         ls = '-'
                     else:
                         ls = '--'
                     plot_kwargs['linestyle'] = ls
-                    lines_list = ax.plot(self.continuation[branche_part][var1][pidx:abs(idx)], self.continuation[branche_part][var2][pidx:abs(idx)],
-                                         self.continuation[branche_part][var3][pidx:abs(idx)], **plot_kwargs)
+                    lines_list = ax.plot(self.continuation[direction][var1][pidx:abs(idx)], self.continuation[direction][var2][pidx:abs(idx)],
+                                         self.continuation[direction][var3][pidx:abs(idx)], **plot_kwargs)
                     c = lines_list[0].get_color()
                     plot_kwargs['color'] = c
                     pidx = abs(idx)
@@ -950,15 +944,15 @@ class Continuation(ABC):
     def summary(self):
 
         summary_str = ""
-        if self.continuation[0] is not None:
+        if self.continuation['forward'] is not None:
             summary_str += "Forward\n"
             summary_str += "=======\n"
-            summary_str += self.continuation[0].summary() + "\n\n"
+            summary_str += self.continuation['forward'].summary() + "\n\n"
 
-        if self.continuation[1] is not None:
+        if self.continuation['backward'] is not None:
             summary_str += "Backward\n"
             summary_str += "========\n"
-            summary_str += self.continuation[1].summary()
+            summary_str += self.continuation['backward'].summary()
 
         return summary_str
 

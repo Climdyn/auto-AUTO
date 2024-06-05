@@ -68,8 +68,9 @@ class PeriodicOrbitContinuation(Continuation):
             else:
                 cb = None
 
-        self.continuation = list([cf, cb])
-        self.branch_number = abs(self.continuation[0].data[0].BR)
+        self.continuation['forward'] = cf
+        self.continuation['backward'] = cb
+        self.branch_number = abs(self.continuation['forward'].data[0].BR)
 
         if auto_suffix:
             self.auto_save(auto_suffix)
@@ -93,12 +94,12 @@ class PeriodicOrbitContinuation(Continuation):
             cf = ac.run(self.model_name, dat=initial_data, runner=runner, **continuation_kwargs)
 
         if not self.continuation:
-            self.continuation = list([cf, None])
-        else:
-            self.continuation[0] = cf
+            self.continuation['backward'] = None
+
+        self.continuation['forward'] = cf
 
         if self.branch_number is None:
-            self.branch_number = abs(self.continuation[0].data[0].BR)
+            self.branch_number = abs(self.continuation['forward'].data[0].BR)
 
         if auto_suffix:
             self.auto_save(auto_suffix)
@@ -129,14 +130,13 @@ class PeriodicOrbitContinuation(Continuation):
             else:
                 cb = ac.run(self.model_name, DS='-', dat=initial_data, runner=runner, **continuation_kwargs)
 
-        self.branch_number = self.continuation[0].data[0].BR
         if not self.continuation:
-            self.continuation = list([None, cb])
-        else:
-            self.continuation[1] = cb
+            self.continuation['forward'] = None
+
+        self.continuation['backward'] = cb
 
         if self.branch_number is None:
-            self.branch_number = abs(self.continuation[0].data[0].BR)
+            self.branch_number = abs(self.continuation['backward'].data[0].BR)
 
         if auto_suffix:
             self.auto_save(auto_suffix)
@@ -146,23 +146,23 @@ class PeriodicOrbitContinuation(Continuation):
             if idx[0] == '-':
                 idx = self.find_solution_index(idx)
                 if idx is not None:
-                    return self.continuation[1].data[0].diagnostics[idx]['Multipliers']
+                    return self.continuation['backward'].data[0].diagnostics[idx]['Multipliers']
                 else:
                     warnings.warn('No backward branch to show the diagnostic for.')
                     return None
             else:
                 idx = self.find_solution_index(idx)
                 if idx is not None:
-                    return self.continuation[0].data[0].diagnostics[idx]['Multipliers']
+                    return self.continuation['forward'].data[0].diagnostics[idx]['Multipliers']
                 else:
                     warnings.warn('No backward branch to show the diagnostic for.')
                     return None
 
         if idx >= 0:
-            return self.continuation[0].data[0].diagnostics[idx]['Multipliers']
+            return self.continuation['forward'].data[0].diagnostics[idx]['Multipliers']
         else:
-            if self.continuation[1] is not None:
-                return self.continuation[1].data[0].diagnostics[-idx]['Multipliers']
+            if self.continuation['backward'] is not None:
+                return self.continuation['backward'].data[0].diagnostics[-idx]['Multipliers']
             else:
                 warnings.warn('No backward branch to show the diagnostic for.')
                 return None
@@ -188,7 +188,7 @@ class PeriodicOrbitContinuation(Continuation):
                     self.initial_data = None
             else:
                 po_file_list = glob.glob('po*.pickle')
-                po_branch_numbers = list(map(lambda s: int(s.split('_')[1].split('.')[0]), po_file_list))
+                po_branch_numbers = list(map(lambda filename: int(filename.split('_')[1].split('.')[0]), po_file_list))
                 if branch_number in po_branch_numbers:
                     hp = PeriodicOrbitContinuation(self.model_name, self.config_object)
                     try:
