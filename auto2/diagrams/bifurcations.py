@@ -203,10 +203,24 @@ class BifurcationDiagram(object):
 
     def _get_dict(self):
         state = self.__dict__.copy()
+        fp_branches = dict()
         for branch_number in self.fp_branches:
-            state['fp_branches'][branch_number]['continuation'] = None
+            fp_branches[branch_number] = dict()
+            for key in self.fp_branches[branch_number]:
+                if key == 'continuation':
+                    fp_branches[branch_number][key] = None
+                else:
+                    fp_branches[branch_number][key] = self.fp_branches[branch_number][key]
+        state['fp_branches'] = fp_branches
+        po_branches = dict()
         for branch_number in self.po_branches:
-            state['po_branches'][branch_number]['continuation'] = None
+            po_branches[branch_number] = dict()
+            for key in self.po_branches[branch_number]:
+                if key == 'continuation':
+                    po_branches[branch_number][key] = None
+                else:
+                    po_branches[branch_number][key] = self.po_branches[branch_number][key]
+        state['po_branches'] = po_branches
         state['config_object'] = None
         return state
 
