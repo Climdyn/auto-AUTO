@@ -28,7 +28,6 @@ from auto.parseS import AUTOSolution
 
 
 # TODO: - Add logging information
-#       - Implement load and save method
 
 class BifurcationDiagram(object):
 
@@ -222,7 +221,7 @@ class BifurcationDiagram(object):
         for branch_number in self.po_branches:
             po = PeriodicOrbitContinuation(self.model_name, self.config_object)
             po.load('po_' + str(branch_number) + '.pickle', load_initial_data=load_initial_data)
-            self.fp_branches[branch_number]['continuation'] = po
+            self.po_branches[branch_number]['continuation'] = po
 
     def _save_fp_branches(self):
         for branch_number in self.fp_branches:
