@@ -28,7 +28,6 @@ from auto.parseS import AUTOSolution
 
 
 # TODO: - Add logging information
-#       - Implement solutions plots
 
 class BifurcationDiagram(object):
 
@@ -623,6 +622,7 @@ class BifurcationDiagram(object):
         if isinstance(cmap, str):
             cmap = plt.get_cmap(cmap)
 
+        used_colors = dict()
         colors_list = list(TABLEAU_COLORS.keys())
         new_handles = list()
         for i, b in enumerate(self.fp_branches):
@@ -631,6 +631,7 @@ class BifurcationDiagram(object):
             else:
                 kwargs['plot_kwargs']['color'] = cmap(i / self.number_of_fp_branches)
             self.fp_branches[b]['continuation'].plot_branche_parts(variables, ax=ax, **kwargs)
+            used_colors[b] = kwargs['plot_kwargs']['color']
 
         for i, b in enumerate(self.fp_branches):
             if cmap is None:
@@ -646,7 +647,7 @@ class BifurcationDiagram(object):
 
         ax.legend(handles=self._figure_legend_handles)
 
-        return ax
+        return ax, used_colors
 
     def plot_fixed_points_diagram_3D(self, variables=(0, 1, 2), ax=None, figsize=(10, 8), cmap=None, **kwargs):
 
@@ -660,6 +661,7 @@ class BifurcationDiagram(object):
         if isinstance(cmap, str):
             cmap = plt.get_cmap(cmap)
 
+        used_colors = dict()
         colors_list = list(TABLEAU_COLORS.keys())
         new_handles = list()
         for i, b in enumerate(self.fp_branches):
@@ -668,6 +670,7 @@ class BifurcationDiagram(object):
             else:
                 kwargs['plot_kwargs']['color'] = cmap(i / self.number_of_fp_branches)
             self.fp_branches[b]['continuation'].plot_branche_parts_3D(variables, ax=ax, **kwargs)
+            used_colors[b] = kwargs['plot_kwargs']['color']
 
         for i, b in enumerate(self.fp_branches):
             if cmap is None:
@@ -683,7 +686,7 @@ class BifurcationDiagram(object):
 
         ax.legend(handles=self._figure_3d_legend_handles)
 
-        return ax
+        return ax, used_colors
 
     def plot_periodic_orbits_diagram(self, variables=(0, 1), ax=None, figsize=(10, 8), cmap=None, **kwargs):
 
@@ -697,6 +700,7 @@ class BifurcationDiagram(object):
         if isinstance(cmap, str):
             cmap = plt.get_cmap(cmap)
 
+        used_colors = dict()
         colors_list = list(TABLEAU_COLORS.keys())
         new_handles = list()
         for i, b in enumerate(self.po_branches):
@@ -705,6 +709,7 @@ class BifurcationDiagram(object):
             else:
                 kwargs['plot_kwargs']['color'] = cmap(i / self.number_of_po_branches)
             self.po_branches[b]['continuation'].plot_branche_parts(variables, ax=ax, **kwargs)
+            used_colors[b] = kwargs['plot_kwargs']['color']
 
         for i, b in enumerate(self.po_branches):
             if cmap is None:
@@ -720,7 +725,7 @@ class BifurcationDiagram(object):
 
         ax.legend(handles=self._figure_legend_handles)
 
-        return ax
+        return ax, used_colors
 
     def plot_periodic_orbits_diagram_3D(self, variables=(0, 1, 2), ax=None, figsize=(10, 8), cmap=None, **kwargs):
 
@@ -734,6 +739,7 @@ class BifurcationDiagram(object):
         if isinstance(cmap, str):
             cmap = plt.get_cmap(cmap)
 
+        used_colors = dict()
         colors_list = list(TABLEAU_COLORS.keys())
         new_handles = list()
         for i, b in enumerate(self.po_branches):
@@ -742,6 +748,7 @@ class BifurcationDiagram(object):
             else:
                 kwargs['plot_kwargs']['color'] = cmap(i / self.number_of_po_branches)
             self.po_branches[b]['continuation'].plot_branche_parts_3D(variables, ax=ax, **kwargs)
+            used_colors[b] = kwargs['plot_kwargs']['color']
 
         for i, b in enumerate(self.po_branches):
             if cmap is None:
@@ -757,10 +764,10 @@ class BifurcationDiagram(object):
 
         ax.legend(handles=self._figure_3d_legend_handles)
 
-        return ax
+        return ax, used_colors
 
-    def plot_diagram_and_solutions(self, solutions_parameter_value, diagram_variables=(1, ), solutions_variables=(0, 1),
-                                   axes=None, figsize=(10, 16), fixed_points_diagram_kwargs=None, periodic_orbits_diagram_kwargs=None,
+    def plot_diagram_and_solutions(self, solutions_parameter_value, diagram_variables=(1,), solutions_variables=(0, 1),
+                                   axes=None, figsize=(10, 16), solutions_tol=0.01, fixed_points_diagram_kwargs=None, periodic_orbits_diagram_kwargs=None,
                                    solutions_kwargs=None):
 
         if axes is None:
@@ -779,21 +786,157 @@ class BifurcationDiagram(object):
             if fixed_points_diagram_kwargs is None:
                 fixed_points_diagram_kwargs = dict()
 
-            self.plot_fixed_points_diagram(variables=(parameter, diagram_variables[0]), ax=axes[0], **fixed_points_diagram_kwargs)
+            _, fp_used_colors = self.plot_fixed_points_diagram(variables=(parameter, diagram_variables[0]), ax=axes[0], **fixed_points_diagram_kwargs)
 
         if self.po_branches:
             if periodic_orbits_diagram_kwargs is None:
                 periodic_orbits_diagram_kwargs = dict()
 
-            self.plot_periodic_orbits_diagram(variables=(parameter, diagram_variables[0]), ax=axes[0], **periodic_orbits_diagram_kwargs)
+            _, po_used_colors = self.plot_periodic_orbits_diagram(variables=(parameter, diagram_variables[0]), ax=axes[0], **periodic_orbits_diagram_kwargs)
 
         axes[0].axvline(x=solutions_parameter_value, linestyle='--', color='k', linewidth=1.2)
         axes[0].set_title('Bifurcation diagram')
 
         # part on solutions
 
+        if solutions_kwargs is None:
+            solutions_kwargs = dict()
+
+        if 'plot_kwargs' not in solutions_kwargs:
+            solutions_kwargs['plot_kwargs'] = dict()
+
+        for branch_number in self.fp_branches:
+
+            fp = self.fp_branches[branch_number]['continuation']
+            solutions_kwargs['plot_kwargs']['color'] = fp_used_colors[branch_number]
+            fp.plot_solutions(solutions_variables, ax=axes[1], parameter=parameter, value=solutions_parameter_value, tol=solutions_tol, **solutions_kwargs)
+
+        for branch_number in self.po_branches:
+
+            hp = self.po_branches[branch_number]['continuation']
+            solutions_kwargs['plot_kwargs']['color'] = po_used_colors[branch_number]
+            hp.plot_solutions(solutions_variables, ax=axes[1], parameter=parameter, value=solutions_parameter_value, tol=solutions_tol, **solutions_kwargs)
+
+        axes[1].set_title('Solution in phase space')
+
         return axes
 
+    def plot_diagram_in_3D_and_solutions_in_3D(self, solutions_parameter_value, diagram_variables=(1, 2), solutions_variables=(0, 1, 2),
+                                               axes=None, figsize=(10, 16), solutions_tol=0.01, fixed_points_diagram_kwargs=None,
+                                               periodic_orbits_diagram_kwargs=None, solutions_kwargs=None):
+
+        if axes is None:
+            fig, axes = plt.subplots(2, 1, figsize=figsize, subplot_kw={'projection': '3d'})
+
+        if self.fp_branches:
+            n = next(iter(self.fp_branches))
+            parameter = self.fp_branches[n]['continuation_kwargs']['ICP']
+        elif self.po_branches:
+            n = next(iter(self.po_branches))
+            parameter = self.po_branches[n]['continuation_kwargs']['ICP']
+        else:
+            return None
+
+        if self.fp_branches:
+            if fixed_points_diagram_kwargs is None:
+                fixed_points_diagram_kwargs = dict()
+
+            _, fp_used_colors = self.plot_fixed_points_diagram_3D(variables=(parameter, *diagram_variables), ax=axes[0], **fixed_points_diagram_kwargs)
+
+        if self.po_branches:
+            if periodic_orbits_diagram_kwargs is None:
+                periodic_orbits_diagram_kwargs = dict()
+
+            _, po_used_colors = self.plot_periodic_orbits_diagram_3D(variables=(parameter, *diagram_variables), ax=axes[0], **periodic_orbits_diagram_kwargs)
+
+        # axes[0].axvline(x=solutions_parameter_value, linestyle='--', color='k', linewidth=1.2)
+        axes[0].set_title('Bifurcation diagram')
+
+        # part on solutions
+
+        if solutions_kwargs is None:
+            solutions_kwargs = dict()
+
+        if 'plot_kwargs' not in solutions_kwargs:
+            solutions_kwargs['plot_kwargs'] = dict()
+
+        for branch_number in self.fp_branches:
+
+            fp = self.fp_branches[branch_number]['continuation']
+            solutions_kwargs['plot_kwargs']['color'] = fp_used_colors[branch_number]
+            fp.plot_solutions_3D(solutions_variables, ax=axes[1], parameter=parameter, value=solutions_parameter_value, tol=solutions_tol, **solutions_kwargs)
+
+        for branch_number in self.po_branches:
+
+            hp = self.po_branches[branch_number]['continuation']
+            solutions_kwargs['plot_kwargs']['color'] = po_used_colors[branch_number]
+            hp.plot_solutions_3D(solutions_variables, ax=axes[1], parameter=parameter, value=solutions_parameter_value, tol=solutions_tol, **solutions_kwargs)
+
+        axes[1].set_title('Solution in phase space')
+
+        return axes
+
+    def plot_diagram_and_solutions_in_3D(self, solutions_parameter_value, diagram_variables=(1,), solutions_variables=(0, 1, 2),
+                                         axes=None, figsize=(10, 16), solutions_tol=0.01, fixed_points_diagram_kwargs=None,
+                                         periodic_orbits_diagram_kwargs=None, solutions_kwargs=None):
+
+        if axes is None:
+            axes = list()
+            fig = plt.figure(figsize=figsize)
+            ax = fig.add_subplot(2, 1, 1)
+            axes.append(ax)
+            ax = fig.add_subplot(2, 1, 2, projection='3d')
+            axes.append(ax)
+
+        if self.fp_branches:
+            n = next(iter(self.fp_branches))
+            parameter = self.fp_branches[n]['continuation_kwargs']['ICP']
+        elif self.po_branches:
+            n = next(iter(self.po_branches))
+            parameter = self.po_branches[n]['continuation_kwargs']['ICP']
+        else:
+            return None
+
+        if self.fp_branches:
+            if fixed_points_diagram_kwargs is None:
+                fixed_points_diagram_kwargs = dict()
+
+            _, fp_used_colors = self.plot_fixed_points_diagram(variables=(parameter, diagram_variables[0]), ax=axes[0], **fixed_points_diagram_kwargs)
+
+        if self.po_branches:
+            if periodic_orbits_diagram_kwargs is None:
+                periodic_orbits_diagram_kwargs = dict()
+
+            _, po_used_colors = self.plot_periodic_orbits_diagram(variables=(parameter, diagram_variables[0]), ax=axes[0], **periodic_orbits_diagram_kwargs)
+
+        axes[0].axvline(x=solutions_parameter_value, linestyle='--', color='k', linewidth=1.2)
+        axes[0].set_title('Bifurcation diagram')
+
+        # part on solutions
+
+        if solutions_kwargs is None:
+            solutions_kwargs = dict()
+
+        if 'plot_kwargs' not in solutions_kwargs:
+            solutions_kwargs['plot_kwargs'] = dict()
+
+        for branch_number in self.fp_branches:
+
+            fp = self.fp_branches[branch_number]['continuation']
+            solutions_kwargs['plot_kwargs']['color'] = fp_used_colors[branch_number]
+            fp.plot_solutions_3D(solutions_variables, ax=axes[1], parameter=parameter, value=solutions_parameter_value, tol=solutions_tol, **solutions_kwargs)
+
+        for branch_number in self.po_branches:
+
+            hp = self.po_branches[branch_number]['continuation']
+            solutions_kwargs['plot_kwargs']['color'] = po_used_colors[branch_number]
+            hp.plot_solutions_3D(solutions_variables, ax=axes[1], parameter=parameter, value=solutions_parameter_value, tol=solutions_tol, **solutions_kwargs)
+
+        axes[1].set_title('Solution in phase space')
+
+        return axes
+        # TODO
+        pass
 
     @property
     def number_of_fp_branches(self):
