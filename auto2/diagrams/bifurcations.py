@@ -28,6 +28,7 @@ from auto.parseS import AUTOSolution
 
 
 # TODO: - Add logging information
+#       - Implement solutions plots
 
 class BifurcationDiagram(object):
 
@@ -757,6 +758,42 @@ class BifurcationDiagram(object):
         ax.legend(handles=self._figure_3d_legend_handles)
 
         return ax
+
+    def plot_diagram_and_solutions(self, solutions_parameter_value, diagram_variables=(1, ), solutions_variables=(0, 1),
+                                   axes=None, figsize=(10, 16), fixed_points_diagram_kwargs=None, periodic_orbits_diagram_kwargs=None,
+                                   solutions_kwargs=None):
+
+        if axes is None:
+            fig, axes = plt.subplots(2, 1, figsize=figsize)
+
+        if self.fp_branches:
+            n = next(iter(self.fp_branches))
+            parameter = self.fp_branches[n]['continuation_kwargs']['ICP']
+        elif self.po_branches:
+            n = next(iter(self.po_branches))
+            parameter = self.po_branches[n]['continuation_kwargs']['ICP']
+        else:
+            return None
+
+        if self.fp_branches:
+            if fixed_points_diagram_kwargs is None:
+                fixed_points_diagram_kwargs = dict()
+
+            self.plot_fixed_points_diagram(variables=(parameter, diagram_variables[0]), ax=axes[0], **fixed_points_diagram_kwargs)
+
+        if self.po_branches:
+            if periodic_orbits_diagram_kwargs is None:
+                periodic_orbits_diagram_kwargs = dict()
+
+            self.plot_periodic_orbits_diagram(variables=(parameter, diagram_variables[0]), ax=axes[0], **periodic_orbits_diagram_kwargs)
+
+        axes[0].axvline(x=solutions_parameter_value, linestyle='--', color='k', linewidth=1.2)
+        axes[0].set_title('Bifurcation diagram')
+
+        # part on solutions
+
+        return axes
+
 
     @property
     def number_of_fp_branches(self):
