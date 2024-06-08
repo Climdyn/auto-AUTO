@@ -610,7 +610,7 @@ class BifurcationDiagram(object):
 
         return valid_branch
 
-    def plot_fixed_points_diagram(self, variables=(0, 1), ax=None, figsize=(10, 8), cmap=None, **kwargs):
+    def plot_fixed_points_diagram(self, variables=(0, 1), ax=None, figsize=(10, 8), cmap=None, return_used_colors=False, **kwargs):
 
         if 'plot_kwargs' not in kwargs:
             kwargs['plot_kwargs'] = dict()
@@ -647,9 +647,12 @@ class BifurcationDiagram(object):
 
         ax.legend(handles=self._figure_legend_handles)
 
-        return ax, used_colors
+        if return_used_colors:
+            return ax, used_colors
+        else:
+            return ax
 
-    def plot_fixed_points_diagram_3D(self, variables=(0, 1, 2), ax=None, figsize=(10, 8), cmap=None, **kwargs):
+    def plot_fixed_points_diagram_3D(self, variables=(0, 1, 2), ax=None, figsize=(10, 8), cmap=None, return_used_colors=False, **kwargs):
 
         if 'plot_kwargs' not in kwargs:
             kwargs['plot_kwargs'] = dict()
@@ -686,9 +689,12 @@ class BifurcationDiagram(object):
 
         ax.legend(handles=self._figure_3d_legend_handles)
 
-        return ax, used_colors
+        if return_used_colors:
+            return ax, used_colors
+        else:
+            return ax
 
-    def plot_periodic_orbits_diagram(self, variables=(0, 1), ax=None, figsize=(10, 8), cmap=None, **kwargs):
+    def plot_periodic_orbits_diagram(self, variables=(0, 1), ax=None, figsize=(10, 8), cmap=None, return_used_colors=False, **kwargs):
 
         if 'plot_kwargs' not in kwargs:
             kwargs['plot_kwargs'] = dict()
@@ -725,9 +731,12 @@ class BifurcationDiagram(object):
 
         ax.legend(handles=self._figure_legend_handles)
 
-        return ax, used_colors
+        if return_used_colors:
+            return ax, used_colors
+        else:
+            return ax
 
-    def plot_periodic_orbits_diagram_3D(self, variables=(0, 1, 2), ax=None, figsize=(10, 8), cmap=None, **kwargs):
+    def plot_periodic_orbits_diagram_3D(self, variables=(0, 1, 2), ax=None, figsize=(10, 8), cmap=None, return_used_colors=False, **kwargs):
 
         if 'plot_kwargs' not in kwargs:
             kwargs['plot_kwargs'] = dict()
@@ -764,7 +773,10 @@ class BifurcationDiagram(object):
 
         ax.legend(handles=self._figure_3d_legend_handles)
 
-        return ax, used_colors
+        if return_used_colors:
+            return ax, used_colors
+        else:
+            return ax
 
     def plot_diagram_and_solutions(self, solutions_parameter_value, diagram_variables=(1,), solutions_variables=(0, 1),
                                    axes=None, figsize=(10, 16), solutions_tol=0.01, fixed_points_diagram_kwargs=None, periodic_orbits_diagram_kwargs=None,
@@ -786,13 +798,15 @@ class BifurcationDiagram(object):
             if fixed_points_diagram_kwargs is None:
                 fixed_points_diagram_kwargs = dict()
 
-            _, fp_used_colors = self.plot_fixed_points_diagram(variables=(parameter, diagram_variables[0]), ax=axes[0], **fixed_points_diagram_kwargs)
+            _, fp_used_colors = self.plot_fixed_points_diagram(variables=(parameter, diagram_variables[0]), ax=axes[0],
+                                                               return_used_colors=True, **fixed_points_diagram_kwargs)
 
         if self.po_branches:
             if periodic_orbits_diagram_kwargs is None:
                 periodic_orbits_diagram_kwargs = dict()
 
-            _, po_used_colors = self.plot_periodic_orbits_diagram(variables=(parameter, diagram_variables[0]), ax=axes[0], **periodic_orbits_diagram_kwargs)
+            _, po_used_colors = self.plot_periodic_orbits_diagram(variables=(parameter, diagram_variables[0]), ax=axes[0],
+                                                                  return_used_colors=True, **periodic_orbits_diagram_kwargs)
 
         axes[0].axvline(x=solutions_parameter_value, linestyle='--', color='k', linewidth=1.2)
         axes[0].set_title('Bifurcation diagram')
@@ -841,13 +855,15 @@ class BifurcationDiagram(object):
             if fixed_points_diagram_kwargs is None:
                 fixed_points_diagram_kwargs = dict()
 
-            _, fp_used_colors = self.plot_fixed_points_diagram_3D(variables=(parameter, *diagram_variables), ax=axes[0], **fixed_points_diagram_kwargs)
+            _, fp_used_colors = self.plot_fixed_points_diagram_3D(variables=(parameter, *diagram_variables), ax=axes[0],
+                                                                  return_used_colors=True, **fixed_points_diagram_kwargs)
 
         if self.po_branches:
             if periodic_orbits_diagram_kwargs is None:
                 periodic_orbits_diagram_kwargs = dict()
 
-            _, po_used_colors = self.plot_periodic_orbits_diagram_3D(variables=(parameter, *diagram_variables), ax=axes[0], **periodic_orbits_diagram_kwargs)
+            _, po_used_colors = self.plot_periodic_orbits_diagram_3D(variables=(parameter, *diagram_variables), ax=axes[0],
+                                                                     return_used_colors=True, **periodic_orbits_diagram_kwargs)
 
         # axes[0].axvline(x=solutions_parameter_value, linestyle='--', color='k', linewidth=1.2)
         axes[0].set_title('Bifurcation diagram')
@@ -901,13 +917,15 @@ class BifurcationDiagram(object):
             if fixed_points_diagram_kwargs is None:
                 fixed_points_diagram_kwargs = dict()
 
-            _, fp_used_colors = self.plot_fixed_points_diagram(variables=(parameter, diagram_variables[0]), ax=axes[0], **fixed_points_diagram_kwargs)
+            _, fp_used_colors = self.plot_fixed_points_diagram(variables=(parameter, diagram_variables[0]), ax=axes[0],
+                                                               return_used_colors=True, **fixed_points_diagram_kwargs)
 
         if self.po_branches:
             if periodic_orbits_diagram_kwargs is None:
                 periodic_orbits_diagram_kwargs = dict()
 
-            _, po_used_colors = self.plot_periodic_orbits_diagram(variables=(parameter, diagram_variables[0]), ax=axes[0], **periodic_orbits_diagram_kwargs)
+            _, po_used_colors = self.plot_periodic_orbits_diagram(variables=(parameter, diagram_variables[0]), ax=axes[0],
+                                                                  return_used_colors=True, **periodic_orbits_diagram_kwargs)
 
         axes[0].axvline(x=solutions_parameter_value, linestyle='--', color='k', linewidth=1.2)
         axes[0].set_title('Bifurcation diagram')
@@ -935,8 +953,6 @@ class BifurcationDiagram(object):
         axes[1].set_title('Solution in phase space')
 
         return axes
-        # TODO
-        pass
 
     @property
     def number_of_fp_branches(self):
