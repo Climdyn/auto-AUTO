@@ -225,7 +225,7 @@ class BifurcationDiagram(object):
                         else:
                             used_continuation_kwargs['IBR'] = br_num
                             hp = PeriodicOrbitContinuation(model_name=self.model_name, config_object=self.config_object)
-                            hp.make_continuation(bp, IBR=br_num, ISW=-1)
+                            hp.make_continuation(bp, only_forward=False, IBR=br_num, ISW=-1)
                             self._check_po_continuation_against_itself(hp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol)
 
                             self._check_po_continuation_against_other_fp_branches(hp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol)
