@@ -50,8 +50,7 @@ class BifurcationDiagram(object):
         self.fp_hb_computed = list()
         self.po_parent = dict()
         self.po_bp_computed = list()
-        self.po_hb_computed = dict()
-        self.po_pd_computed = dict()
+        self.po_pd_computed = list()
 
         self.fp_computed = False
         self.po_computed = False
@@ -199,7 +198,89 @@ class BifurcationDiagram(object):
 
         level += 1
         if level == end_level:
+            warnings.warn('As demanded, finishing computation at level '+str(level)+' ...')
             return
+
+        bp_list = list()
+        pd_list = list()
+
+        while True:
+            nrecomp = 0
+
+            new_branches = dict()
+
+            for parent_branch_number, branch in self.po_branches.items():
+                branching_points = branch['continuation'].get_filtered_solutions_list(labels='BP')
+
+                if parent_branch_number not in self.po_bp_computed:
+
+                    for bp in branching_points:
+
+                        used_continuation_kwargs = deepcopy(self.po_branches[parent_branch_number]['continuation_kwargs'])
+                        used_continuation_kwargs['ISW'] = -1
+
+                        for bpt in bp_list:
+                            if self._check_if_solutions_are_close(bp, bpt, extra_comparison_parameters, comparison_tol):
+                                break
+                        else:
+                            used_continuation_kwargs['IBR'] = br_num
+                            hp = PeriodicOrbitContinuation(model_name=self.model_name, config_object=self.config_object)
+                            hp.make_continuation(bp, IBR=br_num, ISW=-1)
+                            self._check_po_continuation_against_itself(hp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol)
+
+                            self._check_po_continuation_against_other_fp_branches(hp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol)
+                            valid_branch = self._check_po_continuation_against_other_po_branches(hp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol)
+
+                            if valid_branch:
+                                new_branches[abs(hp.branch_number)] = {'parameters': bp.PAR, 'continuation': hp, 'continuation_kwargs': used_continuation_kwargs}
+                                self.po_parent[abs(hp.branch_number)] = parent_branch_number
+                                br_num += 1
+
+                            bp_list.append(bp)
+
+                    self.po_bp_computed.append(parent_branch_number)
+                    nrecomp += 1
+
+                period_doubling_points = branch['continuation'].get_filtered_solutions_list(labels='PD')
+
+                if parent_branch_number not in self.po_pd_computed:
+
+                    for pd in period_doubling_points:
+
+                        used_continuation_kwargs = deepcopy(self.po_branches[parent_branch_number]['continuation_kwargs'])
+                        used_continuation_kwargs['ISW'] = -1
+
+                        for pdt in pd_list:
+                            if self._check_if_solutions_are_close(pd, pdt, extra_comparison_parameters, comparison_tol):
+                                break
+                        else:
+                            used_continuation_kwargs['IBR'] = br_num
+                            hp = PeriodicOrbitContinuation(model_name=self.model_name, config_object=self.config_object)
+                            hp.make_continuation(pd, IBR=br_num, ISW=-1)
+                            self._check_po_continuation_against_itself(hp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol)
+
+                            self._check_po_continuation_against_other_fp_branches(hp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol)
+                            valid_branch = self._check_po_continuation_against_other_po_branches(hp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol)
+
+                            if valid_branch:
+                                new_branches[abs(hp.branch_number)] = {'parameters': pd.PAR, 'continuation': hp, 'continuation_kwargs': used_continuation_kwargs}
+                                self.po_parent[abs(hp.branch_number)] = parent_branch_number
+                                br_num += 1
+
+                            pd_list.append(pd)
+
+                    self.po_pd_computed.append(parent_branch_number)
+                    nrecomp += 1
+
+            self.po_branches.update(new_branches)
+
+            if nrecomp == 0:
+                break
+
+            level += 1
+            if level == end_level:
+                warnings.warn('As demanded, finishing computation at level ' + str(level) + ' ...')
+                break
 
     def _get_dict(self):
         state = self.__dict__.copy()
