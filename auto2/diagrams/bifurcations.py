@@ -232,16 +232,25 @@ class BifurcationDiagram(object):
                                 s = 1
                             else:
                                 s = - 1
-                            parent_continuation = self.po_branches[parent_branch_number]['continuation']
-                            bp_stability = np.array(parent_continuation.orbit_stability(s * bp['PT']))
-                            max_accept = 1. / np.nanmin(np.abs(np.where(bp_stability == 0, np.nan, bp_stability)))
 
-                            if np.max(bp_stability) > max_accept and remove_dubious_bp:
+                            parent_continuation = self.po_branches[parent_branch_number]['continuation']
+                            try:
+                                bp_stability = np.array(parent_continuation.orbit_stability(s * bp['PT']))
+                                max_accept = 1. / np.nanmin(np.abs(np.where(bp_stability == 0, np.nan, bp_stability)))
+                                looks_dubious = np.max(bp_stability) > max_accept
+                            except ValueError:
+                                par_lst = parent_continuation.continuation_parameters
+                                par_val = [bp.PAR[p] for p in parent_continuation.continuation_parameters]
+                                ini_msg = str(par_lst) + " = " + str(par_val)
+                                warnings.warn('No stability information found for PO point at ' + ini_msg + '. Trying the continuation anyway.')
+                                looks_dubious = False
+
+                            if looks_dubious and remove_dubious_bp:
                                 par_lst = parent_continuation.continuation_parameters
                                 par_val = [bp.PAR[p] for p in parent_continuation.continuation_parameters]
                                 ini_msg = str(par_lst) + " = " + str(par_val)
                                 warnings.warn('Not saving results of PO point at ' + ini_msg + ' because it looks dubious. (max Floquet: '+str(np.max(bp_stability))+' ).'
-                                             '\nSkipping to next one.')  # should be a log instead
+                                              '\nSkipping to next one.')  # should be a log instead
                                 valid_branch = False
                             else:
                                 used_continuation_kwargs['IBR'] = br_num
