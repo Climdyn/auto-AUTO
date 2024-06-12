@@ -235,7 +235,7 @@ class BifurcationDiagram(object):
 
                             parent_continuation = self.po_branches[parent_branch_number]['continuation']
                             try:
-                                bp_stability = np.array(parent_continuation.orbit_stability(s * bp['PT']))
+                                bp_stability = np.array(parent_continuation.orbit_stability(s * (bp['PT'] - 1)))
                                 max_accept = 1. / np.nanmin(np.abs(np.where(bp_stability == 0, np.nan, bp_stability)))
                                 looks_dubious = np.max(bp_stability) > max_accept
                             except ValueError:
