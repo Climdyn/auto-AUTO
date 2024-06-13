@@ -175,14 +175,14 @@ class Continuation(ABC):
                 else:
                     idx = self.find_solution_index(idx)
                     if idx is not None:
-                        return self.continuation['forward'].data[0].diagnostics[idx]
+                        return self.continuation['forward'].data[0].diagnostics[idx]['Text']
                     else:
                         warnings.warn('No forward branch to show the diagnostic for.')
                         return None
 
             if idx >= 0:
                 if self.continuation['forward'] is not None:
-                    return self.continuation['forward'].data[0].diagnostics[idx]
+                    return self.continuation['forward'].data[0].diagnostics[idx]['Text']
                 else:
                     warnings.warn('No forward branch to show the diagnostic for.')
                     return None

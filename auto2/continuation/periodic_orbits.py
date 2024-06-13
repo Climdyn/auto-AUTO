@@ -143,14 +143,15 @@ class PeriodicOrbitContinuation(Continuation):
 
     def orbit_stability(self, idx):
         if isinstance(idx, str):
-            idx = self.find_solution_index(idx)
             if idx[0] == '-':
+                idx = self.find_solution_index(idx)
                 if idx is not None:
                     return self.continuation['backward'].data[0].diagnostics[idx]['Multipliers']
                 else:
                     warnings.warn('No backward branch to show the diagnostic for.')
                     return None
             else:
+                idx = self.find_solution_index(idx)
                 if idx is not None:
                     return self.continuation['forward'].data[0].diagnostics[idx]['Multipliers']
                 else:

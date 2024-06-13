@@ -250,8 +250,8 @@ class BifurcationDiagram(object):
                                 par_lst = parent_continuation.continuation_parameters
                                 par_val = [bp.PAR[p] for p in parent_continuation.continuation_parameters]
                                 ini_msg = str(par_lst) + " = " + str(par_val)
-                                warnings.warn('No stability information found for PO point at ' + ini_msg + '. Trying the continuation anyway.')
-                                looks_dubious = False
+                                warnings.warn('No stability information found for PO point at ' + ini_msg + '. Something is wrong, not doing the continuation.')
+                                looks_dubious = True
 
                             if looks_dubious and remove_dubious_bp:
                                 par_lst = parent_continuation.continuation_parameters
