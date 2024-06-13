@@ -148,7 +148,7 @@ class BifurcationDiagram(object):
         self.fp_computed = True
 
     def compute_periodic_orbits_diagram(self, end_level=None, extra_comparison_parameters=None, comparison_tol=2.e-2,
-                                        remove_dubious_bp=True, **continuation_kwargs):
+                                        remove_dubious_bp=True, max_number_bp=None, backward_bp_continuation=False, **continuation_kwargs):
 
         if not self.fp_computed:
             warnings.warn('Fixed points diagram not computed. No initial data to start with.\n'
@@ -214,6 +214,10 @@ class BifurcationDiagram(object):
                 forward_branching_points = branch['continuation'].get_filtered_solutions_list(labels='BP', forward=True)
                 backward_branching_points = branch['continuation'].get_filtered_solutions_list(labels='BP', forward=False)
 
+                if max_number_bp is not None:
+                    forward_branching_points = forward_branching_points[:max_number_bp]
+                    backward_branching_points = backward_branching_points[:max_number_bp]
+
                 branching_points = backward_branching_points.copy()
                 branching_points.extend(forward_branching_points)
 
@@ -223,6 +227,10 @@ class BifurcationDiagram(object):
 
                         used_continuation_kwargs = deepcopy(self.po_branches[parent_branch_number]['continuation_kwargs'])
                         used_continuation_kwargs['ISW'] = -1
+                        if 'NMX' in continuation_kwargs:
+                            used_continuation_kwargs['NMX'] = continuation_kwargs['NMX']
+                        elif 'NMX' in used_continuation_kwargs:
+                            used_continuation_kwargs.pop('NMX')
 
                         for bpt in bp_list:
                             if self._check_if_solutions_are_close(bp, bpt, extra_comparison_parameters, comparison_tol):
@@ -255,7 +263,7 @@ class BifurcationDiagram(object):
                             else:
                                 used_continuation_kwargs['IBR'] = br_num
                                 hp = PeriodicOrbitContinuation(model_name=self.model_name, config_object=self.config_object)
-                                hp.make_continuation(bp, only_forward=False, IBR=br_num, ISW=-1)
+                                hp.make_continuation(bp, only_forward=not backward_bp_continuation, IBR=br_num, ISW=-1)
                                 self._check_po_continuation_against_itself(hp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol)
 
                                 self._check_po_continuation_against_other_fp_branches(hp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol)
@@ -279,6 +287,10 @@ class BifurcationDiagram(object):
 
                         used_continuation_kwargs = deepcopy(self.po_branches[parent_branch_number]['continuation_kwargs'])
                         used_continuation_kwargs['ISW'] = -1
+                        if 'NMX' in continuation_kwargs:
+                            used_continuation_kwargs['NMX'] = continuation_kwargs['NMX']
+                        elif 'NMX' in used_continuation_kwargs:
+                            used_continuation_kwargs.pop('NMX')
 
                         for pdt in pd_list:
                             if self._check_if_solutions_are_close(pd, pdt, extra_comparison_parameters, comparison_tol):
