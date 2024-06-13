@@ -693,16 +693,23 @@ class BifurcationDiagram(object):
             else:
                 merge_forward, common_solutions = hp.solutions_part_of(psol['continuation'], cpar_list, tol=tol,
                                                                        return_solutions=True, forward=True, solutions_types=self._comparison_solutions_types)
+                remake_continuation = True
                 if merge_forward:
                     first_sol = common_solutions[0]
-                    nmx = first_sol['PT'] + 1
-                    warnings.warn('Not storing full results of PO point at ' + ini_msg + ' because it merges forward with branch ' + str(n) + '.'
-                                  '\nSaving only the relevant part. NMX set to ' + str(nmx))  # should be a log instead
-                    continuation_kwargs['NMX'] = nmx
-                    hp.make_forward_continuation(initial_data, **continuation_kwargs)
-                else:
+                    if isinstance(initial_data, AUTOSolution):
+                        if psol['continuation'].branch_number == abs(initial_data['BR']) and first_sol['PT'] < 10:
+                            remake_continuation = not self._check_if_solutions_are_close(initial_data, first_sol, extra_comparison_parameters, tol)
+                    if remake_continuation:
+                        nmx = first_sol['PT'] + 1
+                        warnings.warn('Not storing full results of PO point at ' + ini_msg + ' because it merges forward with branch ' + str(n) + '.'
+                                      '\nSaving only the relevant part. NMX set to ' + str(nmx))  # should be a log instead
+                        continuation_kwargs['NMX'] = nmx
+                        hp.make_forward_continuation(initial_data, **continuation_kwargs)
+
+                if not merge_forward and not remake_continuation:
                     cross_forward, sol = hp.branch_possibly_cross(psol['continuation'], cpar_list, tol=tol,
                                                                   return_solutions=True, forward=True, solutions_types=self._comparison_solutions_types)
+
                     if cross_forward:
                         nmx = sol['PT'] + 1
                         warnings.warn('Not storing full results of PO point at ' + ini_msg + ' because it connects forward to branch ' + str(n) + '.'
@@ -712,15 +719,20 @@ class BifurcationDiagram(object):
 
                 merge_backward, common_solutions = hp.solutions_part_of(psol['continuation'], cpar_list, tol=tol,
                                                                         return_solutions=True, forward=False, solutions_types=self._comparison_solutions_types)
-
+                remake_continuation = True
                 if merge_backward:
                     first_sol = common_solutions[0]
-                    nmx = first_sol['PT'] + 1
-                    warnings.warn('Not storing full results of PO point at ' + ini_msg + ' because it merges backward with branch ' + str(n) + '.'
-                                  '\nSaving only the relevant part. NMX set to ' + str(nmx))  # should be a log instead
-                    continuation_kwargs['NMX'] = nmx
-                    hp.make_backward_continuation(initial_data, **continuation_kwargs)
-                else:
+                    if isinstance(initial_data, AUTOSolution):
+                        if psol['continuation'].branch_number == abs(initial_data['BR']) and first_sol['PT'] < 10:
+                            remake_continuation = not self._check_if_solutions_are_close(initial_data, first_sol, extra_comparison_parameters, tol)
+                    if remake_continuation:
+                        nmx = first_sol['PT'] + 1
+                        warnings.warn('Not storing full results of PO point at ' + ini_msg + ' because it merges backward with branch ' + str(n) + '.'
+                                      '\nSaving only the relevant part. NMX set to ' + str(nmx))  # should be a log instead
+                        continuation_kwargs['NMX'] = nmx
+                        hp.make_backward_continuation(initial_data, **continuation_kwargs)
+
+                if not merge_backward or not remake_continuation:
                     cross_backward, sol = hp.branch_possibly_cross(psol['continuation'], cpar_list, tol=tol,
                                                                    return_solutions=True, forward=False, solutions_types=self._comparison_solutions_types)
 
