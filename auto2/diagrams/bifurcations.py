@@ -257,7 +257,11 @@ class BifurcationDiagram(object):
                                 par_lst = parent_continuation.continuation_parameters
                                 par_val = [bp.PAR[p] for p in parent_continuation.continuation_parameters]
                                 ini_msg = str(par_lst) + " = " + str(par_val)
-                                warnings.warn('Not saving results of PO point at ' + ini_msg + ' because it looks dubious. (max Floquet: '+str(np.max(bp_stability))+' ).'
+                                try:
+                                    s = str(np.max(bp_stability))
+                                except ValueError:
+                                    s = '[ unknown ]'
+                                warnings.warn('Not saving results of PO point at ' + ini_msg + ' because it looks dubious. (max Floquet: ' + s + ' ).'
                                               '\nSkipping to next one.')  # should be a log instead
                                 valid_branch = False
                             else:
