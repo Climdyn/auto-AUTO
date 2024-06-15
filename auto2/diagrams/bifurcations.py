@@ -748,7 +748,8 @@ class BifurcationDiagram(object):
 
         return valid_branch
 
-    def plot_fixed_points_diagram(self, variables=(0, 1), ax=None, figsize=(10, 8), cmap=None, return_used_colors=False, **kwargs):
+    def plot_fixed_points_diagram(self, variables=(0, 1), ax=None, figsize=(10, 8), cmap=None, return_used_colors=False,
+                                  legend=True, **kwargs):
 
         if 'plot_kwargs' not in kwargs:
             kwargs['plot_kwargs'] = dict()
@@ -783,14 +784,16 @@ class BifurcationDiagram(object):
         if len(self._figure_legend_handles) in (0, self.number_of_po_branches):
             self._figure_legend_handles.extend(new_handles)
 
-        ax.legend(handles=self._figure_legend_handles)
+        if legend:
+            ax.legend(handles=self._figure_legend_handles)
 
         if return_used_colors:
             return ax, used_colors
         else:
             return ax
 
-    def plot_fixed_points_diagram_3D(self, variables=(0, 1, 2), ax=None, figsize=(10, 8), cmap=None, return_used_colors=False, **kwargs):
+    def plot_fixed_points_diagram_3D(self, variables=(0, 1, 2), ax=None, figsize=(10, 8), cmap=None, return_used_colors=False,
+                                     legend=True, **kwargs):
 
         if 'plot_kwargs' not in kwargs:
             kwargs['plot_kwargs'] = dict()
@@ -825,14 +828,16 @@ class BifurcationDiagram(object):
         if len(self._figure_3d_legend_handles) in (0, self.number_of_po_branches):
             self._figure_3d_legend_handles.extend(new_handles)
 
-        ax.legend(handles=self._figure_3d_legend_handles)
+        if legend:
+            ax.legend(handles=self._figure_3d_legend_handles)
 
         if return_used_colors:
             return ax, used_colors
         else:
             return ax
 
-    def plot_periodic_orbits_diagram(self, variables=(0, 1), ax=None, figsize=(10, 8), cmap=None, return_used_colors=False, **kwargs):
+    def plot_periodic_orbits_diagram(self, variables=(0, 1), ax=None, figsize=(10, 8), cmap=None, return_used_colors=False,
+                                     legend=False, **kwargs):
 
         if 'plot_kwargs' not in kwargs:
             kwargs['plot_kwargs'] = dict()
@@ -867,14 +872,16 @@ class BifurcationDiagram(object):
         if len(self._figure_legend_handles) in (0, self.number_of_fp_branches):
             self._figure_legend_handles.extend(new_handles)
 
-        ax.legend(handles=self._figure_legend_handles)
+        if legend:
+            ax.legend(handles=self._figure_legend_handles)
 
         if return_used_colors:
             return ax, used_colors
         else:
             return ax
 
-    def plot_periodic_orbits_diagram_3D(self, variables=(0, 1, 2), ax=None, figsize=(10, 8), cmap=None, return_used_colors=False, **kwargs):
+    def plot_periodic_orbits_diagram_3D(self, variables=(0, 1, 2), ax=None, figsize=(10, 8), cmap=None, return_used_colors=False,
+                                        legend=True, **kwargs):
 
         if 'plot_kwargs' not in kwargs:
             kwargs['plot_kwargs'] = dict()
@@ -909,7 +916,8 @@ class BifurcationDiagram(object):
         if len(self._figure_3d_legend_handles) in (0, self.number_of_fp_branches):
             self._figure_3d_legend_handles.extend(new_handles)
 
-        ax.legend(handles=self._figure_3d_legend_handles)
+        if legend:
+            ax.legend(handles=self._figure_3d_legend_handles)
 
         if return_used_colors:
             return ax, used_colors
