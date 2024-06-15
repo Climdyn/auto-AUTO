@@ -589,7 +589,7 @@ class Continuation(ABC):
         return ax
 
     def plot_branche_parts_3D(self, variables=(0, 1, 2), ax=None, figsize=(10, 8), markersize=12., plot_kwargs=None, marker_kwargs=None,
-                           excluded_labels=('UZ', 'EP'), variables_name=None):
+                              excluded_labels=('UZ', 'EP'), variables_name=None):
 
         if not self.continuation:
             return None

@@ -837,7 +837,7 @@ class BifurcationDiagram(object):
             return ax
 
     def plot_periodic_orbits_diagram(self, variables=(0, 1), ax=None, figsize=(10, 8), cmap=None, return_used_colors=False,
-                                     legend=False, **kwargs):
+                                     legend=True, **kwargs):
 
         if 'plot_kwargs' not in kwargs:
             kwargs['plot_kwargs'] = dict()
