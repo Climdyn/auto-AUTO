@@ -155,6 +155,10 @@ class BifurcationDiagram(object):
                           'Aborting...')
             return None
 
+        if 'MNX' not in continuation_kwargs:
+            continuation_kwargs['NMX'] = 9000
+            warnings.warn('NMX parameters was not set, so setting it to 9000 points.')
+
         br_num = max(self.fp_branches.keys()) + 1
         level = 0
 
@@ -227,10 +231,7 @@ class BifurcationDiagram(object):
 
                         used_continuation_kwargs = deepcopy(self.po_branches[parent_branch_number]['continuation_kwargs'])
                         used_continuation_kwargs['ISW'] = -1
-                        if 'NMX' in continuation_kwargs:
-                            used_continuation_kwargs['NMX'] = continuation_kwargs['NMX']
-                        elif 'NMX' in used_continuation_kwargs:
-                            used_continuation_kwargs.pop('NMX')
+                        used_continuation_kwargs['NMX'] = continuation_kwargs['NMX']
 
                         for bpt in bp_list:
                             if self._check_if_solutions_are_close(bp, bpt, extra_comparison_parameters, comparison_tol):
@@ -244,7 +245,7 @@ class BifurcationDiagram(object):
                             parent_continuation = self.po_branches[parent_branch_number]['continuation']
                             try:
                                 bp_stability = np.array(parent_continuation.orbit_stability(s * (bp['PT'] - 1)))
-                                max_accept = 1. / np.nanmin(np.abs(np.where(bp_stability == 0, np.nan, bp_stability)))
+                                max_accept = 1. / np.nanmin(np.abs(np.where(bp_stability == 0, np.nan, bp_stability)))  # TODO: change this for HUGE
                                 looks_dubious = np.max(bp_stability) > max_accept
                             except ValueError:
                                 par_lst = parent_continuation.continuation_parameters
@@ -291,10 +292,7 @@ class BifurcationDiagram(object):
 
                         used_continuation_kwargs = deepcopy(self.po_branches[parent_branch_number]['continuation_kwargs'])
                         used_continuation_kwargs['ISW'] = -1
-                        if 'NMX' in continuation_kwargs:
-                            used_continuation_kwargs['NMX'] = continuation_kwargs['NMX']
-                        elif 'NMX' in used_continuation_kwargs:
-                            used_continuation_kwargs.pop('NMX')
+                        used_continuation_kwargs['NMX'] = continuation_kwargs['NMX']
 
                         for pdt in pd_list:
                             if self._check_if_solutions_are_close(pd, pdt, extra_comparison_parameters, comparison_tol):
