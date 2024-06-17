@@ -14,6 +14,7 @@ from auto2.parsers.config import ConfigParser
 logger = logging.getLogger('logger')
 logger.info('Using auto-AUTO (auto² or auto2) -- An AUTO-07p automatic search algorithm codebase')
 logger.info('Read AUTO-07p manual first before using it. Whishing you a happy continuation, have fun !')
+logger.info('Logging messages can be found in the file "auto2.log"')
 
 try:
     auto_directory = os.environ['AUTO_DIR']
