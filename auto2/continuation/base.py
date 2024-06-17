@@ -8,6 +8,8 @@ import pickle
 import matplotlib.pyplot as plt
 import numpy as np
 
+logger = logging.getLogger('logger')
+
 try:
     auto_directory = os.environ['AUTO_DIR']
 
@@ -18,7 +20,7 @@ try:
         # sys.path.append(auto_directory + '/python/auto')
         sys.path.append(auto_directory + '/python')
 except KeyError:
-    logging.warning('Unable to find auto directory environment variable.')
+    logger.warning('Unable to find auto directory environment variable.')
 
 import auto.AUTOCommands as ac
 from auto.AUTOExceptions import AUTORuntimeError
