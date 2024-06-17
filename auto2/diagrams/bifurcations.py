@@ -39,9 +39,6 @@ class BifurcationDiagram(object):
             self.config_object = ConfigParser('c.'+model_name)
         else:
             self.config_object = None
-        self.points_list = None  # TODO: to be implemented as property
-        self.solutions_list = None  # TODO: to be implemented as property
-        self.variables_list = None  # TODO: to be implemented as property
         self.fp_branches = dict()
         self.po_branches = dict()
 
@@ -242,7 +239,7 @@ class BifurcationDiagram(object):
                             else:
                                 s = - 1
 
-                            parent_continuation = self.po_branches[parent_branch_number]['continuation']
+                            parent_continuation = self.get_continuation(parent_branch_number)
                             try:
                                 bp_stability = np.array(parent_continuation.orbit_stability(s * (bp['PT'] - 1)))
                                 # max_accept = 1. / np.nanmin(np.abs(np.where(bp_stability == 0, np.nan, bp_stability)))
@@ -1107,3 +1104,51 @@ class BifurcationDiagram(object):
     @property
     def number_of_po_branches(self):
         return len(self.po_branches.keys())
+
+    def get_continuation(self, idx):
+        if idx in self.fp_branches:
+            return self.fp_branches[idx]['continuation']
+        elif idx in self.po_branches:
+            return self.po_branches[idx]['continuation']
+        else:
+            return None
+
+    @property
+    def periodic_orbits_variables_list(self):
+        for branch_number in self.po_branches:
+            branch = self.get_continuation(branch_number)
+            sl = branch.available_variables
+            if sl is not None:
+                return deepcopy(sl)
+        return list()
+
+    @property
+    def fixed_points_variables_list(self):
+        for branch_number in self.fp_branches:
+            branch = self.get_continuation(branch_number)
+            sl = branch.available_variables
+            if sl is not None:
+                return deepcopy(sl)
+        return list()
+
+    @property
+    def fixed_points_solutions_list(self):
+        sl = list()
+        for branch_number in self.fp_branches:
+            branch = self.get_continuation(branch_number)
+            sl.extend(branch.full_solutions_list)
+        return sl
+
+    @property
+    def periodic_orbits_solutions_list(self):
+        sl = list()
+        for branch_number in self.po_branches:
+            branch = self.get_continuation(branch_number)
+            sl.extend(branch.full_solutions_list)
+        return sl
+
+    @property
+    def full_solutions_list(self):
+        sl = self.fixed_points_solutions_list
+        sl.extend(self.periodic_orbits_solutions_list)
+        return sl
