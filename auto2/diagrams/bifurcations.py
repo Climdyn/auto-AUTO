@@ -106,6 +106,7 @@ class BifurcationDiagram(object):
             if valid_branch:
                 self.fp_branches[fp.branch_number] = {'parameters': parameters, 'continuation': fp, 'continuation_kwargs': used_continuation_kwargs}
                 self.fp_parent[fp.branch_number] = None
+                logger.info('Saving valid branch ' + str(br_num) + ' emanating from detected fixed point ' + str(ncomp) + '.')
                 br_num += 1
             ncomp += 1
 
@@ -144,6 +145,7 @@ class BifurcationDiagram(object):
                             if valid_branch:
                                 new_branches[abs(fp.branch_number)] = {'parameters': bp.PAR, 'continuation': fp, 'continuation_kwargs': used_continuation_kwargs}
                                 self.fp_parent[abs(fp.branch_number)] = parent_branch_number
+                                logger.info('Saving valid branch ' + str(br_num) + ' emanating from branch ' + str(parent_branch_number) + '.')
                                 br_num += 1
                             bp_list.append(bp)
                             ncomp += 1
@@ -211,6 +213,7 @@ class BifurcationDiagram(object):
                 if valid_branch:
                     self.po_branches[abs(hp.branch_number)] = {'parameters': hb.PAR, 'continuation': hp, 'continuation_kwargs': used_continuation_kwargs}
                     self.po_parent[abs(hp.branch_number)] = parent_branch_number
+                    logger.info('Saving valid branch ' + str(br_num) + ' emanating from branch ' + str(parent_branch_number) + '.')
                     br_num += 1
             self.fp_hb_computed.append(parent_branch_number)
 
@@ -296,6 +299,7 @@ class BifurcationDiagram(object):
                             if valid_branch:
                                 new_branches[abs(hp.branch_number)] = {'parameters': bp.PAR, 'continuation': hp, 'continuation_kwargs': used_continuation_kwargs}
                                 self.po_parent[abs(hp.branch_number)] = parent_branch_number
+                                logger.info('Saving valid branch ' + str(br_num) + ' emanating from branch ' + str(parent_branch_number) + '.')
                                 br_num += 1
 
                             bp_list.append(bp)
@@ -330,6 +334,7 @@ class BifurcationDiagram(object):
                             if valid_branch:
                                 new_branches[abs(hp.branch_number)] = {'parameters': pd.PAR, 'continuation': hp, 'continuation_kwargs': used_continuation_kwargs}
                                 self.po_parent[abs(hp.branch_number)] = parent_branch_number
+                                logger.debug('Saving branch ' + str(br_num) + ' emanating from branch ' + str(parent_branch_number) + '.')
                                 br_num += 1
 
                             pd_list.append(pd)
