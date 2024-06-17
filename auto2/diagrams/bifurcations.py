@@ -12,6 +12,8 @@ from matplotlib.colors import TABLEAU_COLORS
 
 from auto2.parsers.config import ConfigParser
 logger = logging.getLogger('logger')
+logger.info('Using auto-AUTO (auto² or auto2) -- An AUTO-07p automatic search algorithm codebase')
+logger.info('Read AUTO-07p manual first before using it. Whishing you a happy continuation, have fun !')
 
 try:
     auto_directory = os.environ['AUTO_DIR']
