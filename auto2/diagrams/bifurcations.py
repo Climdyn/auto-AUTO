@@ -33,8 +33,7 @@ from auto2.continuation.periodic_orbits import PeriodicOrbitContinuation
 from auto.parseS import AUTOSolution
 
 
-# TODO: - Add logging information
-#       - Add PO computation restart at a given level
+# TODO:  - Add PO computation restart at a given level
 
 class BifurcationDiagram(object):
 
