@@ -1,7 +1,23 @@
 
 import os
 import sys
-import warnings
+import logging
+
+# putting the logger creation here since this module is always called
+logger = logging.getLogger('logger')
+logger.setLevel(logging.DEBUG)
+
+formatter = logging.Formatter('%(asctime)s %(levelname)s: Module %(filename)s -- %(message)s')
+
+fh = logging.FileHandler('auto2.log', mode='w', encoding='utf-8')
+fh.setLevel(logging.DEBUG)
+fh.setFormatter(formatter)
+logger.addHandler(fh)
+
+ch = logging.StreamHandler()
+ch.setLevel(logging.INFO)
+ch.setFormatter(formatter)
+logger.addHandler(ch)
 
 try:
     auto_directory = os.environ['AUTO_DIR']
@@ -13,7 +29,7 @@ try:
         # sys.path.append(auto_directory + '/python/auto')
         sys.path.append(auto_directory + '/python')
 except KeyError:
-    warnings.warn('Unable to find auto directory environment variable.')
+    logger.warning('Unable to find auto directory environment variable.')
 
 import auto.parseC as parseC
 

@@ -1,7 +1,10 @@
 import os
 import sys
 import warnings
+import logging
 import glob
+
+logger = logging.getLogger('logger')
 
 try:
     auto_directory = os.environ['AUTO_DIR']
@@ -13,7 +16,7 @@ try:
         # sys.path.append(auto_directory + '/python/auto')
         sys.path.append(auto_directory + '/python')
 except KeyError:
-    warnings.warn('Unable to find auto directory environment variable.')
+    logger.warning('Unable to find auto directory environment variable.')
 
 import auto.AUTOCommands as ac
 import auto.runAUTO as ra

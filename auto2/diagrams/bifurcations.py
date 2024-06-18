@@ -1,6 +1,7 @@
 import os
 import sys
 import warnings
+import logging
 import pickle
 from copy import deepcopy
 
@@ -8,6 +9,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.lines import Line2D
 from matplotlib.colors import TABLEAU_COLORS
+
+from auto2.parsers.config import ConfigParser
+logger = logging.getLogger('logger')
+logger.info('Using auto-AUTO (auto² or auto2) -- An AUTO-07p automatic search algorithm codebase')
+logger.info('Read AUTO-07p manual first before using it. Wishing you a happy continuation, have fun !')
+logger.info('Logging messages can be found in the file "auto2.log"')
 
 try:
     auto_directory = os.environ['AUTO_DIR']
@@ -19,15 +26,14 @@ try:
         # sys.path.append(auto_directory + '/python/auto')
         sys.path.append(auto_directory + '/python')
 except KeyError:
-    warnings.warn('Unable to find auto directory environment variable.')
+    logger.warning('Unable to find auto directory environment variable.')
 
-from auto2.parsers.config import ConfigParser
 from auto2.continuation.fixed_points import FixedPointContinuation
 from auto2.continuation.periodic_orbits import PeriodicOrbitContinuation
 from auto.parseS import AUTOSolution
 
 
-# TODO: - Add logging information
+# TODO:  - Add PO computation restart at a given level
 
 class BifurcationDiagram(object):
 
@@ -52,14 +58,18 @@ class BifurcationDiagram(object):
         self.fp_computed = False
         self.po_computed = False
 
+        self.level_reached = 0
+
         self._comparison_solutions_types = ('HB', 'BP', 'UZ', 'PD', 'EP', 'TR', 'LP')
         self._figure_legend_handles = list()
         self._figure_3d_legend_handles = list()
 
     def compute_fixed_points_diagram(self, initial_points=None, extra_comparison_parameters=None, comparison_tol=2.e-2, **continuation_kwargs):
 
+        logger.info('Starting the computation of the fixed points bifurcation diagram with model '+str(self.model_name))
+
         if self.fp_computed:
-            warnings.warn('Fixed point bifurcation diagram already computed. Aborting.')
+            logger.warning('Fixed point bifurcation diagram already computed. Aborting.')
             return None
 
         if initial_points is not None:
@@ -67,8 +77,9 @@ class BifurcationDiagram(object):
 
         if 'MNX' not in continuation_kwargs:
             continuation_kwargs['NMX'] = 9000
-            warnings.warn('NMX parameters was not set, so setting it to 9000 points.')
+            logger.info('NMX parameters was not set, so setting it to 9000 points.')
 
+        logger.info('Continuing provided fixed points.')
         br_num = 1
         ncomp = 1
         for point in initial_points:
@@ -96,8 +107,12 @@ class BifurcationDiagram(object):
             if valid_branch:
                 self.fp_branches[fp.branch_number] = {'parameters': parameters, 'continuation': fp, 'continuation_kwargs': used_continuation_kwargs}
                 self.fp_parent[fp.branch_number] = None
+                logger.info('Saving valid branch ' + str(br_num) + ' emanating from detected fixed point ' + str(ncomp) + '.')
                 br_num += 1
             ncomp += 1
+
+        logger.info('Provided fixed points continuation has ended.')
+        logger.info('Eventually continuing detected branching points.')
 
         bp_list = list()
 
@@ -131,6 +146,7 @@ class BifurcationDiagram(object):
                             if valid_branch:
                                 new_branches[abs(fp.branch_number)] = {'parameters': bp.PAR, 'continuation': fp, 'continuation_kwargs': used_continuation_kwargs}
                                 self.fp_parent[abs(fp.branch_number)] = parent_branch_number
+                                logger.info('Saving valid branch ' + str(br_num) + ' emanating from branch ' + str(parent_branch_number) + '.')
                                 br_num += 1
                             bp_list.append(bp)
                             ncomp += 1
@@ -142,24 +158,27 @@ class BifurcationDiagram(object):
             if nrecomp == 0:
                 break
 
+        logger.info('Fixed points bifurcation diagram computation is over.')
         self.fp_computed = True
 
     def compute_periodic_orbits_diagram(self, end_level=None, extra_comparison_parameters=None, comparison_tol=2.e-2,
                                         remove_dubious_bp=True, max_number_bp=None, backward_bp_continuation=False, **continuation_kwargs):
 
+        logger.info('Starting the computation of the periodic orbits bifurcation diagram with model '+str(self.model_name))
+
         if not self.fp_computed:
-            warnings.warn('Fixed points diagram not computed. No initial data to start with.\n'
-                          'Aborting...')
+            logger.warning('Fixed points diagram not computed. No initial data to start with.\n'
+                           'Aborting...')
             return None
 
         if 'MNX' not in continuation_kwargs:
             continuation_kwargs['NMX'] = 9000
-            warnings.warn('NMX parameters was not set, so setting it to 9000 points.')
+            logger.info('NMX parameters was not set, so setting it to 9000 points.')
 
         br_num = max(self.fp_branches.keys()) + 1
-        level = 0
+        self.level_reached = 0
 
-        # first continue all the Hopf bifurcation
+        logger.info('First, beginning computation of the periodic orbits from Hopf bifurcations.')
         for parent_branch_number, branch in self.fp_branches.items():
 
             hb_list = branch['continuation'].get_filtered_solutions_list(labels='HB')
@@ -195,14 +214,17 @@ class BifurcationDiagram(object):
                 if valid_branch:
                     self.po_branches[abs(hp.branch_number)] = {'parameters': hb.PAR, 'continuation': hp, 'continuation_kwargs': used_continuation_kwargs}
                     self.po_parent[abs(hp.branch_number)] = parent_branch_number
+                    logger.info('Saving valid branch ' + str(br_num) + ' emanating from branch ' + str(parent_branch_number) + '.')
                     br_num += 1
             self.fp_hb_computed.append(parent_branch_number)
 
-        level += 1
-        if level == end_level:
-            warnings.warn('As demanded, finishing computation at level '+str(level)+' ...')
+        logger.info('Continuation of the periodic orbits from Hopf bifurcations has ended.')
+        self.level_reached += 1
+        if self.level_reached == end_level:
+            logger.info('As demanded, finishing computation at level '+str(self.level_reached)+' ...')
             return
 
+        logger.info('Beginning computation of the periodic orbits from detected branching and period doubling points.')
         bp_list = list()
         pd_list = list()
 
@@ -211,7 +233,10 @@ class BifurcationDiagram(object):
 
             new_branches = dict()
 
+            logger.info('Entering level ' + str(self.level_reached + 1) + ' of continuation...')
+
             for parent_branch_number, branch in self.po_branches.items():
+                logger.debug('Continuing branching points of branch: ' + str(parent_branch_number))
                 forward_branching_points = branch['continuation'].get_filtered_solutions_list(labels='BP', forward=True)
                 backward_branching_points = branch['continuation'].get_filtered_solutions_list(labels='BP', forward=False)
 
@@ -248,20 +273,20 @@ class BifurcationDiagram(object):
                             except ValueError:
                                 par_lst = parent_continuation.continuation_parameters
                                 par_val = [bp.PAR[p] for p in parent_continuation.continuation_parameters]
-                                ini_msg = str(par_lst) + " = " + str(par_val)
-                                warnings.warn('No stability information found for PO point at ' + ini_msg + '. Something is wrong, not doing the continuation.')
+                                ini_msg = str(par_lst) + " = " + str(par_val) + ' (branch '+str(parent_branch_number) + ')'
+                                logger.error('No stability information found for PO point at ' + ini_msg + '. Something is wrong, not doing the continuation.')
                                 looks_dubious = True
 
                             if looks_dubious and remove_dubious_bp:
                                 par_lst = parent_continuation.continuation_parameters
                                 par_val = [bp.PAR[p] for p in parent_continuation.continuation_parameters]
-                                ini_msg = str(par_lst) + " = " + str(par_val)
+                                ini_msg = str(par_lst) + " = " + str(par_val) + ' (branch '+str(parent_branch_number) + ')'
                                 try:
                                     s = str(np.max(bp_stability))
                                 except ValueError:
                                     s = '[ unknown ]'
-                                warnings.warn('Not saving results of PO point at ' + ini_msg + ' because it looks dubious. (max Floquet: ' + s + ' ).'
-                                              '\nSkipping to next one.')  # should be a log instead
+                                logger.info('Not saving results of PO point at ' + ini_msg + ' because it looks dubious. (max Floquet: ' + s + ' ).'
+                                            '\nSkipping to next one.')
                                 valid_branch = False
                             else:
                                 used_continuation_kwargs['IBR'] = br_num
@@ -275,6 +300,7 @@ class BifurcationDiagram(object):
                             if valid_branch:
                                 new_branches[abs(hp.branch_number)] = {'parameters': bp.PAR, 'continuation': hp, 'continuation_kwargs': used_continuation_kwargs}
                                 self.po_parent[abs(hp.branch_number)] = parent_branch_number
+                                logger.info('Saving valid branch ' + str(br_num) + ' emanating from branch ' + str(parent_branch_number) + '.')
                                 br_num += 1
 
                             bp_list.append(bp)
@@ -282,6 +308,8 @@ class BifurcationDiagram(object):
                     self.po_bp_computed.append(parent_branch_number)
                     nrecomp += 1
 
+                logger.debug('Computation of branching points of branch: ' + str(parent_branch_number) + ' has ended.')
+                logger.debug('Continuing period doubling points of branch: ' + str(parent_branch_number))
                 period_doubling_points = branch['continuation'].get_filtered_solutions_list(labels='PD')
 
                 if parent_branch_number not in self.po_pd_computed:
@@ -307,6 +335,7 @@ class BifurcationDiagram(object):
                             if valid_branch:
                                 new_branches[abs(hp.branch_number)] = {'parameters': pd.PAR, 'continuation': hp, 'continuation_kwargs': used_continuation_kwargs}
                                 self.po_parent[abs(hp.branch_number)] = parent_branch_number
+                                logger.debug('Saving branch ' + str(br_num) + ' emanating from branch ' + str(parent_branch_number) + '.')
                                 br_num += 1
 
                             pd_list.append(pd)
@@ -314,15 +343,19 @@ class BifurcationDiagram(object):
                     self.po_pd_computed.append(parent_branch_number)
                     nrecomp += 1
 
+                logger.debug('Computation of period doubling points of branch: ' + str(parent_branch_number) + ' has ended.')
             self.po_branches.update(new_branches)
 
             if nrecomp == 0:
                 break
 
-            level += 1
-            if level == end_level:
-                warnings.warn('As demanded, finishing computation at level ' + str(level) + ' ...')
+            self.level_reached += 1
+            logger.info('Computation of level ' + str(self.level_reached) + ' of continuation has ended.')
+            if self.level_reached == end_level:
+                logger.info('As demanded, finishing computation at level ' + str(self.level_reached) + ' ...')
                 break
+
+        logger.info('Finished computation at level ' + str(self.level_reached))
 
     def _get_dict(self):
         state = self.__dict__.copy()
@@ -447,8 +480,8 @@ class BifurcationDiagram(object):
                 first_repeating_sol = repeating_solutions[-1]
                 nmx = first_repeating_sol['PT'] + 1
                 continuation_kwargs['NMX'] = nmx
-                warnings.warn('Not storing full results of initial point ' + str(ncomp) + ' because it repeats itself (forward).'
-                              '\nSaving only the relevant part. NMX set to ' + str(nmx))  # should be a log instead
+                logger.info('Not storing full results of initial point ' + str(ncomp) + ' because it repeats itself (forward).'
+                            '\nSaving only the relevant part. NMX set to ' + str(nmx))
                 fp.make_forward_continuation(initial_data, **continuation_kwargs)
 
         if fp.continuation['backward'] is not None:
@@ -466,8 +499,8 @@ class BifurcationDiagram(object):
                 continuation_kwargs['NMX'] = first_repeating_sol['PT'] + 1
                 nmx = first_repeating_sol['PT'] + 1
                 continuation_kwargs['NMX'] = nmx
-                warnings.warn('Not storing full results of initial point ' + str(ncomp) + ' because it repeats itself (forward).'
-                              '\nSaving only the relevant part. NMX set to ' + str(nmx))  # should be a log instead
+                logger.info('Not storing full results of initial point ' + str(ncomp) + ' because it repeats itself (forward).'
+                            '\nSaving only the relevant part. NMX set to ' + str(nmx))
                 fp.make_backward_continuation(initial_data, **continuation_kwargs)
 
     def _check_fp_continuation_against_other_fp_branches(self, ncomp, continuation, continuation_kwargs, extra_comparison_parameters, tol):
@@ -487,13 +520,13 @@ class BifurcationDiagram(object):
                 cpar_list = [cpar]
 
             if fp.same_solutions_as(psol['continuation'], cpar_list, tol=tol, solutions_types=self._comparison_solutions_types):
-                warnings.warn('Not saving results of initial point ' + str(ncomp) + ' because it already exists (branch ' + str(n) + ').'
-                              '\nSkipping to next one.')  # should be a log instead
+                logger.info('Not saving results of initial point ' + str(ncomp) + ' because it already exists as branch ' + str(n) + '.'
+                            '\nSkipping to next one.')
                 valid_branch = False
                 break
             elif fp.solutions_in(psol['continuation'], cpar_list, tol=tol, solutions_types=self._comparison_solutions_types):
-                warnings.warn('Not saving results of initial point ' + str(ncomp) + ' because it is already in branch ' + str(n) + '.'
-                              '\nSkipping to next one.')  # should be a log instead
+                logger.info('Not saving results of initial point ' + str(ncomp) + ' because it is already in branch ' + str(n) + '.'
+                            '\nSkipping to next one.')
                 valid_branch = False
                 break
             else:
@@ -503,12 +536,12 @@ class BifurcationDiagram(object):
                     first_sol = common_solutions[0]
                     nmx = first_sol['PT'] + 1
                     if nmx > 2:
-                        warnings.warn('Not storing full results of initial point ' + str(ncomp) + ' because it merges forward with branch ' + str(n) + '.'
-                                      '\nSaving only the relevant part. NMX set to ' + str(nmx))  # should be a log instead
+                        logger.info('Not storing full results of initial point ' + str(ncomp) + ' because it merges forward with branch ' + str(n) + '.'
+                                    '\nSaving only the relevant part. NMX set to ' + str(nmx))
                         continuation_kwargs['NMX'] = nmx
                         fp.make_forward_continuation(initial_data, **continuation_kwargs)
                     else:
-                        warnings.warn('Not saving forward results of initial point ' + str(ncomp) + ' because it is already in branch ' + str(n) + '.')
+                        logger.info('Not saving forward results of initial point ' + str(ncomp) + ' because it is already in branch ' + str(n) + '.')
                         fp.continuation['forward'] = None
                 else:
                     cross_forward, sol = fp.branch_possibly_cross(psol['continuation'], cpar_list, tol=tol,
@@ -516,12 +549,12 @@ class BifurcationDiagram(object):
                     if cross_forward:
                         nmx = sol['PT'] + 1
                         if nmx > 2:
-                            warnings.warn('Not storing full results of initial point ' + str(ncomp) + ' because it connects forward to branch ' + str(n) + '.'
-                                          '\nSaving only the relevant part. NMX set to ' + str(nmx))  # should be a log instead
+                            logger.info('Not storing full results of initial point ' + str(ncomp) + ' because it connects forward to branch ' + str(n) + '.'
+                                        '\nSaving only the relevant part. NMX set to ' + str(nmx))
                             continuation_kwargs['NMX'] = nmx
                             fp.make_forward_continuation(initial_data, **continuation_kwargs)
                         else:
-                            warnings.warn('Not saving forward results of initial point ' + str(ncomp) + ' because it is already in branch ' + str(n) + '.')
+                            logger.info('Not saving forward results of initial point ' + str(ncomp) + ' because it is already in branch ' + str(n) + '.')
                             fp.continuation['forward'] = None
 
                 merge_backward, common_solutions = fp.solutions_part_of(psol['continuation'], cpar_list, tol=tol,
@@ -530,12 +563,12 @@ class BifurcationDiagram(object):
                     first_sol = common_solutions[0]
                     nmx = first_sol['PT'] + 1
                     if nmx > 2:
-                        warnings.warn('Not storing full results of initial point ' + str(ncomp) + ' because it merges backward with branch ' + str(n) + '.'
-                                      '\nSaving only the relevant part. NMX set to ' + str(nmx))  # should be a log instead
+                        logger.info('Not storing full results of initial point ' + str(ncomp) + ' because it merges backward with branch ' + str(n) + '.'
+                                    '\nSaving only the relevant part. NMX set to ' + str(nmx))
                         continuation_kwargs['NMX'] = nmx
                         fp.make_backward_continuation(initial_data, **continuation_kwargs)
                     else:
-                        warnings.warn('Not saving backward results of initial point ' + str(ncomp) + ' because it is already in branch ' + str(n) + '.')
+                        logger.info('Not saving backward results of initial point ' + str(ncomp) + ' because it is already in branch ' + str(n) + '.')
                         fp.continuation['backward'] = None
                 else:
                     cross_backward, sol = fp.branch_possibly_cross(psol['continuation'], cpar_list, tol=tol,
@@ -543,12 +576,12 @@ class BifurcationDiagram(object):
                     if cross_backward:
                         nmx = sol['PT'] + 1
                         if nmx > 2:
-                            warnings.warn('Not storing full results of initial point ' + str(ncomp) + ' because it connects backward to branch ' + str(n) + '.'
-                                          '\nSaving only the relevant part. NMX set to ' + str(nmx))  # should be a log instead
+                            logger.info('Not storing full results of initial point ' + str(ncomp) + ' because it connects backward to branch ' + str(n) + '.'
+                                        '\nSaving only the relevant part. NMX set to ' + str(nmx))
                             continuation_kwargs['NMX'] = nmx
                             fp.make_backward_continuation(initial_data, **continuation_kwargs)
                         else:
-                            warnings.warn('Not saving backward results of initial point ' + str(ncomp) + ' because it is already in branch ' + str(n) + '.')
+                            logger.info('Not saving backward results of initial point ' + str(ncomp) + ' because it is already in branch ' + str(n) + '.')
                             fp.continuation['backward'] = None
 
                 if fp.continuation['forward'] is None and fp.continuation['backward'] is None:
@@ -566,7 +599,7 @@ class BifurcationDiagram(object):
         elif isinstance(initial_data, AUTOSolution):
             par_lst = hp.continuation_parameters
             par_val = [initial_data.PAR[p] for p in continuation.continuation_parameters]
-            ini_msg = str(par_lst) + " = " + str(par_val)
+            ini_msg = str(par_lst) + " = " + str(par_val) + ' (branch ' + str(abs(initial_data['BR'])) + ')'
         else:
             ini_msg = '[ unknown ]'
 
@@ -584,8 +617,8 @@ class BifurcationDiagram(object):
                                                      solutions_types=self._comparison_solutions_types)
             if crossing and not self._check_if_solutions_are_close(initial_data, sol, extra_comparison_parameters, tol):
                 nmx = sol['PT'] + 1
-                warnings.warn('Not storing full results of PO point at ' + ini_msg + ' because it connects to branch ' + str(n) + '.'
-                              '\nSaving only the relevant part. NMX set to ' + str(nmx))  # should be a log instead
+                logger.info('Not storing full results of PO point at ' + ini_msg + ' because it connects to branch ' + str(n) + '.'
+                            '\nSaving only the relevant part. NMX set to ' + str(nmx))
                 continuation_kwargs['NMX'] = nmx
                 hp.make_forward_continuation(initial_data, **continuation_kwargs)
 
@@ -593,8 +626,8 @@ class BifurcationDiagram(object):
                                                      solutions_types=self._comparison_solutions_types)
             if crossing and not self._check_if_solutions_are_close(initial_data, sol, extra_comparison_parameters, tol):
                 nmx = sol['PT'] + 1
-                warnings.warn('Not storing full results of PO point at ' + ini_msg + ' because it connects to branch ' + str(n) + '.'
-                              '\nSaving only the relevant part. NMX set to ' + str(nmx))  # should be a log instead
+                logger.info('Not storing full results of PO point at ' + ini_msg + ' because it connects to branch ' + str(n) + '.'
+                            '\nSaving only the relevant part. NMX set to ' + str(nmx))
                 continuation_kwargs['NMX'] = nmx
                 hp.make_backward_continuation(initial_data, **continuation_kwargs)
 
@@ -608,7 +641,7 @@ class BifurcationDiagram(object):
         elif isinstance(initial_data, AUTOSolution):
             par_lst = hp.continuation_parameters
             par_val = [initial_data.PAR[p] for p in continuation.continuation_parameters]
-            ini_msg = str(par_lst) + " = " + str(par_val)
+            ini_msg = str(par_lst) + " = " + str(par_val) + ' (branch ' + str(abs(initial_data['BR'])) + ')'
         else:
             ini_msg = '[ unknown ]'
 
@@ -633,8 +666,8 @@ class BifurcationDiagram(object):
             if recompute:
                 first_repeating_sol = repeating_solutions[-1]
                 nmx = first_repeating_sol['PT'] + 1
-                warnings.warn('Not storing full results of PO point at ' + ini_msg + ' because it repeats itself (forward).'
-                              '\nSaving only the relevant part. NMX set to ' + str(nmx))  # should be a log instead
+                logger.info('Not storing full results of PO point at ' + ini_msg + ' because it repeats itself (forward).'
+                            '\nSaving only the relevant part. NMX set to ' + str(nmx))
                 continuation_kwargs['NMX'] = nmx
                 hp.make_forward_continuation(initial_data, **continuation_kwargs)
 
@@ -650,8 +683,8 @@ class BifurcationDiagram(object):
             if recompute:
                 first_repeating_sol = repeating_solutions[-1]
                 nmx = first_repeating_sol['PT'] + 1
-                warnings.warn('Not storing full results of PO point at ' + ini_msg + ' because it repeats itself (backward).'
-                              '\nSaving only the relevant part. NMX set to ' + str(nmx))  # should be a log instead
+                logger.info('Not storing full results of PO point at ' + ini_msg + ' because it repeats itself (backward).'
+                            '\nSaving only the relevant part. NMX set to ' + str(nmx))
                 continuation_kwargs['NMX'] = nmx
                 hp.make_backward_continuation(initial_data, **continuation_kwargs)
 
@@ -665,7 +698,7 @@ class BifurcationDiagram(object):
         elif isinstance(initial_data, AUTOSolution):
             par_lst = hp.continuation_parameters
             par_val = [initial_data.PAR[p] for p in continuation.continuation_parameters]
-            ini_msg = str(par_lst) + " = " + str(par_val)
+            ini_msg = str(par_lst) + " = " + str(par_val) + ' (branch ' + str(abs(initial_data['BR'])) + ')'
         else:
             ini_msg = '[ unknown ]'
 
@@ -681,13 +714,13 @@ class BifurcationDiagram(object):
                 cpar_list = [cpar]
 
             if hp.same_solutions_as(psol['continuation'], cpar_list, tol=tol, solutions_types=self._comparison_solutions_types):
-                warnings.warn('Not saving results of PO point at ' + ini_msg + ' because it already exists (branch ' + str(n) + ').'
-                              '\nSkipping to next one.')  # should be a log instead
+                logger.info('Not saving results of PO point at ' + ini_msg + ' because it already exists (branch ' + str(n) + ').'
+                            '\nSkipping to next one.')
                 valid_branch = False
                 break
             elif hp.solutions_in(psol['continuation'], cpar_list, tol=tol, solutions_types=self._comparison_solutions_types):
-                warnings.warn('Not saving results of PO point at ' + ini_msg + ' because it is already in branch ' + str(n) + '.'
-                              '\nSkipping to next one.')  # should be a log instead
+                logger.info('Not saving results of PO point at ' + ini_msg + ' because it is already in branch ' + str(n) + '.'
+                            '\nSkipping to next one.')
                 valid_branch = False
                 break
             else:
@@ -701,8 +734,8 @@ class BifurcationDiagram(object):
                             remake_continuation = not self._check_if_solutions_are_close(initial_data, first_sol, extra_comparison_parameters, tol)
                     if remake_continuation:
                         nmx = first_sol['PT'] + 1
-                        warnings.warn('Not storing full results of PO point at ' + ini_msg + ' because it merges forward with branch ' + str(n) + '.'
-                                      '\nSaving only the relevant part. NMX set to ' + str(nmx))  # should be a log instead
+                        logger.info('Not storing full results of PO point at ' + ini_msg + ' because it merges forward with branch ' + str(n) + '.'
+                                    '\nSaving only the relevant part. NMX set to ' + str(nmx))
                         continuation_kwargs['NMX'] = nmx
                         hp.make_forward_continuation(initial_data, **continuation_kwargs)
 
@@ -712,8 +745,8 @@ class BifurcationDiagram(object):
 
                     if cross_forward:
                         nmx = sol['PT'] + 1
-                        warnings.warn('Not storing full results of PO point at ' + ini_msg + ' because it connects forward to branch ' + str(n) + '.'
-                                      '\nSaving only the relevant part. NMX set to ' + str(nmx))  # should be a log instead
+                        logger.info('Not storing full results of PO point at ' + ini_msg + ' because it connects forward to branch ' + str(n) + '.'
+                                    '\nSaving only the relevant part. NMX set to ' + str(nmx))
                         continuation_kwargs['NMX'] = nmx
                         hp.make_forward_continuation(initial_data, **continuation_kwargs)
 
@@ -727,8 +760,8 @@ class BifurcationDiagram(object):
                             remake_continuation = not self._check_if_solutions_are_close(initial_data, first_sol, extra_comparison_parameters, tol)
                     if remake_continuation:
                         nmx = first_sol['PT'] + 1
-                        warnings.warn('Not storing full results of PO point at ' + ini_msg + ' because it merges backward with branch ' + str(n) + '.'
-                                      '\nSaving only the relevant part. NMX set to ' + str(nmx))  # should be a log instead
+                        logger.info('Not storing full results of PO point at ' + ini_msg + ' because it merges backward with branch ' + str(n) + '.'
+                                    '\nSaving only the relevant part. NMX set to ' + str(nmx))
                         continuation_kwargs['NMX'] = nmx
                         hp.make_backward_continuation(initial_data, **continuation_kwargs)
 
@@ -738,8 +771,8 @@ class BifurcationDiagram(object):
 
                     if cross_backward:
                         nmx = sol['PT'] + 1
-                        warnings.warn('Not storing full results of  PO point at ' + ini_msg + ' because it connects backward to branch ' + str(n) + '.'
-                                      '\nSaving only the relevant part. NMX set to ' + str(nmx))  # should be a log instead
+                        logger.info('Not storing full results of  PO point at ' + ini_msg + ' because it connects backward to branch ' + str(n) + '.'
+                                    '\nSaving only the relevant part. NMX set to ' + str(nmx))
                         continuation_kwargs['NMX'] = nmx
                         hp.make_backward_continuation(initial_data, **continuation_kwargs)
 
