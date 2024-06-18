@@ -59,6 +59,8 @@ class BifurcationDiagram(object):
         self.fp_computed = False
         self.po_computed = False
 
+        self.level_reached = 0
+
         self._comparison_solutions_types = ('HB', 'BP', 'UZ', 'PD', 'EP', 'TR', 'LP')
         self._figure_legend_handles = list()
         self._figure_3d_legend_handles = list()
@@ -175,9 +177,9 @@ class BifurcationDiagram(object):
             logger.info('NMX parameters was not set, so setting it to 9000 points.')
 
         br_num = max(self.fp_branches.keys()) + 1
+        self.level_reached = 0
 
         logger.info('First, beginning computation of the periodic orbits from Hopf bifurcations.')
-        level = 1
         for parent_branch_number, branch in self.fp_branches.items():
 
             hb_list = branch['continuation'].get_filtered_solutions_list(labels='HB')
@@ -218,8 +220,9 @@ class BifurcationDiagram(object):
             self.fp_hb_computed.append(parent_branch_number)
 
         logger.info('Continuation of the periodic orbits from Hopf bifurcations has ended.')
-        if level == end_level:
-            logger.info('As demanded, finishing computation at level '+str(level)+' ...')
+        self.level_reached += 1
+        if self.level_reached == end_level:
+            logger.info('As demanded, finishing computation at level '+str(self.level_reached)+' ...')
             return
 
         logger.info('Beginning computation of the periodic orbits from detected branching and period doubling points.')
@@ -231,8 +234,7 @@ class BifurcationDiagram(object):
 
             new_branches = dict()
 
-            level += 1
-            logger.info('Entering level ' + str(level) + ' of continuation...')
+            logger.info('Entering level ' + str(self.level_reached + 1) + ' of continuation...')
 
             for parent_branch_number, branch in self.po_branches.items():
                 logger.debug('Continuing branching points of branch: ' + str(parent_branch_number))
@@ -348,10 +350,13 @@ class BifurcationDiagram(object):
             if nrecomp == 0:
                 break
 
-            logger.info('Computation of level ' + str(level) + ' of continuation has ended.')
-            if level == end_level:
-                logger.info('As demanded, finishing computation at level ' + str(level) + ' ...')
+            self.level_reached += 1
+            logger.info('Computation of level ' + str(self.level_reached) + ' of continuation has ended.')
+            if self.level_reached == end_level:
+                logger.info('As demanded, finishing computation at level ' + str(self.level_reached) + ' ...')
                 break
+
+        logger.info('Finished computation at level ' + str(self.level_reached))
 
     def _get_dict(self):
         state = self.__dict__.copy()
