@@ -135,10 +135,6 @@ class BifurcationDiagram(object):
 
                         for ibp, bp in enumerate(branching_points):
 
-                            used_continuation_kwargs = deepcopy(continuation_kwargs)
-                            used_continuation_kwargs['ISW'] = -1
-                            used_continuation_kwargs['PAR'] = {}
-
                             for bn in self.computed_bp_by_fp_branch:
                                 found_solution = False
                                 for ibpt in self.computed_bp_by_fp_branch[bn]:
@@ -152,6 +148,9 @@ class BifurcationDiagram(object):
                                 if found_solution:
                                     break
                             else:
+                                used_continuation_kwargs = deepcopy(continuation_kwargs)
+                                used_continuation_kwargs['ISW'] = -1
+                                used_continuation_kwargs['PAR'] = {}
                                 used_continuation_kwargs['IBR'] = br_num
                                 fp = FixedPointContinuation(model_name=self.model_name, config_object=self.config_object)
                                 fp.make_continuation(bp, **used_continuation_kwargs)
@@ -253,23 +252,26 @@ class BifurcationDiagram(object):
                                         remove_dubious_bp=True, max_number_bp=None, backward_bp_continuation=False, restart=True,
                                         **continuation_kwargs):
 
-        if self.level_reached == 0:
+        if self.po_computed:
+            logger.info('Computation up to level ' + str(end_level) + ' was asked but bifurcation diagram is complete.')
+            logger.info('Nothing more to compute.')
+        elif self.level_reached >= end_level:
+            logger.info('Computation up to level ' + str(end_level) + ' was asked, but current level (' + str(self.level_reached) +
+                        ') is already equal or above.')
+            logger.info('Nothing more to compute.')
+        elif self.level_reached == 0:
             logger.info('User asked for a restart, but actual bifurcation diagram level is 0 !')
             logger.info('Starting a new periodic orbit diagram...')
             self.compute_periodic_orbits_diagram(end_level=end_level, extra_comparison_parameters=extra_comparison_parameters,
                                                  remove_dubious_bp=remove_dubious_bp, max_number_bp=max_number_bp,
                                                  backward_bp_continuation=backward_bp_continuation, **continuation_kwargs)
-        elif self.po_computed:
-            logger.info('Computation up to level ' + str(end_level) + ' was asked but bifurcation diagram is complete.')
-            logger.info('Nothing more to compute.')
-
-        elif self.level_reached >= end_level:
-            logger.info('Computation up to level ' + str(end_level) + ' was asked, but current level (' + str(self.level_reached) +
-                        ') is already equal or above.')
-            logger.info('Nothing more to compute.')
         else:
             if restart:
                 logger.info('Restarting the computation of the periodic orbits from detected branching and period doubling points.')
+
+            if 'MNX' not in continuation_kwargs:
+                continuation_kwargs['NMX'] = 9000
+                logger.info('NMX parameters was not set, so setting it to 9000 points.')
 
             br_num = max(self.po_branches.keys()) + 1
 
@@ -281,9 +283,10 @@ class BifurcationDiagram(object):
                 logger.info('Entering level ' + str(self.level_reached + 1) + ' of continuation...')
 
                 for parent_branch_number, branch in self.po_branches.items():
-                    logger.debug('Continuing branching points of branch: ' + str(parent_branch_number))
 
                     if parent_branch_number not in self.po_branches_with_all_bp_computed:
+
+                        logger.debug('Continuing branching points of branch: ' + str(parent_branch_number))
 
                         forward_branching_points = branch['continuation'].get_filtered_solutions_list(labels='BP', forward=True)
                         backward_branching_points = branch['continuation'].get_filtered_solutions_list(labels='BP', forward=False)
@@ -292,17 +295,11 @@ class BifurcationDiagram(object):
                             forward_branching_points = forward_branching_points[:max_number_bp]
                             backward_branching_points = backward_branching_points[:max_number_bp]
 
-                        direction_and_branching_points = (
-                            (1, forward_branching_points), (-1, backward_branching_points))
+                        direction_and_branching_points = ((1, forward_branching_points), (-1, backward_branching_points))
 
                         for direction, branching_points in direction_and_branching_points:
 
                             for ibp, bp in enumerate(branching_points):
-
-                                used_continuation_kwargs = deepcopy(
-                                    self.po_branches[parent_branch_number]['continuation_kwargs'])
-                                used_continuation_kwargs['ISW'] = -1
-                                used_continuation_kwargs['NMX'] = continuation_kwargs['NMX']
 
                                 for bn in self.computed_bp_by_po_branch:
                                     found_solution = False
@@ -342,6 +339,10 @@ class BifurcationDiagram(object):
                                                     '\nSkipping to next one.')
                                         valid_branch = False
                                     else:
+                                        used_continuation_kwargs = deepcopy(self.po_branches[parent_branch_number]['continuation_kwargs'])
+                                        used_continuation_kwargs['ISW'] = -1
+                                        used_continuation_kwargs['NMX'] = continuation_kwargs['NMX']
+
                                         used_continuation_kwargs['IBR'] = br_num
                                         hp = PeriodicOrbitContinuation(model_name=self.model_name, config_object=self.config_object)
                                         hp.make_continuation(bp, only_forward=not backward_bp_continuation, IBR=br_num, ISW=-1)
@@ -365,10 +366,11 @@ class BifurcationDiagram(object):
                         self.po_branches_with_all_bp_computed.append(parent_branch_number)
                         nrecomp += 1
 
-                    logger.debug('Computation of branching points of branch: ' + str(parent_branch_number) + ' has ended.')
-                    logger.debug('Continuing period doubling points of branch: ' + str(parent_branch_number))
+                        logger.debug('Computation of branching points of branch: ' + str(parent_branch_number) + ' has ended.')
 
                     if parent_branch_number not in self.po_branches_with_all_pd_computed:
+
+                        logger.debug('Continuing period doubling points of branch: ' + str(parent_branch_number))
 
                         forward_period_doubling_points = branch['continuation'].get_filtered_solutions_list(labels='PD', forward=True)
                         backward_period_doubling_points = branch['continuation'].get_filtered_solutions_list(labels='PD', forward=False)
@@ -378,11 +380,6 @@ class BifurcationDiagram(object):
                         for direction, period_doubling_points in direction_and_period_doubling_points:
 
                             for ipd, pd in enumerate(period_doubling_points):
-
-                                used_continuation_kwargs = deepcopy(
-                                    self.po_branches[parent_branch_number]['continuation_kwargs'])
-                                used_continuation_kwargs['ISW'] = -1
-                                used_continuation_kwargs['NMX'] = continuation_kwargs['NMX']
 
                                 for bn in self.computed_pd_by_po_branch:
                                     found_solution = False
@@ -398,6 +395,10 @@ class BifurcationDiagram(object):
                                     if found_solution:
                                         break
                                 else:
+                                    used_continuation_kwargs = deepcopy(self.po_branches[parent_branch_number]['continuation_kwargs'])
+                                    used_continuation_kwargs['ISW'] = -1
+                                    used_continuation_kwargs['NMX'] = continuation_kwargs['NMX']
+
                                     used_continuation_kwargs['IBR'] = br_num
                                     hp = PeriodicOrbitContinuation(model_name=self.model_name, config_object=self.config_object)
                                     hp.make_continuation(pd, IBR=br_num, ISW=-1)
@@ -422,7 +423,7 @@ class BifurcationDiagram(object):
                         self.po_branches_with_all_pd_computed.append(parent_branch_number)
                         nrecomp += 1
 
-                    logger.debug('Computation of period doubling points of branch: ' + str(parent_branch_number) + ' has ended.')
+                        logger.debug('Computation of period doubling points of branch: ' + str(parent_branch_number) + ' has ended.')
                 self.po_branches.update(new_branches)
 
                 if nrecomp == 0:
