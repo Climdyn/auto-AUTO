@@ -12,7 +12,7 @@ from matplotlib.colors import TABLEAU_COLORS
 
 from auto2.parsers.config import ConfigParser
 logger = logging.getLogger('logger')
-logger.info('Using auto-AUTO (auto² or auto2) -- An AUTO-07p automatic search algorithm codebase')
+logger.info('Using auto-AUTO (AUTO² or auto2) -- An AUTO-07p automatic search algorithm codebase')
 logger.info('Read AUTO-07p manual first before using it. Wishing you a happy continuation, have fun !')
 logger.info('Logging messages can be found in the file "auto2.log"')
 
@@ -49,11 +49,14 @@ class BifurcationDiagram(object):
         self.po_branches = dict()
 
         self.fp_parent = dict()
-        self.fp_bp_computed = list()
-        self.fp_hb_computed = list()
+        self.fp_branches_with_all_bp_computed = list()
+        self.fp_branches_with_all_hb_computed = list()
+        self.computed_bp_by_fp_branch = dict()
         self.po_parent = dict()
-        self.po_bp_computed = list()
-        self.po_pd_computed = list()
+        self.po_branches_with_all_bp_computed = list()
+        self.po_branches_with_all_pd_computed = list()
+        self.computed_bp_by_po_branch = dict()
+        self.computed_pd_by_po_branch = dict()
 
         self.fp_computed = False
         self.po_computed = False
@@ -114,43 +117,58 @@ class BifurcationDiagram(object):
         logger.info('Provided fixed points continuation has ended.')
         logger.info('Eventually continuing detected branching points.')
 
-        bp_list = list()
-
         while True:
             nrecomp = 0
 
             new_branches = dict()
 
             for parent_branch_number, branch in self.fp_branches.items():
-                branching_points = branch['continuation'].get_filtered_solutions_list(labels='BP')
 
-                if parent_branch_number not in self.fp_bp_computed:
+                if parent_branch_number not in self.fp_branches_with_all_bp_computed:
 
-                    for bp in branching_points:
+                    forward_branching_points = branch['continuation'].get_filtered_solutions_list(labels='BP', forward=True)
+                    backward_branching_points = branch['continuation'].get_filtered_solutions_list(labels='BP', forward=False)
 
-                        used_continuation_kwargs = deepcopy(continuation_kwargs)
-                        used_continuation_kwargs['ISW'] = -1
-                        used_continuation_kwargs['PAR'] = {}
+                    direction_and_branching_points = ((1, forward_branching_points), (-1, backward_branching_points))
 
-                        for bpt in bp_list:
-                            if self._check_if_solutions_are_close(bp, bpt, extra_comparison_parameters, comparison_tol):
-                                break
-                        else:
-                            used_continuation_kwargs['IBR'] = br_num
-                            fp = FixedPointContinuation(model_name=self.model_name, config_object=self.config_object)
-                            fp.make_continuation(bp, **used_continuation_kwargs)
+                    for direction, branching_points in direction_and_branching_points:
 
-                            self._check_fp_continuation_against_itself(ncomp, fp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol)
-                            valid_branch = self._check_fp_continuation_against_other_fp_branches(ncomp, fp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol)
+                        for ibp, bp in enumerate(branching_points):
 
-                            if valid_branch:
-                                new_branches[abs(fp.branch_number)] = {'parameters': bp.PAR, 'continuation': fp, 'continuation_kwargs': used_continuation_kwargs}
-                                self.fp_parent[abs(fp.branch_number)] = parent_branch_number
-                                logger.info('Saving valid branch ' + str(br_num) + ' emanating from branch ' + str(parent_branch_number) + '.')
-                                br_num += 1
-                            bp_list.append(bp)
-                            ncomp += 1
-                    self.fp_bp_computed.append(parent_branch_number)
+                            for bn in self.computed_bp_by_fp_branch:
+                                found_solution = False
+                                for ibpt in self.computed_bp_by_fp_branch[bn]:
+                                    if ibpt >= 0:
+                                        bpt = self.get_continuation(bn).get_solution_by_label('BP' + str(ibpt))
+                                    else:
+                                        bpt = self.get_continuation(bn).get_solution_by_label('-BP' + str(-ibpt))
+                                    if self._check_if_solutions_are_close(bp, bpt, extra_comparison_parameters, comparison_tol):
+                                        found_solution = True
+                                        break
+                                if found_solution:
+                                    break
+                            else:
+                                used_continuation_kwargs = deepcopy(continuation_kwargs)
+                                used_continuation_kwargs['ISW'] = -1
+                                used_continuation_kwargs['PAR'] = {}
+                                used_continuation_kwargs['IBR'] = br_num
+                                fp = FixedPointContinuation(model_name=self.model_name, config_object=self.config_object)
+                                fp.make_continuation(bp, **used_continuation_kwargs)
+
+                                self._check_fp_continuation_against_itself(ncomp, fp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol)
+                                valid_branch = self._check_fp_continuation_against_other_fp_branches(ncomp, fp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol)
+
+                                if valid_branch:
+                                    new_branches[abs(fp.branch_number)] = {'parameters': bp.PAR, 'continuation': fp, 'continuation_kwargs': used_continuation_kwargs}
+                                    self.fp_parent[abs(fp.branch_number)] = parent_branch_number
+                                    logger.info('Saving valid branch ' + str(br_num) + ' emanating from branch ' + str(parent_branch_number) + '.')
+                                    br_num += 1
+                                if parent_branch_number not in self.computed_bp_by_fp_branch:
+                                    self.computed_bp_by_fp_branch[parent_branch_number] = list()
+                                self.computed_bp_by_fp_branch[parent_branch_number].append(direction * (ibp+1))
+                                ncomp += 1
+
+                    self.fp_branches_with_all_bp_computed.append(parent_branch_number)
                     nrecomp += 1
 
             self.fp_branches.update(new_branches)
@@ -159,6 +177,7 @@ class BifurcationDiagram(object):
                 break
 
         logger.info('Fixed points bifurcation diagram computation is over.')
+        logger.info('All possible fixed point branches have been computed.')
         self.fp_computed = True
 
     def compute_periodic_orbits_diagram(self, end_level=None, extra_comparison_parameters=None, comparison_tol=2.e-2,
@@ -216,7 +235,7 @@ class BifurcationDiagram(object):
                     self.po_parent[abs(hp.branch_number)] = parent_branch_number
                     logger.info('Saving valid branch ' + str(br_num) + ' emanating from branch ' + str(parent_branch_number) + '.')
                     br_num += 1
-            self.fp_hb_computed.append(parent_branch_number)
+            self.fp_branches_with_all_hb_computed.append(parent_branch_number)
 
         logger.info('Continuation of the periodic orbits from Hopf bifurcations has ended.')
         self.level_reached += 1
@@ -225,137 +244,204 @@ class BifurcationDiagram(object):
             return
 
         logger.info('Beginning computation of the periodic orbits from detected branching and period doubling points.')
-        bp_list = list()
-        pd_list = list()
+        self.restart_periodic_orbits_diagram(end_level=end_level, extra_comparison_parameters=extra_comparison_parameters,
+                                             remove_dubious_bp=remove_dubious_bp, max_number_bp=max_number_bp,
+                                             backward_bp_continuation=backward_bp_continuation, restart=False, **continuation_kwargs)
 
-        while True:
-            nrecomp = 0
+    def restart_periodic_orbits_diagram(self, end_level=None, extra_comparison_parameters=None, comparison_tol=2.e-2,
+                                        remove_dubious_bp=True, max_number_bp=None, backward_bp_continuation=False, restart=True,
+                                        **continuation_kwargs):
 
-            new_branches = dict()
+        if self.po_computed:
+            logger.info('Computation up to level ' + str(end_level) + ' was asked but bifurcation diagram is complete.')
+            logger.info('Nothing more to compute.')
+        elif self.level_reached >= end_level:
+            logger.info('Computation up to level ' + str(end_level) + ' was asked, but current level (' + str(self.level_reached) +
+                        ') is already equal or above.')
+            logger.info('Nothing more to compute.')
+        elif self.level_reached == 0:
+            logger.info('User asked for a restart, but actual bifurcation diagram level is 0 !')
+            logger.info('Starting a new periodic orbit diagram...')
+            self.compute_periodic_orbits_diagram(end_level=end_level, extra_comparison_parameters=extra_comparison_parameters,
+                                                 remove_dubious_bp=remove_dubious_bp, max_number_bp=max_number_bp,
+                                                 backward_bp_continuation=backward_bp_continuation, **continuation_kwargs)
+        else:
+            if restart:
+                logger.info('Restarting the computation of the periodic orbits from detected branching and period doubling points.')
 
-            logger.info('Entering level ' + str(self.level_reached + 1) + ' of continuation...')
+            if 'MNX' not in continuation_kwargs:
+                continuation_kwargs['NMX'] = 9000
+                logger.info('NMX parameters was not set, so setting it to 9000 points.')
 
-            for parent_branch_number, branch in self.po_branches.items():
-                logger.debug('Continuing branching points of branch: ' + str(parent_branch_number))
-                forward_branching_points = branch['continuation'].get_filtered_solutions_list(labels='BP', forward=True)
-                backward_branching_points = branch['continuation'].get_filtered_solutions_list(labels='BP', forward=False)
+            br_num = max(self.po_branches.keys()) + 1
 
-                if max_number_bp is not None:
-                    forward_branching_points = forward_branching_points[:max_number_bp]
-                    backward_branching_points = backward_branching_points[:max_number_bp]
+            while True:
+                nrecomp = 0
 
-                branching_points = backward_branching_points.copy()
-                branching_points.extend(forward_branching_points)
+                new_branches = dict()
 
-                if parent_branch_number not in self.po_bp_computed:
+                logger.info('Entering level ' + str(self.level_reached + 1) + ' of continuation...')
 
-                    for bp in branching_points:
+                for parent_branch_number, branch in self.po_branches.items():
 
-                        used_continuation_kwargs = deepcopy(self.po_branches[parent_branch_number]['continuation_kwargs'])
-                        used_continuation_kwargs['ISW'] = -1
-                        used_continuation_kwargs['NMX'] = continuation_kwargs['NMX']
+                    if parent_branch_number not in self.po_branches_with_all_bp_computed:
 
-                        for bpt in bp_list:
-                            if self._check_if_solutions_are_close(bp, bpt, extra_comparison_parameters, comparison_tol):
-                                break
-                        else:
-                            if bp in forward_branching_points:
-                                s = 1
-                            else:
-                                s = - 1
+                        logger.debug('Continuing branching points of branch: ' + str(parent_branch_number))
 
-                            parent_continuation = self.get_continuation(parent_branch_number)
-                            try:
-                                bp_stability = np.array(parent_continuation.orbit_stability(s * (bp['PT'] - 1)))
-                                # max_accept = 1. / np.nanmin(np.abs(np.where(bp_stability == 0, np.nan, bp_stability)))
-                                max_accept = np.finfo(np.float64).max * 1.e-10
-                                looks_dubious = np.max(bp_stability) > max_accept
-                            except ValueError:
-                                par_lst = parent_continuation.continuation_parameters
-                                par_val = [bp.PAR[p] for p in parent_continuation.continuation_parameters]
-                                ini_msg = str(par_lst) + " = " + str(par_val) + ' (branch '+str(parent_branch_number) + ')'
-                                logger.error('No stability information found for PO point at ' + ini_msg + '. Something is wrong, not doing the continuation.')
-                                looks_dubious = True
+                        forward_branching_points = branch['continuation'].get_filtered_solutions_list(labels='BP', forward=True)
+                        backward_branching_points = branch['continuation'].get_filtered_solutions_list(labels='BP', forward=False)
 
-                            if looks_dubious and remove_dubious_bp:
-                                par_lst = parent_continuation.continuation_parameters
-                                par_val = [bp.PAR[p] for p in parent_continuation.continuation_parameters]
-                                ini_msg = str(par_lst) + " = " + str(par_val) + ' (branch '+str(parent_branch_number) + ')'
-                                try:
-                                    s = str(np.max(bp_stability))
-                                except ValueError:
-                                    s = '[ unknown ]'
-                                logger.info('Not saving results of PO point at ' + ini_msg + ' because it looks dubious. (max Floquet: ' + s + ' ).'
-                                            '\nSkipping to next one.')
-                                valid_branch = False
-                            else:
-                                used_continuation_kwargs['IBR'] = br_num
-                                hp = PeriodicOrbitContinuation(model_name=self.model_name, config_object=self.config_object)
-                                hp.make_continuation(bp, only_forward=not backward_bp_continuation, IBR=br_num, ISW=-1)
-                                self._check_po_continuation_against_itself(hp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol)
+                        if max_number_bp is not None:
+                            forward_branching_points = forward_branching_points[:max_number_bp]
+                            backward_branching_points = backward_branching_points[:max_number_bp]
 
-                                self._check_po_continuation_against_other_fp_branches(hp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol)
-                                valid_branch = self._check_po_continuation_against_other_po_branches(hp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol)
+                        direction_and_branching_points = ((1, forward_branching_points), (-1, backward_branching_points))
 
-                            if valid_branch:
-                                new_branches[abs(hp.branch_number)] = {'parameters': bp.PAR, 'continuation': hp, 'continuation_kwargs': used_continuation_kwargs}
-                                self.po_parent[abs(hp.branch_number)] = parent_branch_number
-                                logger.info('Saving valid branch ' + str(br_num) + ' emanating from branch ' + str(parent_branch_number) + '.')
-                                br_num += 1
+                        for direction, branching_points in direction_and_branching_points:
 
-                            bp_list.append(bp)
+                            for ibp, bp in enumerate(branching_points):
 
-                    self.po_bp_computed.append(parent_branch_number)
-                    nrecomp += 1
+                                for bn in self.computed_bp_by_po_branch:
+                                    found_solution = False
+                                    for ibpt in self.computed_bp_by_po_branch[bn]:
+                                        if ibpt >= 0:
+                                            bpt = self.get_continuation(bn).get_solution_by_label('BP' + str(ibpt))
+                                        else:
+                                            bpt = self.get_continuation(bn).get_solution_by_label('-BP' + str(-ibpt))
+                                        if self._check_if_solutions_are_close(bp, bpt, extra_comparison_parameters, comparison_tol):
+                                            found_solution = True
+                                            break
+                                    if found_solution:
+                                        break
+                                else:
+                                    parent_continuation = self.get_continuation(parent_branch_number)
+                                    try:
+                                        bp_stability = np.array(parent_continuation.orbit_stability(direction * (bp['PT'] - 1)))
+                                        # max_accept = 1. / np.nanmin(np.abs(np.where(bp_stability == 0, np.nan, bp_stability)))
+                                        max_accept = np.finfo(np.float64).max * 1.e-10
+                                        looks_dubious = np.max(bp_stability) > max_accept
+                                    except ValueError:
+                                        par_lst = parent_continuation.continuation_parameters
+                                        par_val = [bp.PAR[p] for p in parent_continuation.continuation_parameters]
+                                        ini_msg = str(par_lst) + " = " + str(par_val) + ' (branch ' + str(parent_branch_number) + ')'
+                                        logger.error('No stability information found for PO point at ' + ini_msg + '. Something is wrong, not doing the continuation.')
+                                        looks_dubious = True
 
-                logger.debug('Computation of branching points of branch: ' + str(parent_branch_number) + ' has ended.')
-                logger.debug('Continuing period doubling points of branch: ' + str(parent_branch_number))
-                period_doubling_points = branch['continuation'].get_filtered_solutions_list(labels='PD')
+                                    if looks_dubious and remove_dubious_bp:
+                                        par_lst = parent_continuation.continuation_parameters
+                                        par_val = [bp.PAR[p] for p in parent_continuation.continuation_parameters]
+                                        ini_msg = str(par_lst) + " = " + str(par_val) + ' (branch ' + str(parent_branch_number) + ')'
+                                        try:
+                                            s = str(np.max(bp_stability))
+                                        except ValueError:
+                                            s = '[ unknown ]'
+                                        logger.info('Not saving results of PO point at ' + ini_msg + ' because it looks dubious. (max Floquet: ' + s + ' ).'
+                                                    '\nSkipping to next one.')
+                                        valid_branch = False
+                                    else:
+                                        used_continuation_kwargs = deepcopy(self.po_branches[parent_branch_number]['continuation_kwargs'])
+                                        used_continuation_kwargs['ISW'] = -1
+                                        used_continuation_kwargs['NMX'] = continuation_kwargs['NMX']
 
-                if parent_branch_number not in self.po_pd_computed:
+                                        used_continuation_kwargs['IBR'] = br_num
+                                        hp = PeriodicOrbitContinuation(model_name=self.model_name, config_object=self.config_object)
+                                        hp.make_continuation(bp, only_forward=not backward_bp_continuation, **used_continuation_kwargs)
+                                        self._check_po_continuation_against_itself(hp, used_continuation_kwargs, extra_comparison_parameters,
+                                                                                   comparison_tol)
 
-                    for pd in period_doubling_points:
+                                        self._check_po_continuation_against_other_fp_branches(hp, used_continuation_kwargs, extra_comparison_parameters,
+                                                                                              comparison_tol)
+                                        valid_branch = self._check_po_continuation_against_other_po_branches(hp, used_continuation_kwargs, extra_comparison_parameters,
+                                                                                                             comparison_tol)
 
-                        used_continuation_kwargs = deepcopy(self.po_branches[parent_branch_number]['continuation_kwargs'])
-                        used_continuation_kwargs['ISW'] = -1
-                        used_continuation_kwargs['NMX'] = continuation_kwargs['NMX']
+                                    if valid_branch:
+                                        new_branches[abs(hp.branch_number)] = {'parameters': bp.PAR, 'continuation': hp, 'continuation_kwargs': used_continuation_kwargs}
+                                        self.po_parent[abs(hp.branch_number)] = parent_branch_number
+                                        logger.info('Saving valid branch ' + str(br_num) + ' emanating from branch ' + str(parent_branch_number) + '.')
+                                        br_num += 1
+                                    if parent_branch_number not in self.computed_bp_by_po_branch:
+                                        self.computed_bp_by_po_branch[parent_branch_number] = list()
+                                    self.computed_bp_by_po_branch[parent_branch_number].append(direction * (ibp + 1))
 
-                        for pdt in pd_list:
-                            if self._check_if_solutions_are_close(pd, pdt, extra_comparison_parameters, comparison_tol):
-                                break
-                        else:
-                            used_continuation_kwargs['IBR'] = br_num
-                            hp = PeriodicOrbitContinuation(model_name=self.model_name, config_object=self.config_object)
-                            hp.make_continuation(pd, IBR=br_num, ISW=-1)
-                            self._check_po_continuation_against_itself(hp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol)
+                        self.po_branches_with_all_bp_computed.append(parent_branch_number)
+                        nrecomp += 1
 
-                            self._check_po_continuation_against_other_fp_branches(hp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol)
-                            valid_branch = self._check_po_continuation_against_other_po_branches(hp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol)
+                        logger.debug('Computation of branching points of branch: ' + str(parent_branch_number) + ' has ended.')
 
-                            if valid_branch:
-                                new_branches[abs(hp.branch_number)] = {'parameters': pd.PAR, 'continuation': hp, 'continuation_kwargs': used_continuation_kwargs}
-                                self.po_parent[abs(hp.branch_number)] = parent_branch_number
-                                logger.debug('Saving branch ' + str(br_num) + ' emanating from branch ' + str(parent_branch_number) + '.')
-                                br_num += 1
+                    if parent_branch_number not in self.po_branches_with_all_pd_computed:
 
-                            pd_list.append(pd)
+                        logger.debug('Continuing period doubling points of branch: ' + str(parent_branch_number))
 
-                    self.po_pd_computed.append(parent_branch_number)
-                    nrecomp += 1
+                        forward_period_doubling_points = branch['continuation'].get_filtered_solutions_list(labels='PD', forward=True)
+                        backward_period_doubling_points = branch['continuation'].get_filtered_solutions_list(labels='PD', forward=False)
 
-                logger.debug('Computation of period doubling points of branch: ' + str(parent_branch_number) + ' has ended.')
-            self.po_branches.update(new_branches)
+                        direction_and_period_doubling_points = ((1, forward_period_doubling_points), (-1, backward_period_doubling_points))
 
-            if nrecomp == 0:
-                break
+                        for direction, period_doubling_points in direction_and_period_doubling_points:
 
-            self.level_reached += 1
-            logger.info('Computation of level ' + str(self.level_reached) + ' of continuation has ended.')
-            if self.level_reached == end_level:
-                logger.info('As demanded, finishing computation at level ' + str(self.level_reached) + ' ...')
-                break
+                            for ipd, pd in enumerate(period_doubling_points):
 
-        logger.info('Finished computation at level ' + str(self.level_reached))
+                                for bn in self.computed_pd_by_po_branch:
+                                    found_solution = False
+                                    for ipdt in self.computed_pd_by_po_branch[bn]:
+                                        if ipdt >= 0:
+                                            pdt = self.get_continuation(bn).get_solution_by_label('PD' + str(ipdt))
+                                        else:
+                                            pdt = self.get_continuation(bn).get_solution_by_label('-PD' + str(-ipdt))
+                                        if self._check_if_solutions_are_close(pd, pdt, extra_comparison_parameters,
+                                                                              comparison_tol):
+                                            found_solution = True
+                                            break
+                                    if found_solution:
+                                        break
+                                else:
+                                    used_continuation_kwargs = deepcopy(self.po_branches[parent_branch_number]['continuation_kwargs'])
+                                    used_continuation_kwargs['ISW'] = -1
+                                    used_continuation_kwargs['NMX'] = continuation_kwargs['NMX']
+
+                                    used_continuation_kwargs['IBR'] = br_num
+                                    hp = PeriodicOrbitContinuation(model_name=self.model_name, config_object=self.config_object)
+                                    hp.make_continuation(pd, **used_continuation_kwargs)
+                                    self._check_po_continuation_against_itself(hp, used_continuation_kwargs, extra_comparison_parameters,
+                                                                               comparison_tol)
+
+                                    self._check_po_continuation_against_other_fp_branches(hp, used_continuation_kwargs, extra_comparison_parameters,
+                                                                                          comparison_tol)
+                                    valid_branch = self._check_po_continuation_against_other_po_branches(hp, used_continuation_kwargs, extra_comparison_parameters,
+                                                                                                         comparison_tol)
+
+                                    if valid_branch:
+                                        new_branches[abs(hp.branch_number)] = {'parameters': pd.PAR, 'continuation': hp, 'continuation_kwargs': used_continuation_kwargs}
+                                        self.po_parent[abs(hp.branch_number)] = parent_branch_number
+                                        logger.debug('Saving branch ' + str(br_num) + ' emanating from branch ' + str(parent_branch_number) + '.')
+                                        br_num += 1
+
+                                    if parent_branch_number not in self.computed_pd_by_po_branch:
+                                        self.computed_pd_by_po_branch[parent_branch_number] = list()
+                                    self.computed_pd_by_po_branch[parent_branch_number].append(direction * (ipd + 1))
+
+                        self.po_branches_with_all_pd_computed.append(parent_branch_number)
+                        nrecomp += 1
+
+                        logger.debug('Computation of period doubling points of branch: ' + str(parent_branch_number) + ' has ended.')
+                self.po_branches.update(new_branches)
+
+                if nrecomp == 0:
+                    break
+
+                self.level_reached += 1
+                logger.info('Computation of level ' + str(self.level_reached) + ' of continuation has ended.')
+                if self.level_reached == end_level:
+                    logger.info('As demanded, finishing computation at level ' + str(self.level_reached) + ' ...')
+                    break
+
+            logger.info('Finished computation at level ' + str(self.level_reached))
+            for bn in self.po_branches:
+                if bn not in self.po_branches_with_all_bp_computed or bn not in self.po_branches_with_all_pd_computed:
+                    break
+            else:
+                self.po_computed = True
+                logger.info('All possible periodic orbit branches have been computed.')
 
     def _get_dict(self):
         state = self.__dict__.copy()

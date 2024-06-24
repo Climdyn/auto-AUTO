@@ -198,13 +198,13 @@ class Continuation(ABC):
         else:
             return None
 
-    def find_solution_index(self, lab):
+    def find_solution_index(self, label):
         if self.continuation:
-            if lab[0] == "-":
+            if label[0] == "-":
                 if self.solutions_label['backward'] is not None:
-                    lab = lab[1:]
-                    tgt = lab[:2]
-                    sn = int(lab[2:])
+                    label = label[1:]
+                    tgt = label[:2]
+                    sn = int(label[2:])
                     idx = 0
                     count = 0
                     for la in self.solutions_label['backward']:
@@ -221,8 +221,8 @@ class Continuation(ABC):
                     return None
             else:
                 if self.solutions_label['forward'] is not None:
-                    tgt = lab[:2]
-                    sn = int(lab[2:])
+                    tgt = label[:2]
+                    sn = int(label[2:])
                     idx = 0
                     count = 0
                     for la in self.solutions_label['forward']:
@@ -426,6 +426,18 @@ class Continuation(ABC):
                     par_list.append(float(s[param]))
             params[param] = par_list
         return np.squeeze(np.array(list(params.values()))).reshape((len(parameters), -1))
+
+    def get_solution_by_label(self, label):
+        if self.continuation:
+            if label[0] == '-' and self.continuation['backward'] is not None:
+                label = label[1:]
+                return self.continuation['backward'].getLabel(label)
+            elif label[0] != '-' and self.continuation['forward'] is not None:
+                return self.continuation['forward'].getLabel(label)
+            else:
+                return None
+        else:
+            return None
 
     def get_filtered_solutions_list(self, labels=None, indices=None, parameters=None, values=None, forward=None, tol=0.01):
 
