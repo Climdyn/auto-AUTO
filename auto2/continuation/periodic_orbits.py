@@ -3,6 +3,7 @@ import sys
 import warnings
 import logging
 import glob
+from copy import deepcopy
 
 logger = logging.getLogger('logger')
 
@@ -39,7 +40,7 @@ class PeriodicOrbitContinuation(Continuation):
         self._default_linestyle = '-'
         self._default_linewidth = 1.2
 
-    def make_continuation(self, initial_data, auto_suffix="", only_forward=True, **continuation_kwargs):
+    def make_continuation(self, initial_data, auto_suffix="", only_forward=True, max_bp=None, **continuation_kwargs):
         runner = ra.runAUTO()
         ac.load(self.model_name, runner=runner)
 
@@ -47,27 +48,92 @@ class PeriodicOrbitContinuation(Continuation):
             warnings.warn('Disabling automatic continuation of branch points (MXBF set to 0)')
         continuation_kwargs['MXBF'] = 0
 
+        if max_bp is not None:
+            warnings.warn('Disabling branching points detection after ' + str(max_bp) + ' branching points.')
+            if 'SP' in continuation_kwargs:
+                continuation_kwargs['SP'].append('BP' + str(max_bp))
+            else:
+                continuation_kwargs['SP'] = ['BP'+str(max_bp)]
+
         self.initial_data = initial_data
 
         if isinstance(initial_data, AUTOSolution):
             cf = ac.run(initial_data, runner=runner, **continuation_kwargs)
+            if max_bp is not None:
+                if cf.getIndex(-1)['TY name'] == 'BP':
+                    if cf.data[0].bylabel('BP')[-1]['PT'] == max_bp:
+                        reinitial_data = cf.data[0].bylabel('BP')[-1]['solution']
+                        recontinuation_kwargs = deepcopy(continuation_kwargs)
+                        for i, sp in enumerate(recontinuation_kwargs['SP']):
+                            if 'BP' in sp:
+                                recontinuation_kwargs['SP'].pop(i)
+                        recontinuation_kwargs['SP'].append('BP0')
+                        cf2 = ac.run(reinitial_data, runner=runner, **recontinuation_kwargs)
+                        # cff = ac.merge(cf + cf2)
+                        # cf = ac.relabel(cff)
+                        cf.data[0].append(cf2.data[0])
             if not only_forward:
                 if 'DS' in continuation_kwargs:
                     continuation_kwargs['DS'] = - continuation_kwargs['DS']
                     cb = ac.run(initial_data, runner=runner, **continuation_kwargs)
                 else:
                     cb = ac.run(initial_data, DS='-', runner=runner, **continuation_kwargs)
+                if max_bp is not None:
+                    if cb.getIndex(-1)['TY name'] == 'BP':
+                        if cb.data[0].bylabel('BP')[-1]['PT'] == max_bp:
+                            reinitial_data = cb.data[0].bylabel('BP')[-1]['solution']
+                            recontinuation_kwargs = deepcopy(continuation_kwargs)
+                            for i, sp in enumerate(recontinuation_kwargs['SP']):
+                                if 'BP' in sp:
+                                    recontinuation_kwargs['SP'].pop(i)
+                            recontinuation_kwargs['SP'].append('BP0')
+                            if 'DS' in recontinuation_kwargs:
+                                recontinuation_kwargs['DS'] = - recontinuation_kwargs['DS']
+                                cb2 = ac.run(reinitial_data, runner=runner, **recontinuation_kwargs)
+                            else:
+                                cb2 = ac.run(reinitial_data, DS='-', runner=runner, **recontinuation_kwargs)
+                            # cbb = ac.merge(cb + cb2)
+                            # cb = ac.relabel(cbb)
+                            cb.data[0].append(cb2.data[0])
             else:
                 cb = None
 
         else:
             cf = ac.run(self.model_name, dat=initial_data, runner=runner, **continuation_kwargs)
+            if max_bp is not None:
+                if cf.getIndex(-1)['TY name'] == 'BP':
+                    if cf.data[0].bylabel('BP')[-1]['PT'] == max_bp:
+                        reinitial_data = cf.data[0].bylabel('BP')[-1]['solution']
+                        recontinuation_kwargs = deepcopy(continuation_kwargs)
+                        for i, sp in enumerate(recontinuation_kwargs['SP']):
+                            if 'BP' in sp:
+                                recontinuation_kwargs['SP'].pop(i)
+                        recontinuation_kwargs['SP'].append('BP0')
+                        cf2 = ac.run(reinitial_data, runner=runner, **recontinuation_kwargs)
+                        cff = ac.merge(cf + cf2)
+                        cf = ac.relabel(cff)
             if not only_forward:
                 if 'DS' in continuation_kwargs:
                     continuation_kwargs['DS'] = - continuation_kwargs['DS']
                     cb = ac.run(self.model_name, dat=initial_data, runner=runner, **continuation_kwargs)
                 else:
                     cb = ac.run(self.model_name, DS='-', dat=initial_data, runner=runner, **continuation_kwargs)
+                if max_bp is not None:
+                    if cb.getIndex(-1)['TY name'] == 'BP':
+                        if cb.data[0].bylabel('BP')[-1]['PT'] == max_bp:
+                            reinitial_data = cb.data[0].bylabel('BP')[-1]['solution']
+                            recontinuation_kwargs = deepcopy(continuation_kwargs)
+                            for i, sp in enumerate(recontinuation_kwargs['SP']):
+                                if 'BP' in sp:
+                                    recontinuation_kwargs['SP'].pop(i)
+                            recontinuation_kwargs['SP'].append('BP0')
+                            if 'DS' in recontinuation_kwargs:
+                                recontinuation_kwargs['DS'] = - recontinuation_kwargs['DS']
+                                cb2 = ac.run(reinitial_data, runner=runner, **recontinuation_kwargs)
+                            else:
+                                cb2 = ac.run(reinitial_data, DS='-', runner=runner, **recontinuation_kwargs)
+                            cbb = ac.merge(cb + cb2)
+                            cb = ac.relabel(cbb)
             else:
                 cb = None
 
