@@ -181,7 +181,7 @@ class BifurcationDiagram(object):
         self.fp_computed = True
 
     def compute_periodic_orbits_diagram(self, end_level=None, extra_comparison_parameters=None, comparison_tol=2.e-2,
-                                        remove_dubious_bp=True, max_number_bp=None, backward_bp_continuation=False, **continuation_kwargs):
+                                        remove_dubious_bp=True, max_number_bp=None, max_number_bp_detected=None, backward_bp_continuation=False, **continuation_kwargs):
 
         logger.info('Starting the computation of the periodic orbits bifurcation diagram with model '+str(self.model_name))
 
@@ -223,12 +223,12 @@ class BifurcationDiagram(object):
                             used_continuation_kwargs['ICP'].append(11)
 
                 hp = PeriodicOrbitContinuation(model_name=self.model_name, config_object=self.config_object)
-                hp.make_continuation(hb, **used_continuation_kwargs)
+                hp.make_continuation(hb, max_bp=max_number_bp_detected, **used_continuation_kwargs)
 
-                self._check_po_continuation_against_itself(hp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol)
+                self._check_po_continuation_against_itself(hp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol, max_number_bp_detected)
 
-                self._check_po_continuation_against_other_fp_branches(hp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol)
-                valid_branch = self._check_po_continuation_against_other_po_branches(hp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol)
+                self._check_po_continuation_against_other_fp_branches(hp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol, max_number_bp_detected)
+                valid_branch = self._check_po_continuation_against_other_po_branches(hp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol, max_number_bp_detected)
 
                 if valid_branch:
                     self.po_branches[abs(hp.branch_number)] = {'parameters': hb.PAR, 'continuation': hp, 'continuation_kwargs': used_continuation_kwargs}
@@ -246,11 +246,12 @@ class BifurcationDiagram(object):
         logger.info('Beginning computation of the periodic orbits from detected branching and period doubling points.')
         self.restart_periodic_orbits_diagram(end_level=end_level, extra_comparison_parameters=extra_comparison_parameters,
                                              remove_dubious_bp=remove_dubious_bp, max_number_bp=max_number_bp,
+                                             max_number_bp_detected=max_number_bp_detected,
                                              backward_bp_continuation=backward_bp_continuation, restart=False, **continuation_kwargs)
 
     def restart_periodic_orbits_diagram(self, end_level=None, extra_comparison_parameters=None, comparison_tol=2.e-2,
-                                        remove_dubious_bp=True, max_number_bp=None, backward_bp_continuation=False, restart=True,
-                                        **continuation_kwargs):
+                                        remove_dubious_bp=True, max_number_bp=None, max_number_bp_detected=None,
+                                        backward_bp_continuation=False, restart=True, **continuation_kwargs):
 
         if self.po_computed:
             logger.info('Computation up to level ' + str(end_level) + ' was asked but bifurcation diagram is complete.')
@@ -264,6 +265,7 @@ class BifurcationDiagram(object):
             logger.info('Starting a new periodic orbit diagram...')
             self.compute_periodic_orbits_diagram(end_level=end_level, extra_comparison_parameters=extra_comparison_parameters,
                                                  remove_dubious_bp=remove_dubious_bp, max_number_bp=max_number_bp,
+                                                 max_number_bp_detected=max_number_bp_detected,
                                                  backward_bp_continuation=backward_bp_continuation, **continuation_kwargs)
         else:
             if restart:
@@ -345,14 +347,14 @@ class BifurcationDiagram(object):
 
                                         used_continuation_kwargs['IBR'] = br_num
                                         hp = PeriodicOrbitContinuation(model_name=self.model_name, config_object=self.config_object)
-                                        hp.make_continuation(bp, only_forward=not backward_bp_continuation, **used_continuation_kwargs)
+                                        hp.make_continuation(bp, only_forward=not backward_bp_continuation, max_bp=max_number_bp_detected, **used_continuation_kwargs)
                                         self._check_po_continuation_against_itself(hp, used_continuation_kwargs, extra_comparison_parameters,
-                                                                                   comparison_tol)
+                                                                                   comparison_tol, max_number_bp_detected)
 
                                         self._check_po_continuation_against_other_fp_branches(hp, used_continuation_kwargs, extra_comparison_parameters,
-                                                                                              comparison_tol)
+                                                                                              comparison_tol, max_number_bp_detected)
                                         valid_branch = self._check_po_continuation_against_other_po_branches(hp, used_continuation_kwargs, extra_comparison_parameters,
-                                                                                                             comparison_tol)
+                                                                                                             comparison_tol, max_number_bp_detected)
 
                                     if valid_branch:
                                         new_branches[abs(hp.branch_number)] = {'parameters': bp.PAR, 'continuation': hp, 'continuation_kwargs': used_continuation_kwargs}
@@ -401,14 +403,14 @@ class BifurcationDiagram(object):
 
                                     used_continuation_kwargs['IBR'] = br_num
                                     hp = PeriodicOrbitContinuation(model_name=self.model_name, config_object=self.config_object)
-                                    hp.make_continuation(pd, **used_continuation_kwargs)
+                                    hp.make_continuation(pd, max_bp=max_number_bp_detected, **used_continuation_kwargs)
                                     self._check_po_continuation_against_itself(hp, used_continuation_kwargs, extra_comparison_parameters,
-                                                                               comparison_tol)
+                                                                               comparison_tol, max_number_bp_detected)
 
                                     self._check_po_continuation_against_other_fp_branches(hp, used_continuation_kwargs, extra_comparison_parameters,
-                                                                                          comparison_tol)
+                                                                                          comparison_tol, max_number_bp_detected)
                                     valid_branch = self._check_po_continuation_against_other_po_branches(hp, used_continuation_kwargs, extra_comparison_parameters,
-                                                                                                         comparison_tol)
+                                                                                                         comparison_tol, max_number_bp_detected)
 
                                     if valid_branch:
                                         new_branches[abs(hp.branch_number)] = {'parameters': pd.PAR, 'continuation': hp, 'continuation_kwargs': used_continuation_kwargs}
@@ -675,7 +677,7 @@ class BifurcationDiagram(object):
 
         return valid_branch
 
-    def _check_po_continuation_against_other_fp_branches(self, continuation, continuation_kwargs, extra_comparison_parameters, tol):
+    def _check_po_continuation_against_other_fp_branches(self, continuation, continuation_kwargs, extra_comparison_parameters, tol, max_bp):
 
         hp = continuation
         initial_data = hp.initial_data
@@ -706,7 +708,7 @@ class BifurcationDiagram(object):
                 logger.info('Not storing full results of PO point at ' + ini_msg + ' because it connects to branch ' + str(n) + '.'
                             '\nSaving only the relevant part. NMX set to ' + str(nmx))
                 continuation_kwargs['NMX'] = nmx
-                hp.make_forward_continuation(initial_data, **continuation_kwargs)
+                hp.make_forward_continuation(initial_data, max_bp=max_bp, **continuation_kwargs)
 
             crossing, sol = hp.branch_possibly_cross(psol['continuation'], cpar_list, tol=tol, return_solutions=True, forward=False,
                                                      solutions_types=self._comparison_solutions_types)
@@ -715,9 +717,9 @@ class BifurcationDiagram(object):
                 logger.info('Not storing full results of PO point at ' + ini_msg + ' because it connects to branch ' + str(n) + '.'
                             '\nSaving only the relevant part. NMX set to ' + str(nmx))
                 continuation_kwargs['NMX'] = nmx
-                hp.make_backward_continuation(initial_data, **continuation_kwargs)
+                hp.make_backward_continuation(initial_data, max_bp=max_bp, **continuation_kwargs)
 
-    def _check_po_continuation_against_itself(self, continuation, continuation_kwargs, extra_comparison_parameters, tol):
+    def _check_po_continuation_against_itself(self, continuation, continuation_kwargs, extra_comparison_parameters, tol, max_bp):
 
         hp = continuation
         initial_data = hp.initial_data
@@ -755,7 +757,7 @@ class BifurcationDiagram(object):
                 logger.info('Not storing full results of PO point at ' + ini_msg + ' because it repeats itself (forward).'
                             '\nSaving only the relevant part. NMX set to ' + str(nmx))
                 continuation_kwargs['NMX'] = nmx
-                hp.make_forward_continuation(initial_data, **continuation_kwargs)
+                hp.make_forward_continuation(initial_data, max_bp=max_bp, **continuation_kwargs)
 
         if hp.continuation['backward'] is not None:
 
@@ -772,9 +774,9 @@ class BifurcationDiagram(object):
                 logger.info('Not storing full results of PO point at ' + ini_msg + ' because it repeats itself (backward).'
                             '\nSaving only the relevant part. NMX set to ' + str(nmx))
                 continuation_kwargs['NMX'] = nmx
-                hp.make_backward_continuation(initial_data, **continuation_kwargs)
+                hp.make_backward_continuation(initial_data, max_bp=max_bp, **continuation_kwargs)
 
-    def _check_po_continuation_against_other_po_branches(self, continuation, continuation_kwargs, extra_comparison_parameters, tol):
+    def _check_po_continuation_against_other_po_branches(self, continuation, continuation_kwargs, extra_comparison_parameters, tol, max_bp):
 
         hp = continuation
         initial_data = hp.initial_data
@@ -823,7 +825,7 @@ class BifurcationDiagram(object):
                         logger.info('Not storing full results of PO point at ' + ini_msg + ' because it merges forward with branch ' + str(n) + '.'
                                     '\nSaving only the relevant part. NMX set to ' + str(nmx))
                         continuation_kwargs['NMX'] = nmx
-                        hp.make_forward_continuation(initial_data, **continuation_kwargs)
+                        hp.make_forward_continuation(initial_data, max_bp=max_bp, **continuation_kwargs)
 
                 if not merge_forward and not remake_continuation:
                     cross_forward, sol = hp.branch_possibly_cross(psol['continuation'], cpar_list, tol=tol,
@@ -834,7 +836,7 @@ class BifurcationDiagram(object):
                         logger.info('Not storing full results of PO point at ' + ini_msg + ' because it connects forward to branch ' + str(n) + '.'
                                     '\nSaving only the relevant part. NMX set to ' + str(nmx))
                         continuation_kwargs['NMX'] = nmx
-                        hp.make_forward_continuation(initial_data, **continuation_kwargs)
+                        hp.make_forward_continuation(initial_data, max_bp=max_bp, **continuation_kwargs)
 
                 merge_backward, common_solutions = hp.solutions_part_of(psol['continuation'], cpar_list, tol=tol,
                                                                         return_solutions=True, forward=False, solutions_types=self._comparison_solutions_types)
@@ -849,7 +851,7 @@ class BifurcationDiagram(object):
                         logger.info('Not storing full results of PO point at ' + ini_msg + ' because it merges backward with branch ' + str(n) + '.'
                                     '\nSaving only the relevant part. NMX set to ' + str(nmx))
                         continuation_kwargs['NMX'] = nmx
-                        hp.make_backward_continuation(initial_data, **continuation_kwargs)
+                        hp.make_backward_continuation(initial_data, max_bp=max_bp, **continuation_kwargs)
 
                 if not merge_backward or not remake_continuation:
                     cross_backward, sol = hp.branch_possibly_cross(psol['continuation'], cpar_list, tol=tol,
@@ -860,7 +862,7 @@ class BifurcationDiagram(object):
                         logger.info('Not storing full results of  PO point at ' + ini_msg + ' because it connects backward to branch ' + str(n) + '.'
                                     '\nSaving only the relevant part. NMX set to ' + str(nmx))
                         continuation_kwargs['NMX'] = nmx
-                        hp.make_backward_continuation(initial_data, **continuation_kwargs)
+                        hp.make_backward_continuation(initial_data, max_bp=max_bp, **continuation_kwargs)
 
         return valid_branch
 
