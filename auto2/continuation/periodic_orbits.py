@@ -149,6 +149,13 @@ class PeriodicOrbitContinuation(Continuation):
         if 'IBR' not in continuation_kwargs and self.branch_number is not None:
             continuation_kwargs['IBR'] = self.branch_number
 
+        if max_bp is not None:
+            warnings.warn('Disabling branching points detection after ' + str(max_bp) + ' branching points.')
+            if 'SP' in continuation_kwargs:
+                continuation_kwargs['SP'].append('BP' + str(max_bp))
+            else:
+                continuation_kwargs['SP'] = ['BP'+str(max_bp)]
+
         self.initial_data = initial_data
 
         if isinstance(initial_data, AUTOSolution):
@@ -188,6 +195,13 @@ class PeriodicOrbitContinuation(Continuation):
 
         if 'IBR' not in continuation_kwargs and self.branch_number is not None:
             continuation_kwargs['IBR'] = self.branch_number
+
+        if max_bp is not None:
+            warnings.warn('Disabling branching points detection after ' + str(max_bp) + ' branching points.')
+            if 'SP' in continuation_kwargs:
+                continuation_kwargs['SP'].append('BP' + str(max_bp))
+            else:
+                continuation_kwargs['SP'] = ['BP'+str(max_bp)]
 
         self.initial_data = initial_data
 
