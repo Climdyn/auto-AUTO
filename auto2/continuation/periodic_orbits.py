@@ -59,75 +59,68 @@ class PeriodicOrbitContinuation(Continuation):
 
         if isinstance(initial_data, AUTOSolution):
             cf = ac.run(initial_data, runner=runner, **continuation_kwargs)
-            if max_bp is not None:
-                if cf.getIndex(-1)['TY name'] == 'BP':
-                    if cf.data[0].bylabel('BP')[-1]['PT'] == max_bp:
-                        reinitial_data = cf.data[0].bylabel('BP')[-1]['solution']
-                        recontinuation_kwargs = deepcopy(continuation_kwargs)
-                        for i, sp in enumerate(recontinuation_kwargs['SP']):
-                            if 'BP' in sp:
-                                recontinuation_kwargs['SP'].pop(i)
-                        recontinuation_kwargs['SP'].append('BP0')
-                        cf2 = ac.run(reinitial_data, runner=runner, **recontinuation_kwargs)
-                        cf.data[0].append(cf2.data[0])
+            if max_bp is not None and cf.getIndex(-1)['TY name'] == 'BP':
+                recontinuation_kwargs = deepcopy(continuation_kwargs)
+                for i, sp in enumerate(recontinuation_kwargs['SP']):
+                    if 'BP' in sp:
+                        recontinuation_kwargs['SP'].pop(i)
+                recontinuation_kwargs['SP'].append('BP0')
+                recontinuation_kwargs['IRS'] = 'BP' + str(max_bp)
+                recontinuation_kwargs['ISW'] = 1
+                recontinuation_kwargs['LAB'] = cf.getIndex(-1)['LAB'] + 1
+                cf2 = ac.run(runner=runner, **recontinuation_kwargs)
+                cf.data[0].append(cf2.data[0])
             if not only_forward:
                 if 'DS' in continuation_kwargs:
                     continuation_kwargs['DS'] = - continuation_kwargs['DS']
                     cb = ac.run(initial_data, runner=runner, **continuation_kwargs)
                 else:
                     cb = ac.run(initial_data, DS='-', runner=runner, **continuation_kwargs)
-                if max_bp is not None:
-                    if cb.getIndex(-1)['TY name'] == 'BP':
-                        if cb.data[0].bylabel('BP')[-1]['PT'] == max_bp:
-                            reinitial_data = cb.data[0].bylabel('BP')[-1]['solution']
-                            recontinuation_kwargs = deepcopy(continuation_kwargs)
-                            for i, sp in enumerate(recontinuation_kwargs['SP']):
-                                if 'BP' in sp:
-                                    recontinuation_kwargs['SP'].pop(i)
-                            recontinuation_kwargs['SP'].append('BP0')
-                            if 'DS' in recontinuation_kwargs:
-                                recontinuation_kwargs['DS'] = - recontinuation_kwargs['DS']
-                                cb2 = ac.run(reinitial_data, runner=runner, **recontinuation_kwargs)
-                            else:
-                                cb2 = ac.run(reinitial_data, DS='-', runner=runner, **recontinuation_kwargs)
-                            cb.data[0].append(cb2.data[0])
+                if max_bp is not None and cb.getIndex(-1)['TY name'] == 'BP':
+                    recontinuation_kwargs = deepcopy(continuation_kwargs)
+                    for i, sp in enumerate(recontinuation_kwargs['SP']):
+                        if 'BP' in sp:
+                            recontinuation_kwargs['SP'].pop(i)
+                    recontinuation_kwargs['SP'].append('BP0')
+                    recontinuation_kwargs['IRS'] = 'BP' + str(max_bp)
+                    recontinuation_kwargs['ISW'] = 1
+                    recontinuation_kwargs['LAB'] = cb.getIndex(-1)['LAB'] + 1
+                    cb2 = ac.run(runner=runner, **recontinuation_kwargs)
+                    cb.data[0].append(cb2.data[0])
             else:
                 cb = None
 
         else:
             cf = ac.run(self.model_name, dat=initial_data, runner=runner, **continuation_kwargs)
-            if max_bp is not None:
-                if cf.getIndex(-1)['TY name'] == 'BP':
-                    if cf.data[0].bylabel('BP')[-1]['PT'] == max_bp:
-                        reinitial_data = cf.data[0].bylabel('BP')[-1]['solution']
-                        recontinuation_kwargs = deepcopy(continuation_kwargs)
-                        for i, sp in enumerate(recontinuation_kwargs['SP']):
-                            if 'BP' in sp:
-                                recontinuation_kwargs['SP'].pop(i)
-                        recontinuation_kwargs['SP'].append('BP0')
-                        cf2 = ac.run(reinitial_data, runner=runner, **recontinuation_kwargs)
-                        cf.data[0].append(cf2.data[0])
+            if max_bp is not None and cf.getIndex(-1)['TY name'] == 'BP':
+                recontinuation_kwargs = deepcopy(continuation_kwargs)
+                for i, sp in enumerate(recontinuation_kwargs['SP']):
+                    if 'BP' in sp:
+                        recontinuation_kwargs['SP'].pop(i)
+                recontinuation_kwargs['SP'].append('BP0')
+                recontinuation_kwargs['SP'].append('BP0')
+                recontinuation_kwargs['IRS'] = 'BP' + str(max_bp)
+                recontinuation_kwargs['ISW'] = 1
+                recontinuation_kwargs['LAB'] = cf.getIndex(-1)['LAB'] + 1
+                cf2 = ac.run(runner=runner, **recontinuation_kwargs)
+                cf.data[0].append(cf2.data[0])
             if not only_forward:
                 if 'DS' in continuation_kwargs:
                     continuation_kwargs['DS'] = - continuation_kwargs['DS']
                     cb = ac.run(self.model_name, dat=initial_data, runner=runner, **continuation_kwargs)
                 else:
                     cb = ac.run(self.model_name, DS='-', dat=initial_data, runner=runner, **continuation_kwargs)
-                if max_bp is not None:
-                    if cb.getIndex(-1)['TY name'] == 'BP':
-                        if cb.data[0].bylabel('BP')[-1]['PT'] == max_bp:
-                            reinitial_data = cb.data[0].bylabel('BP')[-1]['solution']
-                            recontinuation_kwargs = deepcopy(continuation_kwargs)
-                            for i, sp in enumerate(recontinuation_kwargs['SP']):
-                                if 'BP' in sp:
-                                    recontinuation_kwargs['SP'].pop(i)
-                            recontinuation_kwargs['SP'].append('BP0')
-                            if 'DS' in recontinuation_kwargs:
-                                recontinuation_kwargs['DS'] = - recontinuation_kwargs['DS']
-                                cb2 = ac.run(reinitial_data, runner=runner, **recontinuation_kwargs)
-                            else:
-                                cb2 = ac.run(reinitial_data, DS='-', runner=runner, **recontinuation_kwargs)
-                            cb.data[0].append(cb2.data[0])
+                if max_bp is not None and cb.getIndex(-1)['TY name'] == 'BP':
+                    recontinuation_kwargs = deepcopy(continuation_kwargs)
+                    for i, sp in enumerate(recontinuation_kwargs['SP']):
+                        if 'BP' in sp:
+                            recontinuation_kwargs['SP'].pop(i)
+                    recontinuation_kwargs['SP'].append('BP0')
+                    recontinuation_kwargs['IRS'] = 'BP' + str(max_bp)
+                    recontinuation_kwargs['ISW'] = 1
+                    recontinuation_kwargs['LAB'] = cb.getIndex(-1)['LAB'] + 1
+                    cb2 = ac.run(runner=runner, **recontinuation_kwargs)
+                    cb.data[0].append(cb2.data[0])
             else:
                 cb = None
 
@@ -162,17 +155,19 @@ class PeriodicOrbitContinuation(Continuation):
             cf = ac.run(initial_data, runner=runner, **continuation_kwargs)
         else:
             cf = ac.run(self.model_name, dat=initial_data, runner=runner, **continuation_kwargs)
-        if max_bp is not None:
-            if cf.getIndex(-1)['TY name'] == 'BP':
-                if cf.data[0].bylabel('BP')[-1]['PT'] == max_bp:
-                    reinitial_data = cf.data[0].bylabel('BP')[-1]['solution']
-                    recontinuation_kwargs = deepcopy(continuation_kwargs)
-                    for i, sp in enumerate(recontinuation_kwargs['SP']):
-                        if 'BP' in sp:
-                            recontinuation_kwargs['SP'].pop(i)
-                    recontinuation_kwargs['SP'].append('BP0')
-                    cf2 = ac.run(reinitial_data, runner=runner, **recontinuation_kwargs)
-                    cf.data[0].append(cf2.data[0])
+
+        if max_bp is not None and cf.getIndex(-1)['TY name'] == 'BP':
+            recontinuation_kwargs = deepcopy(continuation_kwargs)
+            for i, sp in enumerate(recontinuation_kwargs['SP']):
+                if 'BP' in sp:
+                    recontinuation_kwargs['SP'].pop(i)
+            recontinuation_kwargs['SP'].append('BP0')
+            recontinuation_kwargs['IRS'] = 'BP'+str(max_bp)
+            recontinuation_kwargs['ISW'] = 1
+            recontinuation_kwargs['LAB'] = cf.getIndex(-1)['LAB'] + 1
+            cf2 = ac.run(runner=runner, **recontinuation_kwargs)
+
+            cf.data[0].append(cf2.data[0])
 
         if not self.continuation:
             self.continuation['backward'] = None
@@ -217,21 +212,18 @@ class PeriodicOrbitContinuation(Continuation):
                 cb = ac.run(self.model_name, dat=initial_data, runner=runner, **continuation_kwargs)
             else:
                 cb = ac.run(self.model_name, DS='-', dat=initial_data, runner=runner, **continuation_kwargs)
-            if max_bp is not None:
-                if cb.getIndex(-1)['TY name'] == 'BP':
-                    if cb.data[0].bylabel('BP')[-1]['PT'] == max_bp:
-                        reinitial_data = cb.data[0].bylabel('BP')[-1]['solution']
-                        recontinuation_kwargs = deepcopy(continuation_kwargs)
-                        for i, sp in enumerate(recontinuation_kwargs['SP']):
-                            if 'BP' in sp:
-                                recontinuation_kwargs['SP'].pop(i)
-                        recontinuation_kwargs['SP'].append('BP0')
-                        if 'DS' in recontinuation_kwargs:
-                            recontinuation_kwargs['DS'] = - recontinuation_kwargs['DS']
-                            cb2 = ac.run(reinitial_data, runner=runner, **recontinuation_kwargs)
-                        else:
-                            cb2 = ac.run(reinitial_data, DS='-', runner=runner, **recontinuation_kwargs)
-                        cb.data[0].append(cb2.data[0])
+
+        if max_bp is not None and cb.getIndex(-1)['TY name'] == 'BP':
+            recontinuation_kwargs = deepcopy(continuation_kwargs)
+            for i, sp in enumerate(recontinuation_kwargs['SP']):
+                if 'BP' in sp:
+                    recontinuation_kwargs['SP'].pop(i)
+            recontinuation_kwargs['SP'].append('BP0')
+            recontinuation_kwargs['IRS'] = 'BP' + str(max_bp)
+            recontinuation_kwargs['ISW'] = 1
+            recontinuation_kwargs['LAB'] = cb.getIndex(-1)['LAB'] + 1
+            cb2 = ac.run(runner=runner, **recontinuation_kwargs)
+            cb.data[0].append(cb2.data[0])
 
         if not self.continuation:
             self.continuation['forward'] = None
