@@ -3,6 +3,7 @@ import sys
 import warnings
 import logging
 import glob
+from copy import deepcopy
 
 logger = logging.getLogger('logger')
 
@@ -39,7 +40,7 @@ class PeriodicOrbitContinuation(Continuation):
         self._default_linestyle = '-'
         self._default_linewidth = 1.2
 
-    def make_continuation(self, initial_data, auto_suffix="", only_forward=True, **continuation_kwargs):
+    def make_continuation(self, initial_data, auto_suffix="", only_forward=True, max_bp=None, **continuation_kwargs):
         runner = ra.runAUTO()
         ac.load(self.model_name, runner=runner)
 
@@ -47,27 +48,79 @@ class PeriodicOrbitContinuation(Continuation):
             warnings.warn('Disabling automatic continuation of branch points (MXBF set to 0)')
         continuation_kwargs['MXBF'] = 0
 
+        if max_bp is not None:
+            warnings.warn('Disabling branching points detection after ' + str(max_bp) + ' branching points.')
+            if 'SP' in continuation_kwargs:
+                continuation_kwargs['SP'].append('BP' + str(max_bp))
+            else:
+                continuation_kwargs['SP'] = ['BP'+str(max_bp)]
+
         self.initial_data = initial_data
 
         if isinstance(initial_data, AUTOSolution):
             cf = ac.run(initial_data, runner=runner, **continuation_kwargs)
+            if max_bp is not None and cf.getIndex(-1)['TY name'] == 'BP':
+                recontinuation_kwargs = deepcopy(continuation_kwargs)
+                for i, sp in enumerate(recontinuation_kwargs['SP']):
+                    if 'BP' in sp:
+                        recontinuation_kwargs['SP'].pop(i)
+                recontinuation_kwargs['SP'].append('BP0')
+                recontinuation_kwargs['IRS'] = 'BP' + str(max_bp)
+                recontinuation_kwargs['ISW'] = 1
+                recontinuation_kwargs['LAB'] = cf.getIndex(-1)['LAB'] + 1
+                cf2 = ac.run(runner=runner, **recontinuation_kwargs)
+                cf.data[0].append(cf2.data[0])
             if not only_forward:
                 if 'DS' in continuation_kwargs:
                     continuation_kwargs['DS'] = - continuation_kwargs['DS']
                     cb = ac.run(initial_data, runner=runner, **continuation_kwargs)
                 else:
                     cb = ac.run(initial_data, DS='-', runner=runner, **continuation_kwargs)
+                if max_bp is not None and cb.getIndex(-1)['TY name'] == 'BP':
+                    recontinuation_kwargs = deepcopy(continuation_kwargs)
+                    for i, sp in enumerate(recontinuation_kwargs['SP']):
+                        if 'BP' in sp:
+                            recontinuation_kwargs['SP'].pop(i)
+                    recontinuation_kwargs['SP'].append('BP0')
+                    recontinuation_kwargs['IRS'] = 'BP' + str(max_bp)
+                    recontinuation_kwargs['ISW'] = 1
+                    recontinuation_kwargs['LAB'] = cb.getIndex(-1)['LAB'] + 1
+                    cb2 = ac.run(runner=runner, **recontinuation_kwargs)
+                    cb.data[0].append(cb2.data[0])
             else:
                 cb = None
 
         else:
             cf = ac.run(self.model_name, dat=initial_data, runner=runner, **continuation_kwargs)
+            if max_bp is not None and cf.getIndex(-1)['TY name'] == 'BP':
+                recontinuation_kwargs = deepcopy(continuation_kwargs)
+                for i, sp in enumerate(recontinuation_kwargs['SP']):
+                    if 'BP' in sp:
+                        recontinuation_kwargs['SP'].pop(i)
+                recontinuation_kwargs['SP'].append('BP0')
+                recontinuation_kwargs['SP'].append('BP0')
+                recontinuation_kwargs['IRS'] = 'BP' + str(max_bp)
+                recontinuation_kwargs['ISW'] = 1
+                recontinuation_kwargs['LAB'] = cf.getIndex(-1)['LAB'] + 1
+                cf2 = ac.run(runner=runner, **recontinuation_kwargs)
+                cf.data[0].append(cf2.data[0])
             if not only_forward:
                 if 'DS' in continuation_kwargs:
                     continuation_kwargs['DS'] = - continuation_kwargs['DS']
                     cb = ac.run(self.model_name, dat=initial_data, runner=runner, **continuation_kwargs)
                 else:
                     cb = ac.run(self.model_name, DS='-', dat=initial_data, runner=runner, **continuation_kwargs)
+                if max_bp is not None and cb.getIndex(-1)['TY name'] == 'BP':
+                    recontinuation_kwargs = deepcopy(continuation_kwargs)
+                    for i, sp in enumerate(recontinuation_kwargs['SP']):
+                        if 'BP' in sp:
+                            recontinuation_kwargs['SP'].pop(i)
+                    recontinuation_kwargs['SP'].append('BP0')
+                    recontinuation_kwargs['IRS'] = 'BP' + str(max_bp)
+                    recontinuation_kwargs['ISW'] = 1
+                    recontinuation_kwargs['LAB'] = cb.getIndex(-1)['LAB'] + 1
+                    cb2 = ac.run(runner=runner, **recontinuation_kwargs)
+                    cb.data[0].append(cb2.data[0])
             else:
                 cb = None
 
@@ -78,7 +131,7 @@ class PeriodicOrbitContinuation(Continuation):
         if auto_suffix:
             self.auto_save(auto_suffix)
 
-    def make_forward_continuation(self, initial_data, auto_suffix="", **continuation_kwargs):
+    def make_forward_continuation(self, initial_data, auto_suffix="", max_bp=None, **continuation_kwargs):
         runner = ra.runAUTO()
         ac.load(self.model_name, runner=runner)
 
@@ -89,12 +142,32 @@ class PeriodicOrbitContinuation(Continuation):
         if 'IBR' not in continuation_kwargs and self.branch_number is not None:
             continuation_kwargs['IBR'] = self.branch_number
 
+        if max_bp is not None:
+            warnings.warn('Disabling branching points detection after ' + str(max_bp) + ' branching points.')
+            if 'SP' in continuation_kwargs:
+                continuation_kwargs['SP'].append('BP' + str(max_bp))
+            else:
+                continuation_kwargs['SP'] = ['BP'+str(max_bp)]
+
         self.initial_data = initial_data
 
         if isinstance(initial_data, AUTOSolution):
             cf = ac.run(initial_data, runner=runner, **continuation_kwargs)
         else:
             cf = ac.run(self.model_name, dat=initial_data, runner=runner, **continuation_kwargs)
+
+        if max_bp is not None and cf.getIndex(-1)['TY name'] == 'BP':
+            recontinuation_kwargs = deepcopy(continuation_kwargs)
+            for i, sp in enumerate(recontinuation_kwargs['SP']):
+                if 'BP' in sp:
+                    recontinuation_kwargs['SP'].pop(i)
+            recontinuation_kwargs['SP'].append('BP0')
+            recontinuation_kwargs['IRS'] = 'BP'+str(max_bp)
+            recontinuation_kwargs['ISW'] = 1
+            recontinuation_kwargs['LAB'] = cf.getIndex(-1)['LAB'] + 1
+            cf2 = ac.run(runner=runner, **recontinuation_kwargs)
+
+            cf.data[0].append(cf2.data[0])
 
         if not self.continuation:
             self.continuation['backward'] = None
@@ -107,7 +180,7 @@ class PeriodicOrbitContinuation(Continuation):
         if auto_suffix:
             self.auto_save(auto_suffix)
 
-    def make_backward_continuation(self, initial_data, auto_suffix="", **continuation_kwargs):
+    def make_backward_continuation(self, initial_data, auto_suffix="", max_bp=None, **continuation_kwargs):
         runner = ra.runAUTO()
         ac.load(self.model_name, runner=runner)
 
@@ -117,6 +190,13 @@ class PeriodicOrbitContinuation(Continuation):
 
         if 'IBR' not in continuation_kwargs and self.branch_number is not None:
             continuation_kwargs['IBR'] = self.branch_number
+
+        if max_bp is not None:
+            warnings.warn('Disabling branching points detection after ' + str(max_bp) + ' branching points.')
+            if 'SP' in continuation_kwargs:
+                continuation_kwargs['SP'].append('BP' + str(max_bp))
+            else:
+                continuation_kwargs['SP'] = ['BP'+str(max_bp)]
 
         self.initial_data = initial_data
 
@@ -132,6 +212,18 @@ class PeriodicOrbitContinuation(Continuation):
                 cb = ac.run(self.model_name, dat=initial_data, runner=runner, **continuation_kwargs)
             else:
                 cb = ac.run(self.model_name, DS='-', dat=initial_data, runner=runner, **continuation_kwargs)
+
+        if max_bp is not None and cb.getIndex(-1)['TY name'] == 'BP':
+            recontinuation_kwargs = deepcopy(continuation_kwargs)
+            for i, sp in enumerate(recontinuation_kwargs['SP']):
+                if 'BP' in sp:
+                    recontinuation_kwargs['SP'].pop(i)
+            recontinuation_kwargs['SP'].append('BP0')
+            recontinuation_kwargs['IRS'] = 'BP' + str(max_bp)
+            recontinuation_kwargs['ISW'] = 1
+            recontinuation_kwargs['LAB'] = cb.getIndex(-1)['LAB'] + 1
+            cb2 = ac.run(runner=runner, **recontinuation_kwargs)
+            cb.data[0].append(cb2.data[0])
 
         if not self.continuation:
             self.continuation['forward'] = None

@@ -259,7 +259,7 @@ class Continuation(ABC):
             n = dict()
             for direction in ['forward', 'backward']:
                 if self.continuation[direction] is not None:
-                    n[direction] = abs(self.continuation['forward'].data[0].stability()[-1])
+                    n[direction] = abs(self.continuation[direction].data[0].stability()[-1])
                 else:
                     n[direction] = 0
             return n
@@ -324,12 +324,10 @@ class Continuation(ABC):
     @property
     def number_of_solutions(self):
         sd = dict()
+        sols = self.solutions_list_by_direction
         if self.continuation:
             for direction in ['forward', 'backward']:
-                if self.continuation[direction] is not None:
-                    sd[direction] = self.continuation[direction].data[0].getLabels()[-1]
-                else:
-                    sd[direction] = 0
+                sd[direction] = len(sols[direction])
             return sd
         else:
             return None
