@@ -78,7 +78,7 @@ class BifurcationDiagram(object):
         if initial_points is not None:
             self.initial_points = initial_points
 
-        if 'MNX' not in continuation_kwargs:
+        if 'NMX' not in continuation_kwargs:
             continuation_kwargs['NMX'] = 9000
             logger.info('NMX parameters was not set, so setting it to 9000 points.')
 

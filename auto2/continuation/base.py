@@ -1083,7 +1083,10 @@ class Continuation(ABC):
 
 def _sort_arrays(sol, npar, tol):
 
-    srt = np.squeeze(np.argsort(np.ascontiguousarray(sol.T).view(','.join(['f8'] * npar)), order=['f' + str(i) for i in range(npar)], axis=0).T)
+    if npar == 1:
+        srt = np.squeeze(np.argsort(sol))
+    else:
+        srt = np.squeeze(np.argsort(np.ascontiguousarray(sol.T).view(','.join(['f8'] * npar)), order=['f' + str(i) for i in range(npar)], axis=0).T)
 
     ssol = sol[:, srt].reshape((npar, -1))
 
