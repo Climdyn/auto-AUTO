@@ -190,7 +190,7 @@ class BifurcationDiagram(object):
                            'Aborting...')
             return None
 
-        if 'MNX' not in continuation_kwargs:
+        if 'NMX' not in continuation_kwargs:
             continuation_kwargs['NMX'] = 9000
             logger.info('NMX parameters was not set, so setting it to 9000 points.')
 
@@ -271,7 +271,7 @@ class BifurcationDiagram(object):
             if restart:
                 logger.info('Restarting the computation of the periodic orbits from detected branching and period doubling points.')
 
-            if 'MNX' not in continuation_kwargs:
+            if 'NMX' not in continuation_kwargs:
                 continuation_kwargs['NMX'] = 9000
                 logger.info('NMX parameters was not set, so setting it to 9000 points.')
 
