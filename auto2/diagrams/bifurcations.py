@@ -120,11 +120,15 @@ class BifurcationDiagram(object):
         while True:
             nrecomp = 0
 
-            new_branches = dict()
+            branch_order = 0
 
-            for parent_branch_number, branch in self.fp_branches.items():
+            parent_branch_number = sorted(self.fp_branches.keys())[branch_order]
+
+            while True:
 
                 if parent_branch_number not in self.fp_branches_with_all_bp_computed:
+
+                    branch = self.fp_branches[parent_branch_number]
 
                     forward_branching_points = branch['continuation'].get_filtered_solutions_list(labels='BP', forward=True)
                     backward_branching_points = branch['continuation'].get_filtered_solutions_list(labels='BP', forward=False)
@@ -159,7 +163,7 @@ class BifurcationDiagram(object):
                                 valid_branch = self._check_fp_continuation_against_other_fp_branches(ncomp, fp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol)
 
                                 if valid_branch:
-                                    new_branches[abs(fp.branch_number)] = {'parameters': bp.PAR, 'continuation': fp, 'continuation_kwargs': used_continuation_kwargs}
+                                    self.fp_branches[abs(fp.branch_number)] = {'parameters': bp.PAR, 'continuation': fp, 'continuation_kwargs': used_continuation_kwargs}
                                     self.fp_parent[abs(fp.branch_number)] = parent_branch_number
                                     logger.info('Saving valid branch ' + str(br_num) + ' emanating from branch ' + str(parent_branch_number) + '.')
                                     br_num += 1
@@ -171,7 +175,11 @@ class BifurcationDiagram(object):
                     self.fp_branches_with_all_bp_computed.append(parent_branch_number)
                     nrecomp += 1
 
-            self.fp_branches.update(new_branches)
+                branch_order += 1
+                try:
+                    parent_branch_number = sorted(self.fp_branches.keys())[branch_order]
+                except IndexError:
+                    break
 
             if nrecomp == 0:
                 break
