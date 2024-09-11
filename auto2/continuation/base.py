@@ -509,7 +509,6 @@ class Continuation(ABC):
                     diff = sol_val - val
                     if np.all(np.abs(diff) < tol):
                         new_solutions_list.append(sol)
-                        break
             solutions_list = new_solutions_list
 
         return solutions_list
@@ -725,7 +724,7 @@ class Continuation(ABC):
         if plot_kwargs is None:
             plot_kwargs = dict()
 
-        solutions_list = self.get_filtered_solutions_list(labels, indices, parameter, value, tol)
+        solutions_list = self.get_filtered_solutions_list(labels, indices, parameter, value, None, tol)
 
         keys = self.config_object.variables
 
@@ -785,7 +784,7 @@ class Continuation(ABC):
         if plot_kwargs is None:
             plot_kwargs = dict()
 
-        solutions_list = self.get_filtered_solutions_list(labels, indices, parameter, value, tol)
+        solutions_list = self.get_filtered_solutions_list(labels, indices, parameter, value, None, tol)
 
         vars = self.config_object.variables
 
