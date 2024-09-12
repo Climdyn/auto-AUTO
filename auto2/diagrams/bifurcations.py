@@ -983,6 +983,12 @@ class BifurcationDiagram(object):
             new_handles.append(Line2D([], [], **(kwargs['plot_kwargs'])))
 
         if len(self._figure_legend_handles) in (0, self.number_of_po_branches):
+            self._figure_legend_handles = new_handles + self._figure_legend_handles
+        elif len(self._figure_legend_handles) == self.number_of_fp_branches + self.number_of_po_branches:
+            tmp_handles = self._figure_legend_handles[self.number_of_fp_branches:]
+            self._figure_legend_handles = new_handles + tmp_handles
+        else:
+            self._figure_legend_handles = list()
             self._figure_legend_handles.extend(new_handles)
 
         if legend:
@@ -1031,6 +1037,12 @@ class BifurcationDiagram(object):
 
         if legend:
             ax.legend(handles=self._figure_3d_legend_handles)
+        elif len(self._figure_3d_legend_handles) == self.number_of_fp_branches + self.number_of_po_branches:
+            tmp_handles = self._figure_3d_legend_handles[:self.number_of_fp_branches]
+            self._figure_3d_legend_handles = new_handles + tmp_handles
+        else:
+            self._figure_3d_legend_handles = list()
+            self._figure_3d_legend_handles.extend(new_handles)
 
         if return_used_colors:
             return ax, used_colors
@@ -1071,6 +1083,12 @@ class BifurcationDiagram(object):
             new_handles.append(Line2D([], [], **(kwargs['plot_kwargs'])))
 
         if len(self._figure_legend_handles) in (0, self.number_of_fp_branches):
+            self._figure_legend_handles.extend(new_handles)
+        elif len(self._figure_legend_handles) == self.number_of_fp_branches + self.number_of_po_branches:
+            self._figure_legend_handles = self._figure_legend_handles[:self.number_of_fp_branches]
+            self._figure_legend_handles.extend(new_handles)
+        else:
+            self._figure_legend_handles = list()
             self._figure_legend_handles.extend(new_handles)
 
         if legend:
@@ -1115,6 +1133,12 @@ class BifurcationDiagram(object):
             new_handles.append(Line2D([], [], **(kwargs['plot_kwargs'])))
 
         if len(self._figure_3d_legend_handles) in (0, self.number_of_fp_branches):
+            self._figure_3d_legend_handles.extend(new_handles)
+        elif len(self._figure_3d_legend_handles) == self.number_of_fp_branches + self.number_of_po_branches:
+            self._figure_3d_legend_handles = self._figure_3d_legend_handles[:self.number_of_fp_branches]
+            self._figure_3d_legend_handles.extend(new_handles)
+        else:
+            self._figure_3d_legend_handles = list()
             self._figure_3d_legend_handles.extend(new_handles)
 
         if legend:
