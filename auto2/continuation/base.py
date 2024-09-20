@@ -980,13 +980,13 @@ class Continuation(ABC):
         if isinstance(tol, (list, tuple)):
             tol = np.array(tol)
 
-        valid_solution = dict()
-        valid_solution['backward'] = list()
-        valid_solution['forward'] = list()
+        repeating_solution = dict()
+        repeating_solution['backward'] = list()
+        repeating_solution['forward'] = list()
         if forward:
-            valid_solution['backward'] = None
+            repeating_solution['backward'] = None
         elif not forward:
-            valid_solution['forward'] = None
+            repeating_solution['forward'] = None
 
         forward_dict = {'forward': True, 'backward': False}
 
@@ -994,10 +994,10 @@ class Continuation(ABC):
         idx_dict = dict()
         ridx_dict = dict()
         for direction in ['forward', 'backward']:
-            if valid_solution[direction] is not None:
+            if repeating_solution[direction] is not None:
                 idx_dict[direction] = list()
                 ridx_dict[direction] = list()
-                idx_list = list()
+                ridx_list = list()
                 ssol = self.solutions_parameters(parameters, solutions_types='all', forward=forward_dict[direction])
                 sol[direction] = ssol
 
@@ -1012,39 +1012,39 @@ class Continuation(ABC):
                     for j in range(i-1, 0, -1):
                         dif = ssol[:, i] - ssol[:, j]
                         if np.all(np.abs(dif) < tol):
-                            idx_list.append(i)
+                            ridx_list.append(i)
                             break
 
                 for i in range(ssol.shape[1]):
-                    if i not in idx_list:
-                        valid_solution[direction].append(True)
+                    if i not in ridx_list:
+                        repeating_solution[direction].append(False)
                         idx_dict[direction].append(i)
 
                     else:
-                        valid_solution[direction].append(False)
+                        repeating_solution[direction].append(True)
                         ridx_dict[direction].append(i)
 
         if forward is None:
-            if valid_solution['backward'] is not None:
-                res = [valid_solution['backward']]
+            if repeating_solution['backward'] is not None:
+                res = [repeating_solution['backward']]
             else:
                 res = list([])
-            if valid_solution['forward'] is not None:
-                res[0] += valid_solution['forward']
+            if repeating_solution['forward'] is not None:
+                res[0] += repeating_solution['forward']
         elif forward:
-            if valid_solution['forward'] is not None:
-                res = [valid_solution['forward']]
+            if repeating_solution['forward'] is not None:
+                res = [repeating_solution['forward']]
             else:
                 res = list([])
         else:
-            if valid_solution['backward'] is not None:
-                res = [valid_solution['backward']]
+            if repeating_solution['backward'] is not None:
+                res = [repeating_solution['backward']]
             else:
                 res = list([])
 
         if return_parameters:
             if forward is None:
-                params = np.concatenate((sol['backward'][:, idx_dict['backward']], sol['foward'][:, idx_dict['forward']]), axis=-1)
+                params = np.concatenate((sol['backward'][:, ridx_dict['backward']], sol['foward'][:, ridx_dict['forward']]), axis=-1)
             elif forward:
                 params = sol['forward'][:, idx_dict['forward']]
             else:
@@ -1052,27 +1052,35 @@ class Continuation(ABC):
 
             res.append(params)
 
-        if return_non_repeating_solutions:
-            if forward is None:
-                sols = (self.get_filtered_solutions_list(parameters=parameters, values=sol['backward'][:, idx_dict['backward']], tol=tol) +
-                        self.get_filtered_solutions_list(parameters=parameters, values=sol['forward'][:, idx_dict['forward']], tol=tol))
-            elif forward:
-                sols = self.get_filtered_solutions_list(parameters=parameters, values=sol['forward'][:, idx_dict['forward']], tol=tol)
-            else:
-                sols = self.get_filtered_solutions_list(parameters=parameters, values=sol['backward'][:, idx_dict['backward']], tol=tol)
+        for i, t in enumerate([return_non_repeating_solutions, return_repeating_solutions]):
+            if t:
+                tarr = dict()
+                for direction in ['backward', 'forward']:
+                    if repeating_solution[direction] is not None:
+                        tarr[direction] = np.array(repeating_solution[direction])
+                        if i == 0:
+                            tarr[direction] = ~tarr[direction]
 
-            res.append(sols)
-
-        if return_repeating_solutions:
-            if forward is None:
-                rsols = (self.get_filtered_solutions_list(parameters=parameters, values=sol['backward'][:, ridx_dict['backward']], tol=tol) +
-                         self.get_filtered_solutions_list(parameters=parameters, values=sol['forward'][:, ridx_dict['forward']], tol=tol))
-            elif forward:
-                rsols = self.get_filtered_solutions_list(parameters=parameters, values=sol['forward'][:, ridx_dict['forward']], tol=tol)
-            else:
-                rsols = self.get_filtered_solutions_list(parameters=parameters, values=sol['backward'][:, ridx_dict['backward']], tol=tol)
-
-            res.append(rsols)
+                all_sols = self.solutions_list_by_direction
+                sols = list()
+                if forward is None:
+                    for direction in ['backward', 'forward']:
+                        if repeating_solution[direction] is not None:
+                            dir_sols = np.empty(len(all_sols[direction]), dtype=object)
+                            dir_sols[:] = all_sols[direction]
+                            sel_sols = dir_sols[tarr[direction]]
+                            sols.extend(sel_sols)
+                else:
+                    if forward:
+                        direction = 'forward'
+                    else:
+                        direction = 'backward'
+                    if repeating_solution[direction] is not None:
+                        dir_sols = np.empty(len(all_sols[direction]), dtype=object)
+                        dir_sols[:] = all_sols[direction]
+                        sel_sols = dir_sols[tarr[direction]]
+                        sols.extend(sel_sols)
+                res.append(sols)
 
         if len(res) == 1:
             return res[0]
