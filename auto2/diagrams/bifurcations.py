@@ -639,16 +639,16 @@ class BifurcationDiagram(object):
 
         if fp.continuation['forward'] is not None:
 
-            non_repeating, repeating_solutions = fp.check_for_repetitions(cpar_list, tol=tol, return_repeating_solutions=True, forward=True)
+            repeating, repeating_solutions = fp.check_for_repetitions(cpar_list, tol=tol, return_repeating_solutions=True, forward=True)
             recompute = False
-            for i, v in enumerate(non_repeating[:-1]):
-                if not v and not non_repeating[i+1]:
+            for i, v in enumerate(repeating[:-1]):
+                if v and repeating[i + 1]:
                     recompute = True
                     break
 
             if recompute:
 
-                first_repeating_sol = repeating_solutions[-1]
+                first_repeating_sol = repeating_solutions[0]
                 nmx = first_repeating_sol['PT'] + 1
                 continuation_kwargs['NMX'] = nmx
                 logger.info('Not storing full results of initial point ' + str(ncomp) + ' because it repeats itself (forward).'
@@ -657,16 +657,16 @@ class BifurcationDiagram(object):
 
         if fp.continuation['backward'] is not None:
 
-            non_repeating, repeating_solutions = fp.check_for_repetitions(cpar_list, tol=tol, return_repeating_solutions=True, forward=False)
+            repeating, repeating_solutions = fp.check_for_repetitions(cpar_list, tol=tol, return_repeating_solutions=True, forward=False)
             recompute = False
-            for i, v in enumerate(non_repeating[:-1]):
-                if not v and not non_repeating[i+1]:
+            for i, v in enumerate(repeating[:-1]):
+                if v and repeating[i + 1]:
                     recompute = True
                     break
 
             if recompute:
 
-                first_repeating_sol = repeating_solutions[-1]
+                first_repeating_sol = repeating_solutions[0]
                 continuation_kwargs['NMX'] = first_repeating_sol['PT'] + 1
                 nmx = first_repeating_sol['PT'] + 1
                 continuation_kwargs['NMX'] = nmx
@@ -827,15 +827,15 @@ class BifurcationDiagram(object):
 
         if hp.continuation['forward'] is not None:
 
-            non_repeating, repeating_solutions = hp.check_for_repetitions(cpar_list, tol=tol, return_repeating_solutions=True, forward=True)
+            repeating, repeating_solutions = hp.check_for_repetitions(cpar_list, tol=tol, return_repeating_solutions=True, forward=True)
             recompute = False
-            for i, v in enumerate(non_repeating[:-1]):
-                if not v and not non_repeating[i+1]:
+            for i, v in enumerate(repeating[:-1]):
+                if v and repeating[i + 1]:
                     recompute = True
                     break
 
             if recompute:
-                first_repeating_sol = repeating_solutions[-1]
+                first_repeating_sol = repeating_solutions[0]
                 nmx = first_repeating_sol['PT'] + 1
                 logger.info('Not storing full results of PO point at ' + ini_msg + ' because it repeats itself (forward).'
                             '\nSaving only the relevant part. NMX set to ' + str(nmx))
@@ -844,15 +844,15 @@ class BifurcationDiagram(object):
 
         if hp.continuation['backward'] is not None:
 
-            non_repeating, repeating_solutions = hp.check_for_repetitions(cpar_list, tol=tol, return_repeating_solutions=True, forward=False)
+            repeating, repeating_solutions = hp.check_for_repetitions(cpar_list, tol=tol, return_repeating_solutions=True, forward=False)
             recompute = False
-            for i, v in enumerate(non_repeating[:-1]):
-                if not v and not non_repeating[i+1]:
+            for i, v in enumerate(repeating[:-1]):
+                if v and repeating[i + 1]:
                     recompute = True
                     break
 
             if recompute:
-                first_repeating_sol = repeating_solutions[-1]
+                first_repeating_sol = repeating_solutions[0]
                 nmx = first_repeating_sol['PT'] + 1
                 logger.info('Not storing full results of PO point at ' + ini_msg + ' because it repeats itself (backward).'
                             '\nSaving only the relevant part. NMX set to ' + str(nmx))
