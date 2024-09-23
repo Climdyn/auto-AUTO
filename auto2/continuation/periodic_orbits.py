@@ -2,6 +2,7 @@ import os
 import sys
 import warnings
 import logging
+import traceback
 import glob
 from copy import deepcopy
 
@@ -23,6 +24,7 @@ except KeyError:
 import auto.AUTOCommands as ac
 import auto.runAUTO as ra
 from auto.parseS import AUTOSolution
+from auto.AUTOExceptions import AUTORuntimeError
 from auto2.continuation.base import Continuation
 
 import auto2.continuation.fixed_points as fpc
@@ -58,25 +60,20 @@ class PeriodicOrbitContinuation(Continuation):
         self.initial_data = initial_data
 
         if isinstance(initial_data, AUTOSolution):
-            cf = ac.run(initial_data, runner=runner, **continuation_kwargs)
-            if max_bp is not None and cf.getIndex(-1)['TY name'] == 'BP':
-                recontinuation_kwargs = deepcopy(continuation_kwargs)
-                for i, sp in enumerate(recontinuation_kwargs['SP']):
-                    if 'BP' in sp:
-                        recontinuation_kwargs['SP'].pop(i)
-                recontinuation_kwargs['SP'].append('BP0')
-                recontinuation_kwargs['IRS'] = 'BP' + str(max_bp)
-                recontinuation_kwargs['ISW'] = 1
-                recontinuation_kwargs['LAB'] = cf.getIndex(-1)['LAB'] + 1
-                cf2 = ac.run(runner=runner, **recontinuation_kwargs)
-                cf.data[0].append(cf2.data[0])
-            if not only_forward:
-                if 'DS' in continuation_kwargs:
-                    continuation_kwargs['DS'] = - continuation_kwargs['DS']
-                    cb = ac.run(initial_data, runner=runner, **continuation_kwargs)
+            for retry in range(self._retry):
+                try:
+                    cf = ac.run(initial_data, runner=runner, **continuation_kwargs)
+                except AUTORuntimeError:
+                    print(traceback.format_exc())
+                    warnings.warn('AUTO continuation failed, possibly retrying.')
                 else:
-                    cb = ac.run(initial_data, DS='-', runner=runner, **continuation_kwargs)
-                if max_bp is not None and cb.getIndex(-1)['TY name'] == 'BP':
+                    break
+            else:
+                warnings.warn('Problem to complete the forward AUTO continuation, returning nothing.')
+                cf = None
+
+            if cf is not None:
+                if max_bp is not None and cf.getIndex(-1)['TY name'] == 'BP':
                     recontinuation_kwargs = deepcopy(continuation_kwargs)
                     for i, sp in enumerate(recontinuation_kwargs['SP']):
                         if 'BP' in sp:
@@ -84,43 +81,166 @@ class PeriodicOrbitContinuation(Continuation):
                     recontinuation_kwargs['SP'].append('BP0')
                     recontinuation_kwargs['IRS'] = 'BP' + str(max_bp)
                     recontinuation_kwargs['ISW'] = 1
-                    recontinuation_kwargs['LAB'] = cb.getIndex(-1)['LAB'] + 1
-                    cb2 = ac.run(runner=runner, **recontinuation_kwargs)
-                    cb.data[0].append(cb2.data[0])
+                    recontinuation_kwargs['LAB'] = cf.getIndex(-1)['LAB'] + 1
+                    for retry in range(self._retry):
+                        try:
+                            cf2 = ac.run(runner=runner, **recontinuation_kwargs)
+                        except AUTORuntimeError:
+                            print(traceback.format_exc())
+                            warnings.warn('AUTO continuation failed, possibly retrying.')
+                        else:
+                            break
+                    else:
+                        warnings.warn('Problem to complete the forward AUTO continuation, returning nothing.')
+                        cf2 = None
+
+                    if cf2 is not None:
+                        cf.data[0].append(cf2.data[0])
+            if not only_forward:
+                if 'DS' in continuation_kwargs:
+                    continuation_kwargs['DS'] = - continuation_kwargs['DS']
+                    for retry in range(self._retry):
+                        try:
+                            cb = ac.run(initial_data, runner=runner, **continuation_kwargs)
+                        except AUTORuntimeError:
+                            print(traceback.format_exc())
+                            warnings.warn('AUTO continuation failed, possibly retrying.')
+                        else:
+                            break
+                    else:
+                        warnings.warn('Problem to complete the backward AUTO continuation, returning nothing.')
+                        cb = None
+                else:
+                    for retry in range(self._retry):
+                        try:
+                            cb = ac.run(initial_data, DS='-', runner=runner, **continuation_kwargs)
+                        except AUTORuntimeError:
+                            print(traceback.format_exc())
+                            warnings.warn('AUTO continuation failed, possibly retrying.')
+                        else:
+                            break
+                    else:
+                        warnings.warn('Problem to complete the backward AUTO continuation, returning nothing.')
+                        cb = None
+
+                if cb is not None:
+                    if max_bp is not None and cb.getIndex(-1)['TY name'] == 'BP':
+                        recontinuation_kwargs = deepcopy(continuation_kwargs)
+                        for i, sp in enumerate(recontinuation_kwargs['SP']):
+                            if 'BP' in sp:
+                                recontinuation_kwargs['SP'].pop(i)
+                        recontinuation_kwargs['SP'].append('BP0')
+                        recontinuation_kwargs['IRS'] = 'BP' + str(max_bp)
+                        recontinuation_kwargs['ISW'] = 1
+                        recontinuation_kwargs['LAB'] = cb.getIndex(-1)['LAB'] + 1
+                        for retry in range(self._retry):
+                            try:
+                                cb2 = ac.run(runner=runner, **recontinuation_kwargs)
+                            except AUTORuntimeError:
+                                print(traceback.format_exc())
+                                warnings.warn('AUTO continuation failed, possibly retrying.')
+                            else:
+                                break
+                        else:
+                            warnings.warn('Problem to complete the backward AUTO continuation, returning nothing.')
+                            cb2 = None
+
+                        if cb2 is not None:
+                            cb.data[0].append(cb2.data[0])
             else:
                 cb = None
 
         else:
-            cf = ac.run(self.model_name, dat=initial_data, runner=runner, **continuation_kwargs)
-            if max_bp is not None and cf.getIndex(-1)['TY name'] == 'BP':
-                recontinuation_kwargs = deepcopy(continuation_kwargs)
-                for i, sp in enumerate(recontinuation_kwargs['SP']):
-                    if 'BP' in sp:
-                        recontinuation_kwargs['SP'].pop(i)
-                recontinuation_kwargs['SP'].append('BP0')
-                recontinuation_kwargs['SP'].append('BP0')
-                recontinuation_kwargs['IRS'] = 'BP' + str(max_bp)
-                recontinuation_kwargs['ISW'] = 1
-                recontinuation_kwargs['LAB'] = cf.getIndex(-1)['LAB'] + 1
-                cf2 = ac.run(runner=runner, **recontinuation_kwargs)
-                cf.data[0].append(cf2.data[0])
-            if not only_forward:
-                if 'DS' in continuation_kwargs:
-                    continuation_kwargs['DS'] = - continuation_kwargs['DS']
-                    cb = ac.run(self.model_name, dat=initial_data, runner=runner, **continuation_kwargs)
+            for retry in range(self._retry):
+                try:
+                    cf = ac.run(self.model_name, dat=initial_data, runner=runner, **continuation_kwargs)
+                except AUTORuntimeError:
+                    print(traceback.format_exc())
+                    warnings.warn('AUTO continuation failed, possibly retrying.')
                 else:
-                    cb = ac.run(self.model_name, DS='-', dat=initial_data, runner=runner, **continuation_kwargs)
-                if max_bp is not None and cb.getIndex(-1)['TY name'] == 'BP':
+                    break
+            else:
+                warnings.warn('Problem to complete the forward AUTO continuation, returning nothing.')
+                cf = None
+
+            if cf is not None:
+                if max_bp is not None and cf.getIndex(-1)['TY name'] == 'BP':
                     recontinuation_kwargs = deepcopy(continuation_kwargs)
                     for i, sp in enumerate(recontinuation_kwargs['SP']):
                         if 'BP' in sp:
                             recontinuation_kwargs['SP'].pop(i)
                     recontinuation_kwargs['SP'].append('BP0')
+                    recontinuation_kwargs['SP'].append('BP0')
                     recontinuation_kwargs['IRS'] = 'BP' + str(max_bp)
                     recontinuation_kwargs['ISW'] = 1
-                    recontinuation_kwargs['LAB'] = cb.getIndex(-1)['LAB'] + 1
-                    cb2 = ac.run(runner=runner, **recontinuation_kwargs)
-                    cb.data[0].append(cb2.data[0])
+                    recontinuation_kwargs['LAB'] = cf.getIndex(-1)['LAB'] + 1
+                    for retry in range(self._retry):
+                        try:
+                            cf2 = ac.run(runner=runner, **recontinuation_kwargs)
+                        except AUTORuntimeError:
+                            print(traceback.format_exc())
+                            warnings.warn('AUTO continuation failed, possibly retrying.')
+                        else:
+                            break
+                    else:
+                        warnings.warn('Problem to complete the forward AUTO continuation, returning nothing.')
+                        cf2 = None
+
+                    if cf2 is not None:
+                        cf.data[0].append(cf2.data[0])
+
+            if not only_forward:
+                if 'DS' in continuation_kwargs:
+                    continuation_kwargs['DS'] = - continuation_kwargs['DS']
+                    for retry in range(self._retry):
+                        try:
+                            cb = ac.run(self.model_name, dat=initial_data, runner=runner, **continuation_kwargs)
+                        except AUTORuntimeError:
+                            print(traceback.format_exc())
+                            warnings.warn('AUTO continuation failed, possibly retrying.')
+                        else:
+                            break
+                    else:
+                        warnings.warn('Problem to complete the backward AUTO continuation, returning nothing.')
+                        cb = None
+
+                else:
+                    for retry in range(self._retry):
+                        try:
+                            cb = ac.run(self.model_name, DS='-', dat=initial_data, runner=runner, **continuation_kwargs)
+                        except AUTORuntimeError:
+                            print(traceback.format_exc())
+                            warnings.warn('AUTO continuation failed, possibly retrying.')
+                        else:
+                            break
+                    else:
+                        warnings.warn('Problem to complete the backward AUTO continuation, returning nothing.')
+                        cb = None
+
+                if cb is not None:
+                    if max_bp is not None and cb.getIndex(-1)['TY name'] == 'BP':
+                        recontinuation_kwargs = deepcopy(continuation_kwargs)
+                        for i, sp in enumerate(recontinuation_kwargs['SP']):
+                            if 'BP' in sp:
+                                recontinuation_kwargs['SP'].pop(i)
+                        recontinuation_kwargs['SP'].append('BP0')
+                        recontinuation_kwargs['IRS'] = 'BP' + str(max_bp)
+                        recontinuation_kwargs['ISW'] = 1
+                        recontinuation_kwargs['LAB'] = cb.getIndex(-1)['LAB'] + 1
+                        for retry in range(self._retry):
+                            try:
+                                cb2 = ac.run(runner=runner, **recontinuation_kwargs)
+                            except AUTORuntimeError:
+                                print(traceback.format_exc())
+                                warnings.warn('AUTO continuation failed, possibly retrying.')
+                            else:
+                                break
+                        else:
+                            warnings.warn('Problem to complete the backward AUTO continuation, returning nothing.')
+                            cb2 = None
+
+                        if cb2 is not None:
+                            cb.data[0].append(cb2.data[0])
             else:
                 cb = None
 
@@ -152,22 +272,54 @@ class PeriodicOrbitContinuation(Continuation):
         self.initial_data = initial_data
 
         if isinstance(initial_data, AUTOSolution):
-            cf = ac.run(initial_data, runner=runner, **continuation_kwargs)
+            for retry in range(self._retry):
+                try:
+                    cf = ac.run(initial_data, runner=runner, **continuation_kwargs)
+                except AUTORuntimeError:
+                    print(traceback.format_exc())
+                    warnings.warn('AUTO continuation failed, possibly retrying.')
+                else:
+                    break
+            else:
+                warnings.warn('Problem to complete the forward AUTO continuation, returning nothing.')
+                cf = None
         else:
-            cf = ac.run(self.model_name, dat=initial_data, runner=runner, **continuation_kwargs)
+            for retry in range(self._retry):
+                try:
+                    cf = ac.run(self.model_name, dat=initial_data, runner=runner, **continuation_kwargs)
+                except AUTORuntimeError:
+                    print(traceback.format_exc())
+                    warnings.warn('AUTO continuation failed, possibly retrying.')
+                else:
+                    break
+            else:
+                warnings.warn('Problem to complete the forward AUTO continuation, returning nothing.')
+                cf = None
 
-        if max_bp is not None and cf.getIndex(-1)['TY name'] == 'BP':
-            recontinuation_kwargs = deepcopy(continuation_kwargs)
-            for i, sp in enumerate(recontinuation_kwargs['SP']):
-                if 'BP' in sp:
-                    recontinuation_kwargs['SP'].pop(i)
-            recontinuation_kwargs['SP'].append('BP0')
-            recontinuation_kwargs['IRS'] = 'BP'+str(max_bp)
-            recontinuation_kwargs['ISW'] = 1
-            recontinuation_kwargs['LAB'] = cf.getIndex(-1)['LAB'] + 1
-            cf2 = ac.run(runner=runner, **recontinuation_kwargs)
+        if cf is not None:
+            if max_bp is not None and cf.getIndex(-1)['TY name'] == 'BP':
+                recontinuation_kwargs = deepcopy(continuation_kwargs)
+                for i, sp in enumerate(recontinuation_kwargs['SP']):
+                    if 'BP' in sp:
+                        recontinuation_kwargs['SP'].pop(i)
+                recontinuation_kwargs['SP'].append('BP0')
+                recontinuation_kwargs['IRS'] = 'BP'+str(max_bp)
+                recontinuation_kwargs['ISW'] = 1
+                recontinuation_kwargs['LAB'] = cf.getIndex(-1)['LAB'] + 1
+                for retry in range(self._retry):
+                    try:
+                        cf2 = ac.run(runner=runner, **recontinuation_kwargs)
+                    except AUTORuntimeError:
+                        print(traceback.format_exc())
+                        warnings.warn('AUTO continuation failed, possibly retrying.')
+                    else:
+                        break
+                else:
+                    warnings.warn('Problem to complete the forward AUTO continuation, returning nothing.')
+                    cf2 = None
 
-            cf.data[0].append(cf2.data[0])
+                if cf2 is not None:
+                    cf.data[0].append(cf2.data[0])
 
         if not self.continuation:
             self.continuation['backward'] = None
@@ -203,15 +355,55 @@ class PeriodicOrbitContinuation(Continuation):
         if isinstance(initial_data, AUTOSolution):
             if 'DS' in continuation_kwargs:
                 continuation_kwargs['DS'] = - continuation_kwargs['DS']
-                cb = ac.run(initial_data, runner=runner, **continuation_kwargs)
+                for retry in range(self._retry):
+                    try:
+                        cb = ac.run(initial_data, runner=runner, **continuation_kwargs)
+                    except AUTORuntimeError:
+                        print(traceback.format_exc())
+                        warnings.warn('AUTO continuation failed, possibly retrying.')
+                    else:
+                        break
+                else:
+                    warnings.warn('Problem to complete the backward AUTO continuation, returning nothing.')
+                    cb = None
             else:
-                cb = ac.run(initial_data, DS='-', runner=runner, **continuation_kwargs)
+                for retry in range(self._retry):
+                    try:
+                        cb = ac.run(initial_data, DS='-', runner=runner, **continuation_kwargs)
+                    except AUTORuntimeError:
+                        print(traceback.format_exc())
+                        warnings.warn('AUTO continuation failed, possibly retrying.')
+                    else:
+                        break
+                else:
+                    warnings.warn('Problem to complete the backward AUTO continuation, returning nothing.')
+                    cb = None
         else:
             if 'DS' in continuation_kwargs:
                 continuation_kwargs['DS'] = - continuation_kwargs['DS']
-                cb = ac.run(self.model_name, dat=initial_data, runner=runner, **continuation_kwargs)
+                for retry in range(self._retry):
+                    try:
+                        cb = ac.run(self.model_name, dat=initial_data, runner=runner, **continuation_kwargs)
+                    except AUTORuntimeError:
+                        print(traceback.format_exc())
+                        warnings.warn('AUTO continuation failed, possibly retrying.')
+                    else:
+                        break
+                else:
+                    warnings.warn('Problem to complete the backward AUTO continuation, returning nothing.')
+                    cb = None
             else:
-                cb = ac.run(self.model_name, DS='-', dat=initial_data, runner=runner, **continuation_kwargs)
+                for retry in range(self._retry):
+                    try:
+                        cb = ac.run(self.model_name, DS='-', dat=initial_data, runner=runner, **continuation_kwargs)
+                    except AUTORuntimeError:
+                        print(traceback.format_exc())
+                        warnings.warn('AUTO continuation failed, possibly retrying.')
+                    else:
+                        break
+                else:
+                    warnings.warn('Problem to complete the backward AUTO continuation, returning nothing.')
+                    cb = None
 
         if max_bp is not None and cb.getIndex(-1)['TY name'] == 'BP':
             recontinuation_kwargs = deepcopy(continuation_kwargs)
@@ -222,8 +414,20 @@ class PeriodicOrbitContinuation(Continuation):
             recontinuation_kwargs['IRS'] = 'BP' + str(max_bp)
             recontinuation_kwargs['ISW'] = 1
             recontinuation_kwargs['LAB'] = cb.getIndex(-1)['LAB'] + 1
-            cb2 = ac.run(runner=runner, **recontinuation_kwargs)
-            cb.data[0].append(cb2.data[0])
+            for retry in range(self._retry):
+                try:
+                    cb2 = ac.run(runner=runner, **recontinuation_kwargs)
+                except AUTORuntimeError:
+                    print(traceback.format_exc())
+                    warnings.warn('AUTO continuation failed, possibly retrying.')
+                else:
+                    break
+            else:
+                warnings.warn('Problem to complete the backward AUTO continuation, returning nothing.')
+                cb2 = None
+
+            if cb2 is not None:
+                cb.data[0].append(cb2.data[0])
 
         if not self.continuation:
             self.continuation['forward'] = None
