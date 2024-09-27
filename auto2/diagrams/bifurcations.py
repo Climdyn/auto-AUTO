@@ -278,6 +278,7 @@ class BifurcationDiagram(object):
 
         logger.info('Beginning computation of the periodic orbits from detected branching and period doubling points.')
         self.restart_periodic_orbits_diagram(end_level=end_level, extra_comparison_parameters=extra_comparison_parameters,
+                                             comparison_tol=comparison_tol,
                                              remove_dubious_bp=remove_dubious_bp, max_number_bp=max_number_bp,
                                              max_number_bp_detected=max_number_bp_detected,
                                              backward_bp_continuation=backward_bp_continuation, restart=False, **continuation_kwargs)
