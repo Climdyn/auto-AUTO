@@ -45,6 +45,9 @@ class Continuation(ABC):
         self._default_linestyle = None
         self._default_linewidth = None
 
+        # options
+        self._retry = 3
+
     @abstractmethod
     def make_continuation(self, initial_data, auto_suffix="", only_forward=False, **continuation_kwargs):
         pass

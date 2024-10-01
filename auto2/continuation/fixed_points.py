@@ -2,6 +2,7 @@ import os
 import sys
 import warnings
 import logging
+import traceback
 import glob
 
 logger = logging.getLogger('logger')
@@ -21,6 +22,7 @@ except KeyError:
 import auto.AUTOCommands as ac
 import auto.runAUTO as ra
 from auto.parseS import AUTOSolution
+from auto.AUTOExceptions import AUTORuntimeError
 from auto2.continuation.base import Continuation
 
 import auto2.continuation.periodic_orbits as poc
@@ -39,41 +41,10 @@ class FixedPointContinuation(Continuation):
         self._default_linewidth = 1.2
 
     def make_continuation(self, initial_data, auto_suffix="", only_forward=False, **continuation_kwargs):
-        runner = ra.runAUTO()
-        ac.load(self.model_name, runner=runner)
 
-        if 'MXBF' in continuation_kwargs:
-            warnings.warn('Disabling automatic continuation of branch points (MXBF set to 0)')
-        continuation_kwargs['MXBF'] = 0
-
-        self.initial_data = initial_data
-
-        if isinstance(initial_data, AUTOSolution):
-            cf = ac.run(initial_data, runner=runner, **continuation_kwargs)
-            if not only_forward:
-                if 'DS' in continuation_kwargs:
-                    continuation_kwargs['DS'] = - continuation_kwargs['DS']
-                    cb = ac.run(initial_data, runner=runner, **continuation_kwargs)
-                else:
-                    cb = ac.run(initial_data, DS='-', runner=runner, **continuation_kwargs)
-            else:
-                cb = None
-
-        else:
-            u = {i + 1: initial_data[i] for i in range(self.config_object.ndim)}
-            cf = ac.run(self.model_name, U=u, runner=runner, **continuation_kwargs)
-            if not only_forward:
-                if 'DS' in continuation_kwargs:
-                    continuation_kwargs['DS'] = - continuation_kwargs['DS']
-                    cb = ac.run(self.model_name, U=u, runner=runner, **continuation_kwargs)
-                else:
-                    cb = ac.run(self.model_name, DS='-', U=u, runner=runner, **continuation_kwargs)
-            else:
-                cb = None
-
-        self.continuation['forward'] = cf
-        self.continuation['backward'] = cb
-        self.branch_number = abs(self.continuation['forward'].data[0].BR)
+        self.make_forward_continuation(initial_data, "", **continuation_kwargs)
+        if not only_forward:
+            self.make_backward_continuation(initial_data, "", **continuation_kwargs)
 
         if auto_suffix:
             self.auto_save(auto_suffix)
@@ -92,11 +63,31 @@ class FixedPointContinuation(Continuation):
         self.initial_data = initial_data
 
         if isinstance(initial_data, AUTOSolution):
-            cf = ac.run(initial_data, runner=runner, **continuation_kwargs)
+            for retry in range(self._retry):
+                try:
+                    cf = ac.run(initial_data, runner=runner, **continuation_kwargs)
+                except AUTORuntimeError:
+                    print(traceback.format_exc())
+                    warnings.warn('AUTO continuation failed, possibly retrying.')
+                else:
+                    break
+            else:
+                warnings.warn('Problem to complete the forward AUTO continuation, returning nothing.')
+                cf = None
 
         else:
             u = {i + 1: initial_data[i] for i in range(self.config_object.ndim)}
-            cf = ac.run(self.model_name, U=u, runner=runner, **continuation_kwargs)
+            for retry in range(self._retry):
+                try:
+                    cf = ac.run(self.model_name, U=u, runner=runner, **continuation_kwargs)
+                except AUTORuntimeError:
+                    print(traceback.format_exc())
+                    warnings.warn('AUTO continuation failed, possibly retrying.')
+                else:
+                    break
+            else:
+                warnings.warn('Problem to complete the forward AUTO continuation, returning nothing.')
+                cf = None
 
         if not self.continuation:
             self.continuation['backward'] = None
@@ -125,16 +116,56 @@ class FixedPointContinuation(Continuation):
         if isinstance(initial_data, AUTOSolution):
             if 'DS' in continuation_kwargs:
                 continuation_kwargs['DS'] = - continuation_kwargs['DS']
-                cb = ac.run(initial_data, runner=runner, **continuation_kwargs)
+                for retry in range(self._retry):
+                    try:
+                        cb = ac.run(initial_data, runner=runner, **continuation_kwargs)
+                    except AUTORuntimeError:
+                        print(traceback.format_exc())
+                        warnings.warn('AUTO continuation failed, possibly retrying.')
+                    else:
+                        break
+                else:
+                    warnings.warn('Problem to complete the backward AUTO continuation, returning nothing.')
+                    cb = None
             else:
-                cb = ac.run(initial_data, DS='-', runner=runner, **continuation_kwargs)
+                for retry in range(self._retry):
+                    try:
+                        cb = ac.run(initial_data, DS='-', runner=runner, **continuation_kwargs)
+                    except AUTORuntimeError:
+                        print(traceback.format_exc())
+                        warnings.warn('AUTO continuation failed, possibly retrying.')
+                    else:
+                        break
+                else:
+                    warnings.warn('Problem to complete the backward AUTO continuation, returning nothing.')
+                    cb = None
         else:
             u = {i + 1: initial_data[i] for i in range(self.config_object.ndim)}
             if 'DS' in continuation_kwargs:
                 continuation_kwargs['DS'] = - continuation_kwargs['DS']
-                cb = ac.run(self.model_name, U=u, runner=runner, **continuation_kwargs)
+                for retry in range(self._retry):
+                    try:
+                        cb = ac.run(self.model_name, U=u, runner=runner, **continuation_kwargs)
+                    except AUTORuntimeError:
+                        print(traceback.format_exc())
+                        warnings.warn('AUTO continuation failed, possibly retrying.')
+                    else:
+                        break
+                else:
+                    warnings.warn('Problem to complete the backward AUTO continuation, returning nothing.')
+                    cb = None
             else:
-                cb = ac.run(self.model_name, DS='-', U=u, runner=runner, **continuation_kwargs)
+                for retry in range(self._retry):
+                    try:
+                        cb = ac.run(self.model_name, DS='-', U=u, runner=runner, **continuation_kwargs)
+                    except AUTORuntimeError:
+                        print(traceback.format_exc())
+                        warnings.warn('AUTO continuation failed, possibly retrying.')
+                    else:
+                        break
+                else:
+                    warnings.warn('Problem to complete the backward AUTO continuation, returning nothing.')
+                    cb = None
 
         if not self.continuation:
             self.continuation['forward'] = None
