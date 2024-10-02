@@ -283,7 +283,8 @@ class BifurcationDiagram(object):
                     if parent_branch_number not in self.computed_hb_by_fp_branch:
                         self.computed_hb_by_fp_branch[parent_branch_number] = list()
                     self.computed_hb_by_fp_branch[parent_branch_number].append(direction * (ihb + 1))
-                self.fp_branches_with_all_hb_computed.append(parent_branch_number)
+
+            self.fp_branches_with_all_hb_computed.append(parent_branch_number)
 
         logger.info('Continuation of the periodic orbits from Hopf bifurcations has ended.')
         self.level_reached += 1
