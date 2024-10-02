@@ -622,6 +622,7 @@ class BifurcationDiagram(object):
             logger.debug('Point is acceptable for continuation. Launching AUTO...')
             used_continuation_kwargs = deepcopy(continuation_kwargs)
             used_continuation_kwargs['IBR'] = br_num
+            used_continuation_kwargs['IPS'] = 2
             hp = PeriodicOrbitContinuation(model_name=self.model_name, config_object=self.config_object)
             hp.make_continuation(initial_data, only_forward=only_forward, max_bp=max_number_bp_detected, **used_continuation_kwargs)
             logger.debug('Continuation done. Checking now against previous continuation...')
@@ -636,8 +637,10 @@ class BifurcationDiagram(object):
             if valid_branch:
                 if isinstance(initial_data, AUTOSolution):
                     parameters = initial_data.PAR
+                elif 'PAR' in used_continuation_kwargs:
+                    parameters = used_continuation_kwargs['PAR']
                 else:
-                    parameters = None  # to be implemented
+                    parameters = None
                 self.po_branches[abs(hp.branch_number)] = {'parameters': parameters, 'continuation': hp, 'continuation_kwargs': used_continuation_kwargs}
                 self.po_parent[abs(hp.branch_number)] = None
                 logger.info('Saving valid branch ' + str(br_num) + ' emanating from user-provided data.')
