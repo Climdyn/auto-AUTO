@@ -623,7 +623,7 @@ class BifurcationDiagram(object):
             used_continuation_kwargs = deepcopy(continuation_kwargs)
             used_continuation_kwargs['IBR'] = br_num
             hp = PeriodicOrbitContinuation(model_name=self.model_name, config_object=self.config_object)
-            hp.make_continuation(initial_data, only_forward=not only_forward, max_bp=max_number_bp_detected, **used_continuation_kwargs)
+            hp.make_continuation(initial_data, only_forward=only_forward, max_bp=max_number_bp_detected, **used_continuation_kwargs)
             logger.debug('Continuation done. Checking now against previous continuation...')
             self._check_po_continuation_against_itself(hp, used_continuation_kwargs, extra_comparison_parameters,
                                                        comparison_tol, max_number_bp_detected)
