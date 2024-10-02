@@ -545,7 +545,7 @@ class BifurcationDiagram(object):
                 self.po_computed = True
                 logger.info('All possible periodic orbit branches have been computed.')
 
-    def add_periodic_orbit(self, initial_data, extra_comparison_parameters=None, comparison_tol=2.e-2, max_number_bp_detected=None, backward_bp_continuation=False,
+    def add_periodic_orbit(self, initial_data, extra_comparison_parameters=None, comparison_tol=2.e-2, max_number_bp_detected=None, only_forward=False,
                            **continuation_kwargs):
 
         logger.info('Continuing manually PO provided by user')
@@ -623,7 +623,7 @@ class BifurcationDiagram(object):
             used_continuation_kwargs = deepcopy(continuation_kwargs)
             used_continuation_kwargs['IBR'] = br_num
             hp = PeriodicOrbitContinuation(model_name=self.model_name, config_object=self.config_object)
-            hp.make_continuation(initial_data, only_forward=not backward_bp_continuation, max_bp=max_number_bp_detected, **used_continuation_kwargs)
+            hp.make_continuation(initial_data, only_forward=not only_forward, max_bp=max_number_bp_detected, **used_continuation_kwargs)
             logger.debug('Continuation done. Checking now against previous continuation...')
             self._check_po_continuation_against_itself(hp, used_continuation_kwargs, extra_comparison_parameters,
                                                        comparison_tol, max_number_bp_detected)
