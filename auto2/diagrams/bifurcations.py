@@ -554,7 +554,10 @@ class BifurcationDiagram(object):
             continuation_kwargs['NMX'] = 9000
             logger.info('NMX parameters was not set, so setting it to 9000 points.')
 
-        br_num = max(self.po_branches.keys()) + 1
+        if self.po_branches:
+            br_num = max(self.po_branches.keys()) + 1
+        else:
+            br_num = 1
 
         logger.debug('First checking if branching point is not already computed in another branch.')
         found_solution = False
