@@ -556,6 +556,8 @@ class BifurcationDiagram(object):
 
         if self.po_branches:
             br_num = max(self.po_branches.keys()) + 1
+        elif self.fp_branches:
+            br_num = max(self.fp_branches.keys()) + 1
         else:
             br_num = 1
 
