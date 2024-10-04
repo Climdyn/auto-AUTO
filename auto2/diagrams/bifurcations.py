@@ -409,6 +409,12 @@ class BifurcationDiagram(object):
                                         used_continuation_kwargs['ISW'] = -1
                                         used_continuation_kwargs['NMX'] = continuation_kwargs['NMX']
 
+                                        for param in continuation_kwargs:
+                                            used_continuation_kwargs[param] = continuation_kwargs[param]
+
+                                        if 'PAR' not in continuation_kwargs and 'PAR' in used_continuation_kwargs:
+                                            _ = used_continuation_kwargs.pop('PAR')
+
                                         used_continuation_kwargs['IBR'] = br_num
                                         hp = PeriodicOrbitContinuation(model_name=self.model_name, config_object=self.config_object)
                                         hp.make_continuation(bp, only_forward=not backward_bp_continuation, max_bp=max_number_bp_detected, **used_continuation_kwargs)
@@ -486,6 +492,12 @@ class BifurcationDiagram(object):
                                     used_continuation_kwargs = deepcopy(self.po_branches[parent_branch_number]['continuation_kwargs'])
                                     used_continuation_kwargs['ISW'] = -1
                                     used_continuation_kwargs['NMX'] = continuation_kwargs['NMX']
+
+                                    for param in continuation_kwargs:
+                                        used_continuation_kwargs[param] = continuation_kwargs[param]
+
+                                    if 'PAR' not in continuation_kwargs and 'PAR' in used_continuation_kwargs:
+                                        _ = used_continuation_kwargs.pop('PAR')
 
                                     used_continuation_kwargs['IBR'] = br_num
                                     hp = PeriodicOrbitContinuation(model_name=self.model_name, config_object=self.config_object)
