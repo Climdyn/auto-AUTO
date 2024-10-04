@@ -50,6 +50,7 @@ class BifurcationDiagram(object):
         self.fp_branches_with_all_bp_computed = list()
         self.fp_branches_with_all_hb_computed = list()
         self.computed_bp_by_fp_branch = dict()
+        self.computed_hb_by_fp_branch = dict()
         self.po_parent = dict()
         self.po_branches_with_all_bp_computed = list()
         self.po_branches_with_all_pd_computed = list()
@@ -227,47 +228,62 @@ class BifurcationDiagram(object):
 
             logger.info('Computing Hopf bifurcations of branch ' + str(parent_branch_number))
 
-            hb_list = branch['continuation'].get_filtered_solutions_list(labels='HB')
+            forward_hb_list = branch['continuation'].get_filtered_solutions_list(labels='HB', forward=True)
+            backward_hb_list = branch['continuation'].get_filtered_solutions_list(labels='HB', forward=False)
 
-            for ihb, hb in enumerate(hb_list):
+            direction_and_hopf_points = ((1, forward_hb_list), (-1, backward_hb_list))
 
-                logger.info('Continuing PO out of Hopf point ' + str(ihb + 1) + '. Launching AUTO...')
+            for direction, hb_list in direction_and_hopf_points:
 
-                used_continuation_kwargs = deepcopy(continuation_kwargs)
-                used_continuation_kwargs['IBR'] = br_num
-
-                if 'IPS' not in used_continuation_kwargs:
-                    used_continuation_kwargs['IPS'] = 2
-
-                if 'ICP' not in used_continuation_kwargs:
-                    if 11 in self.config_object.parameters_dict.keys():
-                        used_continuation_kwargs['ICP'] = [self.config_object.continuation_parameters[0], self.config_object.parameters_dict[11]]
-                    else:
-                        used_continuation_kwargs['ICP'] = [self.config_object.continuation_parameters[0], 11]
+                if direction == 1:
+                    logger.info('Treating forward direction.')
                 else:
-                    if 11 in self.config_object.parameters_dict.keys():
-                        if self.config_object.parameters_dict[11] not in used_continuation_kwargs['ICP'] or 11 not in used_continuation_kwargs['ICP']:
-                            used_continuation_kwargs['ICP'].append(self.config_object.parameters_dict[11])
+                    logger.info('Treating backward direction.')
+
+                for ihb, hb in enumerate(hb_list):
+
+                    logger.info('Continuing PO out of Hopf point ' + str(ihb + 1) + '. Launching AUTO...')
+
+                    used_continuation_kwargs = deepcopy(continuation_kwargs)
+                    used_continuation_kwargs['IBR'] = br_num
+
+                    if 'IPS' not in used_continuation_kwargs:
+                        used_continuation_kwargs['IPS'] = 2
+
+                    if 'ICP' not in used_continuation_kwargs:
+                        if 11 in self.config_object.parameters_dict.keys():
+                            used_continuation_kwargs['ICP'] = [self.config_object.continuation_parameters[0], self.config_object.parameters_dict[11]]
+                        else:
+                            used_continuation_kwargs['ICP'] = [self.config_object.continuation_parameters[0], 11]
                     else:
-                        if 11 not in used_continuation_kwargs['ICP']:
-                            used_continuation_kwargs['ICP'].append(11)
+                        if 11 in self.config_object.parameters_dict.keys():
+                            if self.config_object.parameters_dict[11] not in used_continuation_kwargs['ICP'] or 11 not in used_continuation_kwargs['ICP']:
+                                used_continuation_kwargs['ICP'].append(self.config_object.parameters_dict[11])
+                        else:
+                            if 11 not in used_continuation_kwargs['ICP']:
+                                used_continuation_kwargs['ICP'].append(11)
 
-                hp = PeriodicOrbitContinuation(model_name=self.model_name, config_object=self.config_object)
-                hp.make_continuation(hb, max_bp=max_number_bp_detected, **used_continuation_kwargs)
+                    hp = PeriodicOrbitContinuation(model_name=self.model_name, config_object=self.config_object)
+                    hp.make_continuation(hb, max_bp=max_number_bp_detected, **used_continuation_kwargs)
 
-                logger.debug('Continuation done. Checking now against previous continuation...')
-                self._check_po_continuation_against_itself(hp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol, max_number_bp_detected)
+                    logger.debug('Continuation done. Checking now against previous continuation...')
+                    self._check_po_continuation_against_itself(hp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol, max_number_bp_detected)
 
-                self._check_po_continuation_against_other_fp_branches(hp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol, max_number_bp_detected)
-                valid_branch = self._check_po_continuation_against_other_po_branches(hp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol, max_number_bp_detected)
+                    self._check_po_continuation_against_other_fp_branches(hp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol, max_number_bp_detected)
+                    valid_branch = self._check_po_continuation_against_other_po_branches(hp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol, max_number_bp_detected)
 
-                if valid_branch:
-                    self.po_branches[abs(hp.branch_number)] = {'parameters': hb.PAR, 'continuation': hp, 'continuation_kwargs': used_continuation_kwargs}
-                    self.po_parent[abs(hp.branch_number)] = parent_branch_number
-                    logger.info('Saving valid branch ' + str(br_num) + ' emanating from branch ' + str(parent_branch_number) + ' (Hopf point '+str(ihb+1)+').')
-                    br_num += 1
-                else:
-                    logger.info('Hopf point '+str(ihb+1)+' from branch '+str(parent_branch_number)+' resulted in non-valid branch. Not saving result.')
+                    if valid_branch:
+                        self.po_branches[abs(hp.branch_number)] = {'parameters': hb.PAR, 'continuation': hp, 'continuation_kwargs': used_continuation_kwargs}
+                        self.po_parent[abs(hp.branch_number)] = parent_branch_number
+                        logger.info('Saving valid branch ' + str(br_num) + ' emanating from branch ' + str(parent_branch_number) + ' (Hopf point '+str(ihb+1)+').')
+                        br_num += 1
+                    else:
+                        logger.info('Hopf point '+str(ihb+1)+' from branch '+str(parent_branch_number)+' resulted in non-valid branch. Not saving result.')
+
+                    if parent_branch_number not in self.computed_hb_by_fp_branch:
+                        self.computed_hb_by_fp_branch[parent_branch_number] = list()
+                    self.computed_hb_by_fp_branch[parent_branch_number].append(direction * (ihb + 1))
+
             self.fp_branches_with_all_hb_computed.append(parent_branch_number)
 
         logger.info('Continuation of the periodic orbits from Hopf bifurcations has ended.')
@@ -528,6 +544,116 @@ class BifurcationDiagram(object):
             else:
                 self.po_computed = True
                 logger.info('All possible periodic orbit branches have been computed.')
+
+    def add_periodic_orbit(self, initial_data, extra_comparison_parameters=None, comparison_tol=2.e-2, max_number_bp_detected=None, only_forward=False,
+                           **continuation_kwargs):
+
+        logger.info('Continuing manually PO provided by user')
+
+        if 'NMX' not in continuation_kwargs:
+            continuation_kwargs['NMX'] = 9000
+            logger.info('NMX parameters was not set, so setting it to 9000 points.')
+
+        if self.po_branches:
+            br_num = max(self.po_branches.keys()) + 1
+        elif self.fp_branches:
+            br_num = max(self.fp_branches.keys()) + 1
+        else:
+            br_num = 1
+
+        logger.debug('First checking if branching point is not already computed in another branch.')
+        found_solution = False
+        # maybe tests on AUTOSolution must be put in try blocks (PO vs FP)
+        if isinstance(initial_data, AUTOSolution):
+            for bn in self.computed_bp_by_po_branch:
+                for ibpt in self.computed_bp_by_po_branch[bn]:
+                    if ibpt >= 0:
+                        bpt = self.get_continuation(bn).get_solution_by_label('BP' + str(ibpt))
+                    else:
+                        bpt = self.get_continuation(bn).get_solution_by_label('-BP' + str(-ibpt))
+                    if self._check_if_solutions_are_close(initial_data, bpt, extra_comparison_parameters, comparison_tol):
+                        logger.debug('Branching point was already computed in branching point ' + str(ibpt) + ' of branch ' + str(bn) + '.')
+                        found_solution = True
+                        break
+                if found_solution:
+                    logger.debug('Skipping this point.')
+                    break
+            for bn in self.computed_pd_by_po_branch:
+                found_solution = False
+                for ipdt in self.computed_pd_by_po_branch[bn]:
+                    if ipdt >= 0:
+                        pdt = self.get_continuation(bn).get_solution_by_label('PD' + str(ipdt))
+                    else:
+                        pdt = self.get_continuation(bn).get_solution_by_label('-PD' + str(-ipdt))
+                    if self._check_if_solutions_are_close(initial_data, pdt, extra_comparison_parameters,
+                                                          comparison_tol):
+                        logger.debug('Period doubling point was already computed in period doubling point ' + str(ipdt) +
+                                     ' of branch ' + str(bn) + '.')
+                        found_solution = True
+                        break
+                if found_solution:
+                    logger.debug('Skipping this point.')
+                    break
+            for bn in self.computed_hb_by_fp_branch:
+                found_solution = False
+                for ihbt in self.computed_hb_by_fp_branch[bn]:
+                    if ihbt >= 0:
+                        hbt = self.get_continuation(bn).get_solution_by_label('HB' + str(ihbt))
+                    else:
+                        hbt = self.get_continuation(bn).get_solution_by_label('-HB' + str(-ihbt))
+                    if self._check_if_solutions_are_close(initial_data, hbt, extra_comparison_parameters,
+                                                          comparison_tol):
+                        logger.debug('Hopf point was already computed in Hopf point ' + str(ihbt) +
+                                     ' of branch ' + str(bn) + '.')
+                        found_solution = True
+                        break
+                if found_solution:
+                    logger.debug('Skipping this point.')
+                    break
+        else:
+            for bn in list(self.fp_branches.keys()) + list(self.po_branches.keys()):
+                for psol in self.get_continuation(bn).full_solutions_list:
+                    try:
+                        found_solution == (psol.initial_data == initial_data)
+                    except:
+                        pass
+                    if found_solution:
+                        logger.debug('Point was already computed in branch ' + str(bn) + '.')
+                if found_solution:
+                    logger.debug('Skipping this point.')
+                    break
+
+        if not found_solution:
+            logger.debug('Point is acceptable for continuation. Launching AUTO...')
+            used_continuation_kwargs = deepcopy(continuation_kwargs)
+            used_continuation_kwargs['IBR'] = br_num
+            used_continuation_kwargs['IPS'] = 2
+            hp = PeriodicOrbitContinuation(model_name=self.model_name, config_object=self.config_object)
+            hp.make_continuation(initial_data, only_forward=only_forward, max_bp=max_number_bp_detected, **used_continuation_kwargs)
+            logger.debug('Continuation done. Checking now against previous continuation...')
+            self._check_po_continuation_against_itself(hp, used_continuation_kwargs, extra_comparison_parameters,
+                                                       comparison_tol, max_number_bp_detected)
+
+            self._check_po_continuation_against_other_fp_branches(hp, used_continuation_kwargs, extra_comparison_parameters,
+                                                                  comparison_tol, max_number_bp_detected)
+            valid_branch = self._check_po_continuation_against_other_po_branches(hp, used_continuation_kwargs, extra_comparison_parameters,
+                                                                                 comparison_tol, max_number_bp_detected)
+
+            if valid_branch:
+                if isinstance(initial_data, AUTOSolution):
+                    parameters = initial_data.PAR
+                elif 'PAR' in used_continuation_kwargs:
+                    parameters = used_continuation_kwargs['PAR']
+                else:
+                    parameters = None
+                self.po_branches[abs(hp.branch_number)] = {'parameters': parameters, 'continuation': hp, 'continuation_kwargs': used_continuation_kwargs}
+                self.po_parent[abs(hp.branch_number)] = None
+                logger.info('Saving valid branch ' + str(br_num) + ' emanating from user-provided data.')
+                self.po_computed = False
+                logger.info('There might be new periodic orbit branches to compute. '
+                            'You might want to restart the automatic computation of the bifurcation diagram.')
+            else:
+                logger.info('User-provided data resulted in non-valid branch. Not saving result.')
 
     def _get_dict(self):
         state = self.__dict__.copy()

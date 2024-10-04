@@ -66,7 +66,7 @@ class Continuation(ABC):
             'forward': None,
             'backward': None
         }
-        if not isinstance(self.initial_data, np.ndarray) and self.initial_data is not None:
+        if not isinstance(self.initial_data, (np.ndarray, str)) and self.initial_data is not None:
             state['initial_data'] = {key: self.initial_data[key] for key in ['BR', 'PT', 'TY name', 'TY number', 'Label']}
         return state
 
