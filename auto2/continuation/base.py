@@ -516,8 +516,8 @@ class Continuation(ABC):
 
         return solutions_list
 
-    def plot_branche_parts(self, variables=(0, 1), ax=None, figsize=(10, 8), markersize=12., plot_kwargs=None, marker_kwargs=None,
-                           excluded_labels=('UZ', 'EP'), variables_name=None):
+    def plot_branch_parts(self, variables=(0, 1), ax=None, figsize=(10, 8), markersize=12., plot_kwargs=None, marker_kwargs=None,
+                          excluded_labels=('UZ', 'EP'), plot_sol_points=False, variables_name=None, cmap=None):
 
         if not self.continuation:
             return None
@@ -560,6 +560,12 @@ class Continuation(ABC):
             except:
                 var2 = vars[1]
 
+        if plot_sol_points:
+            if isinstance(cmap, str):
+                cmap = plt.get_cmap(cmap)
+            if cmap is None:
+                cmap = plt.get_cmap('Reds')
+
         for direction in ['forward', 'backward']:
 
             if self.continuation[direction] is not None:
@@ -580,6 +586,19 @@ class Continuation(ABC):
                         ls = '--'
                     plot_kwargs['linestyle'] = ls
                     lines_list = ax.plot(self.continuation[direction][var1][pidx:abs(idx)], self.continuation[direction][var2][pidx:abs(idx)], **plot_kwargs)
+                    if plot_sol_points:
+                        # generate points and colours for plotting
+                        x_vals = self.solutions_parameters(parameters=var1)[0]
+                        p_min, p_max = np.min(x_vals), np.max(x_vals)
+                        y_vals = np.empty_like(x_vals)
+                        point_color = list()
+                        for i, x in enumerate(x_vals):
+                            ix = np.argmin(np.abs(self.continuation[direction][var1][pidx:abs(idx)] - x))
+                            y_vals[i] = (self.continuation[direction][var2][pidx:abs(idx)][ix])
+                            point_color.append(cmap((x - p_min) / (p_max - p_min)))
+
+                        ax.scatter(x_vals, y_vals, c=point_color)
+
                     c = lines_list[0].get_color()
                     plot_kwargs['color'] = c
                     pidx = abs(idx)
@@ -603,8 +622,8 @@ class Continuation(ABC):
                 ax.set_ylabel(variables_name[1])
         return ax
 
-    def plot_branche_parts_3D(self, variables=(0, 1, 2), ax=None, figsize=(10, 8), markersize=12., plot_kwargs=None, marker_kwargs=None,
-                              excluded_labels=('UZ', 'EP'), variables_name=None):
+    def plot_branch_parts_3D(self, variables=(0, 1, 2), ax=None, figsize=(10, 8), markersize=12., plot_kwargs=None, marker_kwargs=None,
+                             excluded_labels=('UZ', 'EP'), variables_name=None):
 
         if not self.continuation:
             return None
@@ -708,7 +727,7 @@ class Continuation(ABC):
         return ax
 
     def plot_solutions(self, variables=(0, 1), ax=None, figsize=(10, 8), markersize=None, marker=None, linestyle=None,
-                       linewidth=None, plot_kwargs=None, labels=None, indices=None, parameter=None, value=None,
+                       linewidth=None, color_solutions=False, plot_kwargs=None, labels=None, indices=None, parameter=None, value=None,
                        variables_name=None, tol=0.01):
 
         if markersize is None:
@@ -726,6 +745,21 @@ class Continuation(ABC):
 
         if plot_kwargs is None:
             plot_kwargs = dict()
+
+        # Colouring solutions dependant on parameter value
+        if 'cmap' in plot_kwargs:
+            cmap = plot_kwargs['cmap']
+            if isinstance(cmap, str):
+                cmap = plt.get_cmap(cmap)
+            plot_kwargs.pop('cmap')
+        else:
+            cmap = plt.get_cmap('Blues')
+        if color_solutions and (parameter is not None):
+            p_vals = self.solutions_parameters(parameters=parameter)
+            p_min, p_max = np.min(p_vals), np.max(p_vals)
+
+            if value is None:
+                value = p_vals
 
         solutions_list = self.get_filtered_solutions_list(labels, indices, parameter, value, None, tol)
 
@@ -746,14 +780,17 @@ class Continuation(ABC):
                 var2 = keys[variables[1]]
             except:
                 var2 = keys[1]
-
         for sol in solutions_list:
             x = sol[var1]
             y = sol[var2]
+            if color_solutions and (parameter is not None):
+                plot_kwargs['color'] = cmap((sol.PAR[parameter] - p_min) / (p_max - p_min))
             line_list = ax.plot(x, y, marker=marker, markersize=markersize, linestyle=linestyle, linewidth=linewidth,
                                 **plot_kwargs)
-            c = line_list[0].get_color()
-            plot_kwargs['color'] = c
+
+            if not color_solutions:
+                c = line_list[0].get_color()
+                plot_kwargs['color'] = c
 
         if variables_name is None:
             ax.set_xlabel(var1)

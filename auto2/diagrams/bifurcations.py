@@ -1109,7 +1109,7 @@ class BifurcationDiagram(object):
                 kwargs['plot_kwargs']['color'] = colors_list[i]
             else:
                 kwargs['plot_kwargs']['color'] = cmap(i / self.number_of_fp_branches)
-            self.fp_branches[b]['continuation'].plot_branche_parts(variables, ax=ax, **kwargs)
+            self.fp_branches[b]['continuation'].plot_branch_parts(variables, ax=ax, **kwargs)
             used_colors[b] = kwargs['plot_kwargs']['color']
 
         for i, b in enumerate(self.fp_branches):
@@ -1159,7 +1159,7 @@ class BifurcationDiagram(object):
                 kwargs['plot_kwargs']['color'] = colors_list[i]
             else:
                 kwargs['plot_kwargs']['color'] = cmap(i / self.number_of_fp_branches)
-            self.fp_branches[b]['continuation'].plot_branche_parts_3D(variables, ax=ax, **kwargs)
+            self.fp_branches[b]['continuation'].plot_branch_parts_3D(variables, ax=ax, **kwargs)
             used_colors[b] = kwargs['plot_kwargs']['color']
 
         for i, b in enumerate(self.fp_branches):
@@ -1209,7 +1209,7 @@ class BifurcationDiagram(object):
                 kwargs['plot_kwargs']['color'] = colors_list[i]
             else:
                 kwargs['plot_kwargs']['color'] = cmap(i / self.number_of_po_branches)
-            self.po_branches[b]['continuation'].plot_branche_parts(variables, ax=ax, **kwargs)
+            self.po_branches[b]['continuation'].plot_branch_parts(variables, ax=ax, **kwargs)
             used_colors[b] = kwargs['plot_kwargs']['color']
 
         for i, b in enumerate(self.po_branches):
@@ -1259,7 +1259,7 @@ class BifurcationDiagram(object):
                 kwargs['plot_kwargs']['color'] = colors_list[i]
             else:
                 kwargs['plot_kwargs']['color'] = cmap(i / self.number_of_po_branches)
-            self.po_branches[b]['continuation'].plot_branche_parts_3D(variables, ax=ax, **kwargs)
+            self.po_branches[b]['continuation'].plot_branch_parts_3D(variables, ax=ax, **kwargs)
             used_colors[b] = kwargs['plot_kwargs']['color']
 
         for i, b in enumerate(self.po_branches):
@@ -1459,6 +1459,75 @@ class BifurcationDiagram(object):
             hp = self.po_branches[branch_number]['continuation']
             solutions_kwargs['plot_kwargs']['color'] = po_used_colors[branch_number]
             hp.plot_solutions_3D(solutions_variables, ax=axes[1], parameter=parameter, value=solutions_parameter_value, tol=solutions_tol, **solutions_kwargs)
+
+        axes[1].set_title('Solution in phase space')
+
+        return axes
+
+    def plot_single_po_branch_and_solutions(
+            self,
+            branch_number,
+            parameter=None,
+            diagram_variables=(1,),
+            solutions_variables=(0, 1),
+            axes=None,
+            figsize=(10, 16),
+            solutions_tol=0.01,
+            cmap=None,
+            branch_diagram_kwargs=None,
+            solution_diagram_kwargs=None,
+            ):
+        '''
+            Plots a single branch, and all of the stored solutions on a single plot
+        '''
+
+        if isinstance(cmap, str):
+            cmap = plt.get_cmap(cmap)
+        
+        if axes is None:
+            fig, axes = plt.subplots(2, 1, figsize=figsize)
+
+        if branch_diagram_kwargs is None:
+            branch_diagram_kwargs = dict()
+
+        if solution_diagram_kwargs is None:
+            solution_diagram_kwargs = dict()
+
+        if 'plot_kwargs' not in branch_diagram_kwargs:
+            branch_diagram_kwargs['plot_kwargs'] = dict()
+
+        if 'plot_kwargs' not in solution_diagram_kwargs:
+            solution_diagram_kwargs['plot_kwargs'] = dict()
+
+        if parameter is None:
+            if self.po_branches:
+                n = next(iter(self.po_branches))
+                parameter = self.po_branches[n]['continuation_kwargs']['ICP']
+                if 'T' in parameter:
+                    parameter.remove('T')
+            else:
+                return None
+
+        if cmap is None:
+            if 'cmap' in solution_diagram_kwargs['plot_kwargs']:
+                cmap = solution_diagram_kwargs['plot_kwargs']['cmap']
+            else:
+                cmap = plt.get_cmap('Reds')
+                solution_diagram_kwargs['plot_kwargs']['cmap'] = cmap
+            branch_diagram_kwargs['plot_kwargs']['color'] = cmap[0.5]
+        else:
+            branch_diagram_kwargs['plot_kwargs']['color'] = cmap(0.5)
+            solution_diagram_kwargs['plot_kwargs']['cmap'] = cmap
+            
+        self.po_branches[branch_number]['continuation'].plot_branch_parts(variables=(parameter, diagram_variables[0]), ax=axes[0], plot_sol_points=True, cmap=cmap, **branch_diagram_kwargs)
+
+        # Plot scatter on branch of parameter values
+        
+        axes[0].set_title('Bifurcation diagram - Branch ' + str(branch_number))
+
+        # Plot solution
+        hp = self.po_branches[branch_number]['continuation']
+        hp.plot_solutions(solutions_variables, ax=axes[1], parameter=parameter, value=None, color_solutions=True, tol=solutions_tol, **solution_diagram_kwargs)
 
         axes[1].set_title('Solution in phase space')
 
