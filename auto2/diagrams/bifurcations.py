@@ -206,10 +206,11 @@ class BifurcationDiagram(object):
         logger.info('All possible fixed point branches have been computed.')
         self.fp_computed = True
 
-    def compute_periodic_orbits_diagram(self, end_level=None, extra_comparison_parameters=None, comparison_tol=2.e-2,
+    def compute_periodic_orbits_diagram(self, end_level=10, extra_comparison_parameters=None, comparison_tol=2.e-2,
                                         remove_dubious_bp=True, max_number_bp=None, max_number_bp_detected=None, backward_bp_continuation=False, **continuation_kwargs):
 
         logger.info('Starting the computation of the periodic orbits bifurcation diagram with model '+str(self.model_name))
+        logger.info('Computing periodic orbits up to level '+str(end_level))
 
         if not self.fp_computed:
             logger.warning('Fixed points diagram not computed. No initial data to start with.\n'
@@ -299,7 +300,7 @@ class BifurcationDiagram(object):
                                              max_number_bp_detected=max_number_bp_detected,
                                              backward_bp_continuation=backward_bp_continuation, restart=False, **continuation_kwargs)
 
-    def restart_periodic_orbits_diagram(self, end_level=None, extra_comparison_parameters=None, comparison_tol=2.e-2,
+    def restart_periodic_orbits_diagram(self, end_level=10, extra_comparison_parameters=None, comparison_tol=2.e-2,
                                         remove_dubious_bp=True, max_number_bp=None, max_number_bp_detected=None,
                                         backward_bp_continuation=False, restart=True, **continuation_kwargs):
 
@@ -320,6 +321,7 @@ class BifurcationDiagram(object):
         else:
             if restart:
                 logger.info('Restarting the computation of the periodic orbits from detected branching and period doubling points.')
+                logger.info('Computing periodic orbits up to level ' + str(end_level))
 
             if 'NMX' not in continuation_kwargs:
                 continuation_kwargs['NMX'] = 9000
