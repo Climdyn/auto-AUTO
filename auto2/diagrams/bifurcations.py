@@ -1504,9 +1504,8 @@ class BifurcationDiagram(object):
         if parameter is None:
             if self.po_branches:
                 n = next(iter(self.po_branches))
-                parameter = self.po_branches[n]['continuation_kwargs']['ICP']
-                if 'T' in parameter:
-                    parameter.remove('T')
+                # Defaults to first parameter
+                parameter = self.po_branches[n]['continuation_kwargs']['ICP'][0]
             else:
                 return None
 
