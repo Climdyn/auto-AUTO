@@ -192,12 +192,16 @@ class FixedPointContinuation(Continuation):
                 if idx is not None:
                     return self.continuation['forward'].data[0].diagnostics[idx]['Eigenvalues']
                 else:
-                    warnings.warn('No backward branch to show the diagnostic for.')
+                    warnings.warn('No forward branch to show the diagnostic for.')
                     return None
 
         if idx >= 0:
-            ix_map = self.solution_index_map(direction='forward', sol_type='fp')
-            return self.continuation['forward'].data[0].diagnostics[ix_map[idx]]['Eigenvalues']
+            if self.continuation['forward'] is not None:
+                ix_map = self.solution_index_map(direction='forward', sol_type='fp')
+                return self.continuation['forward'].data[0].diagnostics[ix_map[idx]]['Eigenvalues']
+            else:
+                warnings.warn('No forward branch to show the diagnostic for.')
+                return None
         else:
             if self.continuation['backward'] is not None:
                 ix_map = self.solution_index_map(direction='backward', sol_type='fp')
