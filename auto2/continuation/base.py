@@ -4,6 +4,7 @@ import sys
 import warnings
 import logging
 import pickle
+from mailcap import lookup
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -242,6 +243,27 @@ class Continuation(ABC):
                     return None
         else:
             return None
+
+    @staticmethod
+    def solution_index_map(diag, sol_type='fp'):
+        """
+            Function creates a map between the `Point number` as found in the solution file, and the `Point number` in the diagnostic d. file.
+            It was found that when AUTO cannot converge, it still logs the point and the d. file index then does not corrispond with the sol file.
+        """
+        ix_map = list()
+
+        if sol_type == 'fp':
+            lookup_str = 'Eiganvalues'
+        elif sol_type == 'po':
+            lookup_str = 'Multipliers'
+        else:
+            raise UserWarning("Solution type must be 'fp' or 'po'.")
+
+        for i, d in enumerate(diag[:-1]):
+            if len(d[lookup_str]) > 0:
+                if diag[i + 1]['Point number'] != d['Point number']:
+                    ix_map.append(i)
+        return ix_map
 
     @property
     def stability(self):

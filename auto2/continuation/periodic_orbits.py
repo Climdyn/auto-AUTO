@@ -24,6 +24,7 @@ except KeyError:
 import auto.AUTOCommands as ac
 import auto.runAUTO as ra
 from auto.parseS import AUTOSolution
+from auto.parseD import parseD
 from auto.AUTOExceptions import AUTORuntimeError
 from auto2.continuation.base import Continuation
 
@@ -241,13 +242,15 @@ class PeriodicOrbitContinuation(Continuation):
 
         if idx >= 0:
             if self.continuation['forward'] is not None:
-                return self.continuation['forward'].data[0].diagnostics[idx]['Multipliers']
+                ix_map = self.solution_index_map(self.continuation['forward'].data[0].diagnostics, sol_type='po')
+                return self.continuation['forward'].data[0].diagnostics[ix_map[idx]]['Multipliers']
             else:
                 warnings.warn('No forward branch to show the diagnostic for.')
                 return None
         else:
             if self.continuation['backward'] is not None:
-                return self.continuation['backward'].data[0].diagnostics[-idx]['Multipliers']
+                ix_map = self.solution_index_map(self.continuation['backward'].data[0].diagnostics, sol_type='po')
+                return self.continuation['backward'].data[0].diagnostics[ix_map[-idx]]['Multipliers']
             else:
                 warnings.warn('No backward branch to show the diagnostic for.')
                 return None
