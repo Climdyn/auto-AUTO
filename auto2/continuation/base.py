@@ -246,7 +246,7 @@ class Continuation(ABC):
     def solution_index_map(self, direction='forward', stability_keyword=None):
         """
             Function creates a map between the `Point number` as found in the solution file, and the `Point number` in the diagnostic d. file.
-            It was found that when AUTO cannot converge, it still logs the point and the d. file index then does not corrispond with the sol file.
+            It was found that when AUTO cannot converge, it still logs the point and the d. file index then does not correspond with the sol file.
         """
         ix_map = list()
 
@@ -258,9 +258,9 @@ class Continuation(ABC):
                 stability_keyword = 'Multipliers'
 
         for i, d in enumerate(self.continuation[direction].data[0].diagnostics[:-1]):
-            if len(d[stability_keyword]) > 0:
-                if self.continuation[direction].data[0].diagnostics[i + 1]['Point number'] != d['Point number']:
-                    ix_map.append(i)
+            dd = self.continuation[direction].data[0].diagnostics[i+1]
+            if len(d[stability_keyword]) > 0 and dd['Point number'] != d['Point number']:
+                ix_map.append(i)
         return ix_map
 
     @property
