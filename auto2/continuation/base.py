@@ -243,22 +243,22 @@ class Continuation(ABC):
         else:
             return None
 
-    def solution_index_map(self, direction='forward', sol_type='fp'):
+    def solution_index_map(self, direction='forward', stability_keyword=None):
         """
             Function creates a map between the `Point number` as found in the solution file, and the `Point number` in the diagnostic d. file.
             It was found that when AUTO cannot converge, it still logs the point and the d. file index then does not corrispond with the sol file.
         """
         ix_map = list()
 
-        if sol_type == 'fp':
-            lookup_str = 'Eiganvalues'
-        elif sol_type == 'po':
-            lookup_str = 'Multipliers'
-        else:
-            raise UserWarning("Solution type must be 'fp' or 'po'.")
+        if stability_keyword is None:
+            if self.isfixedpoint:
+                stability_keyword = 'Eiganvalues'
+            else:
+                # Assuming anything that is not a fixed point is a periodic solution
+                stability_keyword = 'Multipliers'
 
         for i, d in enumerate(self.continuation[direction].data[0].diagnostics[:-1]):
-            if len(d[lookup_str]) > 0:
+            if len(d[stability_keyword]) > 0:
                 if self.continuation[direction].data[0].diagnostics[i + 1]['Point number'] != d['Point number']:
                     ix_map.append(i)
         return ix_map
