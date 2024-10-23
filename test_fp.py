@@ -21,14 +21,14 @@ s = fp.get_filtered_solutions_list(labels='BP')[1]
 fp2 = FixedPointContinuation('qgs_land-atmosphere_auto', c)
 fp2.make_continuation(s, ISW=-1)
 
-s = fp.get_filtered_solutions_list(labels='HB')[0]
-
-hp = PeriodicOrbitContinuation('qgs_land-atmosphere_auto', c)
-
-hp.make_continuation(s, max_bp=1, ICP=['C_go1', 'T'], IPS=2)
-
-s2 = fp.get_filtered_solutions_list(labels='HB')[1]
-
-hp2 = PeriodicOrbitContinuation('qgs_land-atmosphere_auto', c)
-
-hp2.make_continuation(s2, max_bp=1, ICP=['C_go1', 'T'], IPS=2, NMX=385)
+# s = fp.get_filtered_solutions_list(labels='HB')[0]
+#
+# hp = PeriodicOrbitContinuation('qgs_land-atmosphere_auto', c)
+#
+# hp.make_continuation(s, max_bp=1, ICP=['C_go1', 'T'], IPS=2)
+#
+# s2 = fp.get_filtered_solutions_list(labels='HB')[1]
+#
+# hp2 = PeriodicOrbitContinuation('qgs_land-atmosphere_auto', c)
+#
+# hp2.make_continuation(s2, max_bp=1, ICP=['C_go1', 'T'], IPS=2, NMX=385)

@@ -252,21 +252,21 @@ class Continuation(ABC):
 
         if stability_keyword is None:
             if self.isfixedpoint:
-                stability_keyword = 'Eiganvalues'
+                stability_keyword = 'Eigenvalues'
             else:
                 # Assuming anything that is not a fixed point is a periodic solution
                 stability_keyword = 'Multipliers'
 
         for i, d in enumerate(self.continuation[direction].data[0].diagnostics):
-            if len(d[stability_keyword]) > 0:
-                if i < len(self.continuation[direction].data[0].diagnostics) - 1:
-                    if self.continuation[direction].data[0].diagnostics[i + 1]['Point number'] != d['Point number']:
-                        ix_map.append(i)
-                else:
-                    # Catch to compare final entry of diagnostic
-                    if self.continuation[direction].data[0].diagnostics[i - 1]['Point number'] != d['Point number']:
-                        ix_map.append(i)
-
+            if i < len(self.continuation[direction].data[0].diagnostics) - 1:
+                dd = self.continuation[direction].data[0].diagnostics[i + 1]
+                if len(d[stability_keyword]) > 0 and dd['Point number'] != d['Point number']:
+                    ix_map.append(i)
+            else:
+                # Catch to compare final entry of diagnostic
+                dd = self.continuation[direction].data[0].diagnostics[i - 1]
+                if len(d[stability_keyword]) > 0 and dd['Point number'] != d['Point number']:
+                    ix_map.append(i)
         return ix_map
 
     @property
