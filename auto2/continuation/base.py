@@ -257,10 +257,16 @@ class Continuation(ABC):
                 # Assuming anything that is not a fixed point is a periodic solution
                 stability_keyword = 'Multipliers'
 
-        for i, d in enumerate(self.continuation[direction].data[0].diagnostics[:-1]):
+        for i, d in enumerate(self.continuation[direction].data[0].diagnostics):
             if len(d[stability_keyword]) > 0:
-                if self.continuation[direction].data[0].diagnostics[i + 1]['Point number'] != d['Point number']:
-                    ix_map.append(i)
+                if i < len(self.continuation[direction].data[0].diagnostics) - 1:
+                    if self.continuation[direction].data[0].diagnostics[i + 1]['Point number'] != d['Point number']:
+                        ix_map.append(i)
+                else:
+                    # Catch to compare final entry of diagnostic
+                    if self.continuation[direction].data[0].diagnostics[i - 1]['Point number'] != d['Point number']:
+                        ix_map.append(i)
+
         return ix_map
 
     @property
