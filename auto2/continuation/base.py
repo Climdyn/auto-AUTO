@@ -252,7 +252,7 @@ class Continuation(ABC):
 
         if stability_keyword is None:
             if self.isfixedpoint:
-                stability_keyword = 'Eiganvalues'
+                stability_keyword = 'Eigenvalues'
             else:
                 # Assuming anything that is not a fixed point is a periodic solution
                 stability_keyword = 'Multipliers'
