@@ -243,8 +243,7 @@ class Continuation(ABC):
         else:
             return None
 
-    @staticmethod
-    def solution_index_map(diag, sol_type='fp'):
+    def solution_index_map(self, direction='forward', sol_type='fp'):
         """
             Function creates a map between the `Point number` as found in the solution file, and the `Point number` in the diagnostic d. file.
             It was found that when AUTO cannot converge, it still logs the point and the d. file index then does not corrispond with the sol file.
@@ -258,9 +257,9 @@ class Continuation(ABC):
         else:
             raise UserWarning("Solution type must be 'fp' or 'po'.")
 
-        for i, d in enumerate(diag[:-1]):
+        for i, d in enumerate(self.continuation[direction].data[0].diagnostics[:-1]):
             if len(d[lookup_str]) > 0:
-                if diag[i + 1]['Point number'] != d['Point number']:
+                if self.continuation[direction].data[0].diagnostics[i + 1]['Point number'] != d['Point number']:
                     ix_map.append(i)
         return ix_map
 
