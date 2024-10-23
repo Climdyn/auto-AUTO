@@ -24,7 +24,6 @@ except KeyError:
 import auto.AUTOCommands as ac
 import auto.runAUTO as ra
 from auto.parseS import AUTOSolution
-from auto.parseD import parseD
 from auto.AUTOExceptions import AUTORuntimeError
 from auto2.continuation.base import Continuation
 

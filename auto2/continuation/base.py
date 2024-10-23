@@ -4,7 +4,6 @@ import sys
 import warnings
 import logging
 import pickle
-from mailcap import lookup
 
 import matplotlib.pyplot as plt
 import numpy as np
