@@ -1,3 +1,4 @@
+import re
 from abc import ABC, abstractmethod
 import os
 import sys
@@ -243,30 +244,104 @@ class Continuation(ABC):
         else:
             return None
 
-    def solution_index_map(self, direction='forward', stability_keyword=None):
+    @staticmethod
+    def parse_diagnostic(diag):
+        # Extract Point Number from text
+        extracted_vals = list()
+
+        lines = diag.strip().splitlines()
+        rows = [re.split(r'\s{1,}', line.strip()) for line in lines if line.strip()]
+        val_num = 1
+        pt_num = -1
+
+        for ln in rows:
+            if "Multiplier" in ln:
+                if len(ln) == 9:
+                    # Assumes a split array of [BR, PT, "Multilier", multiplier num, FM_re, FM_im, "Abs.", "Val", ab_val]
+                    if pt_num == -1:
+                        pt_num = int(ln[1])
+                    else:
+                        if pt_num != int(ln[1]):
+                            raise UserWarning("Cannot find consistent Point Number")
+
+                    if val_num == int(ln[3]):
+                        # In the case that some numbers are passed as Fortran HUGE(1.0D0), we try two methods to take floats
+                        try:
+                            re_val = float(ln[4])
+                        except ValueError:
+                            if re.match(r'^-?\d+(\.\d+)?[+-]\d+$', ln[4]):
+                                re_val = float(re.sub(r'([+-]\d+)$', r'e\1', ln[4]))
+                            else:
+                                raise UserWarning("unexpected form of float")
+                        try:
+                            im_val = float(ln[5])
+                        except ValueError:
+                            if re.match(r'^-?\d+(\.\d+)?[+-]\d+$', ln[5]):
+                                im_val = float(re.sub(r'([+-]\d+)$', r'e\1', ln[5]))
+                            else:
+                                raise UserWarning("unexpected form of float")
+
+                        extracted_vals.append([re_val, im_val])
+                        val_num += 1
+
+            elif "Eigenvalue" in ln:
+                if len(ln) == 6:
+                    # Assumes a split array of [BR, PT, "Multilier", multiplier num":", lambda_re, lambda_im]
+                    if pt_num == -1:
+                        pt_num = int(ln[1])
+                    else:
+                        if pt_num != int(ln[1]):
+                            raise UserWarning("Cannot find consistent Point Number")
+
+                    if val_num == int(ln[3][:-1]):
+                        # In the case that some numbers are passed as Fortran HUGE(1.0D0), we try two methods to take floats
+                        try:
+                            re_val = float(ln[4])
+                        except ValueError:
+                            if re.match(r'^-?\d+(\.\d+)?[+-]\d+$', ln[4]):
+                                re_val = float(re.sub(r'([+-]\d+)$', r'e\1', ln[4]))
+                            else:
+                                raise UserWarning("unexpected form of float")
+                        try:
+                            im_val = float(ln[5])
+                        except ValueError:
+                            if re.match(r'^-?\d+(\.\d+)?[+-]\d+$', ln[5]):
+                                im_val = float(re.sub(r'([+-]\d+)$', r'e\1', ln[5]))
+                            else:
+                                raise UserWarning("unexpected form of float")
+
+                        extracted_vals.append([re_val, im_val])
+                        val_num += 1
+            else:
+                continue
+
+        # if pt_num has not been updataed, attempt to update it using the first row of data:
+        if rows[0][1] == "PT":
+            pt_num = int(rows[1][1])
+
+        return extracted_vals, pt_num
+
+    def solution_index_map(self, direction='forward'):
         """
             Function creates a map between the `Point number` as found in the solution file, and the `Point number` in the diagnostic d. file.
             It was found that when AUTO cannot converge, it still logs the point and the d. file index then does not corrispond with the sol file.
         """
         ix_map = dict()
 
-        if stability_keyword is None:
-            if self.isfixedpoint:
-                stability_keyword = 'Eigenvalues'
-            else:
-                # Assuming anything that is not a fixed point is a periodic solution
-                stability_keyword = 'Multipliers'
+        if self.continuation[direction] is not None:
+            diag_data = self.continuation[direction].data[0].diagnostics.__dict__.copy()['data']
 
-        for i, d in enumerate(self.continuation[direction].data[0].diagnostics):
-            if i < len(self.continuation[direction].data[0].diagnostics) - 1:
-                dd = self.continuation[direction].data[0].diagnostics[i + 1]
-                if len(d[stability_keyword]) > 0 and dd['Point number'] != d['Point number']:
-                    ix_map[d['Point number']] = i
-            else:
-                # Catch to compare final entry of diagnostic
-                dd = self.continuation[direction].data[0].diagnostics[i - 1]
-                if len(d[stability_keyword]) > 0 and dd['Point number'] != d['Point number']:
-                    ix_map[d['Point number']] = i
+            for i, d in enumerate(diag_data):
+                stab_vals, pt_num = self.parse_diagnostic(d['Text'])
+                if i < len(diag_data) - 1:
+                    dd = diag_data[i + 1]
+                    stab_vals_next, pt_num_next = self.parse_diagnostic(dd['Text'])
+                    if len(stab_vals) > 0 and pt_num != pt_num_next:
+                        ix_map[pt_num] = i
+                else:
+                    # Catch to compare final entry of diagnostic
+                    if len(stab_vals) > 0:
+                        ix_map[pt_num] = i
         return ix_map
 
     @property

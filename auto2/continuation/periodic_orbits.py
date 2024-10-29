@@ -242,14 +242,14 @@ class PeriodicOrbitContinuation(Continuation):
         if idx >= 0:
             if self.continuation['forward'] is not None:
                 ix_map = self.solution_index_map(direction='forward')
-                return self.continuation['forward'].data[0].diagnostics[ix_map[idx]]['Multipliers']
+                return self.continuation['forward'].data[0].diagnostics.__dict__['data'][ix_map[idx]]['Multipliers']
             else:
                 warnings.warn('No forward branch to show the diagnostic for.')
                 return None
         else:
             if self.continuation['backward'] is not None:
                 ix_map = self.solution_index_map(direction='backward')
-                return self.continuation['backward'].data[0].diagnostics[ix_map[-idx]]['Multipliers']
+                return self.continuation['backward'].data[0].diagnostics.__dict__['data'][ix_map[-idx]]['Multipliers']
             else:
                 warnings.warn('No backward branch to show the diagnostic for.')
                 return None
