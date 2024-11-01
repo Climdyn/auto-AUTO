@@ -254,59 +254,59 @@ class Continuation(ABC):
         val_num = 1
         pt_num = -1
 
-        for ln in rows:
-            if "Multiplier" in ln:
-                if len(ln) == 9:
+        for line in rows:
+            if "Multiplier" in line:
+                if len(line) == 9:
                     # Assumes a split array of [BR, PT, "Multilier", multiplier num, FM_re, FM_im, "Abs.", "Val", ab_val]
                     if pt_num == -1:
-                        pt_num = int(ln[1])
+                        pt_num = int(line[1])
                     else:
-                        if pt_num != int(ln[1]):
+                        if pt_num != int(line[1]):
                             raise UserWarning("Cannot find consistent Point Number")
 
-                    if val_num == int(ln[3]):
+                    if val_num == int(line[3]):
                         # In the case that some numbers are passed as Fortran HUGE(1.0D0), we try two methods to take floats
                         try:
-                            re_val = float(ln[4])
+                            re_val = float(line[4])
                         except ValueError:
-                            if re.match(r'^-?\d+(\.\d+)?[+-]\d+$', ln[4]):
-                                re_val = float(re.sub(r'([+-]\d+)$', r'e\1', ln[4]))
+                            if re.match(r'^-?\d+(\.\d+)?[+-]\d+$', line[4]):
+                                re_val = float(re.sub(r'([+-]\d+)$', r'e\1', line[4]))
                             else:
                                 raise UserWarning("unexpected form of float")
                         try:
-                            im_val = float(ln[5])
+                            im_val = float(line[5])
                         except ValueError:
-                            if re.match(r'^-?\d+(\.\d+)?[+-]\d+$', ln[5]):
-                                im_val = float(re.sub(r'([+-]\d+)$', r'e\1', ln[5]))
+                            if re.match(r'^-?\d+(\.\d+)?[+-]\d+$', line[5]):
+                                im_val = float(re.sub(r'([+-]\d+)$', r'e\1', line[5]))
                             else:
                                 raise UserWarning("unexpected form of float")
 
                         extracted_vals.append([re_val, im_val])
                         val_num += 1
 
-            elif "Eigenvalue" in ln:
-                if len(ln) == 6:
+            elif "Eigenvalue" in line:
+                if len(line) == 6:
                     # Assumes a split array of [BR, PT, "Multilier", multiplier num":", lambda_re, lambda_im]
                     if pt_num == -1:
-                        pt_num = int(ln[1])
+                        pt_num = int(line[1])
                     else:
-                        if pt_num != int(ln[1]):
+                        if pt_num != int(line[1]):
                             raise UserWarning("Cannot find consistent Point Number")
 
-                    if val_num == int(ln[3][:-1]):
+                    if val_num == int(line[3][:-1]):
                         # In the case that some numbers are passed as Fortran HUGE(1.0D0), we try two methods to take floats
                         try:
-                            re_val = float(ln[4])
+                            re_val = float(line[4])
                         except ValueError:
-                            if re.match(r'^-?\d+(\.\d+)?[+-]\d+$', ln[4]):
-                                re_val = float(re.sub(r'([+-]\d+)$', r'e\1', ln[4]))
+                            if re.match(r'^-?\d+(\.\d+)?[+-]\d+$', line[4]):
+                                re_val = float(re.sub(r'([+-]\d+)$', r'e\1', line[4]))
                             else:
                                 raise UserWarning("unexpected form of float")
                         try:
-                            im_val = float(ln[5])
+                            im_val = float(line[5])
                         except ValueError:
-                            if re.match(r'^-?\d+(\.\d+)?[+-]\d+$', ln[5]):
-                                im_val = float(re.sub(r'([+-]\d+)$', r'e\1', ln[5]))
+                            if re.match(r'^-?\d+(\.\d+)?[+-]\d+$', line[5]):
+                                im_val = float(re.sub(r'([+-]\d+)$', r'e\1', line[5]))
                             else:
                                 raise UserWarning("unexpected form of float")
 
@@ -324,7 +324,7 @@ class Continuation(ABC):
     def solution_index_map(self, direction='forward'):
         """
             Function creates a map between the `Point number` as found in the solution file, and the `Point number` in the diagnostic d. file.
-            It was found that when AUTO cannot converge, it still logs the point and the d. file index then does not corrispond with the sol file.
+            It was found that when AUTO cannot converge, it still logs the point and the d. file index then does not correspond with the sol file.
         """
         ix_map = dict()
 
