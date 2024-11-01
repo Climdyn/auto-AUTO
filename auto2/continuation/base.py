@@ -41,13 +41,13 @@ class Continuation(ABC):
         self.auto_filename_suffix = ""
 
         if path_name is None:
-            self._path_name = ''
+            self._path_name = None
         else:
             if os.path.exists(path_name):
                 self._path_name = path_name
             else:
                 warnings.warn("Path name given does not exist.")
-                self._path_name = ''
+                self._path_name = None
 
         # plots default behaviours
         self._default_marker = None
@@ -91,7 +91,8 @@ class Continuation(ABC):
         """
         # Store the current directory
         original_dir = os.getcwd()
-        os.chdir(new_dir)
+        if self._path_name is not None:
+            os.chdir(new_dir)
         try:
             yield
         finally:
@@ -141,12 +142,15 @@ class Continuation(ABC):
                 filename = "po_"+str(self.branch_number)+'.pickle'
             warnings.warn('No pickle filename prefix provided. Using a default one: ' + filename)
         state = self._get_dict()
-        with open(os.path.join(self._path_name, filename), 'wb') as f:
+
+        filepath = filename if self._path_name is None else os.path.join(self._path_name, filename)
+        with open(filepath, 'wb') as f:
             pickle.dump(state, f, **kwargs)
 
     def load(self, filename, load_initial_data=True, **kwargs):
         try:
-            with open(os.path.join(self._path_name, filename), 'rb') as f:
+            filepath = filename if self._path_name is None else os.path.join(self._path_name, filename)
+            with open(filepath, 'rb') as f:
                 tmp_dict = pickle.load(f, **kwargs)
         except FileNotFoundError:
             warnings.warn('File not found. Unable to load data.')

@@ -40,16 +40,17 @@ class BifurcationDiagram(object):
         self.initial_points = None
         self.model_name = model_name
         if path_name is None:
-            self._path_name = ''
+            self._path_name = None
         else:
             if os.path.exists(path_name):
                 self._path_name = path_name
             else:
                 warnings.warn("Path name given does not exist.")
-                self._path_name = ''
+                self._path_name = None
 
         if model_name is not None:
-            self.config_object = ConfigParser(os.path.join(self._path_name, 'c.'+model_name))
+            filepath = 'c.'+model_name if self._path_name is None else os.path.join(self._path_name, 'c.'+model_name)
+            self.config_object = ConfigParser(filepath)
         else:
             self.config_object = None
             
@@ -708,7 +709,9 @@ class BifurcationDiagram(object):
 
         self.__dict__.clear()
         self.__dict__.update(state)
-        self.config_object = ConfigParser(os.path.join(self._path_name, 'c.'+self.model_name))
+
+        filepath = 'c.' + self.model_name if self._path_name is None else os.path.join(self._path_name, 'c.' + self.model_name)
+        self.config_object = ConfigParser(filepath)
         for branch_number in self.fp_branches:
             fp = FixedPointContinuation(self.model_name, self.config_object, path_name=self._path_name)
             fp.load('fp_' + str(branch_number) + '.pickle', load_initial_data=load_initial_data)
@@ -733,12 +736,14 @@ class BifurcationDiagram(object):
             filename = self.model_name + '.pickle'
             warnings.warn('No filename provided. Using a default one: ' + filename)
         state = self._get_dict()
-        with open(os.path.join(self._path_name, filename), 'wb') as f:
+        filepath = filename if self._path_name is None else os.path.join(self._path_name, filename)
+        with open(filepath, 'wb') as f:
             pickle.dump(state, f, **kwargs)
 
     def load(self, filename, load_initial_data=True, **kwargs):
         try:
-            with open(os.path.join(self._path_name, filename), 'rb') as f:
+            filepath = filename if self._path_name is None else os.path.join(self._path_name, filename)
+            with open(filepath, 'rb') as f:
                 tmp_dict = pickle.load(f, **kwargs)
         except FileNotFoundError:
             warnings.warn('File not found. Unable to load data.')
