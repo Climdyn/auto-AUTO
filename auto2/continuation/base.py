@@ -245,7 +245,7 @@ class Continuation(ABC):
             return None
 
     @staticmethod
-    def parse_diagnostic(diag):
+    def _parse_diagnostic(diag):
         # Extract Point Number from text
         extracted_vals = list()
 
@@ -332,10 +332,10 @@ class Continuation(ABC):
             diag_data = self.continuation[direction].data[0].diagnostics.__dict__.copy()['data']
 
             for i, d in enumerate(diag_data):
-                stab_vals, pt_num = self.parse_diagnostic(d['Text'])
+                stab_vals, pt_num = self._parse_diagnostic(d['Text'])
                 if i < len(diag_data) - 1:
                     dd = diag_data[i + 1]
-                    stab_vals_next, pt_num_next = self.parse_diagnostic(dd['Text'])
+                    stab_vals_next, pt_num_next = self._parse_diagnostic(dd['Text'])
                     if len(stab_vals) > 0 and pt_num != pt_num_next:
                         ix_map[pt_num] = i
                 else:
