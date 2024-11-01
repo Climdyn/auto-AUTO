@@ -174,7 +174,7 @@ class Continuation(ABC):
             if isinstance(idx, str):
                 if idx[0] == '-':
                     idx = self.find_solution_index(idx)
-                    ix_map = self.solution_index_map(direction='backward')
+                    ix_map = self._solution_index_map(direction='backward')
                     if idx is not None:
                         return self.continuation['backward'].data[0].diagnostics[ix_map[idx]]['Text']
                     else:
@@ -182,7 +182,7 @@ class Continuation(ABC):
                         return None
                 else:
                     idx = self.find_solution_index(idx)
-                    ix_map = self.solution_index_map(direction='forward')
+                    ix_map = self._solution_index_map(direction='forward')
                     if idx is not None:
                         return self.continuation['forward'].data[0].diagnostics[ix_map[idx]]['Text']
                     else:
@@ -191,14 +191,14 @@ class Continuation(ABC):
 
             if idx >= 0:
                 if self.continuation['forward'] is not None:
-                    ix_map = self.solution_index_map(direction='forward')
+                    ix_map = self._solution_index_map(direction='forward')
                     return self.continuation['forward'].data[0].diagnostics[ix_map[idx]]['Text']
                 else:
                     warnings.warn('No forward branch to show the diagnostic for.')
                     return None
             else:
                 if self.continuation['backward'] is not None:
-                    ix_map = self.solution_index_map(direction='backward')
+                    ix_map = self._solution_index_map(direction='backward')
                     return self.continuation['backward'].data[0].diagnostics[ix_map[-idx]]['Text']
                 else:
                     warnings.warn('No backward branch to show the diagnostic for.')
@@ -325,7 +325,7 @@ class Continuation(ABC):
 
         return extracted_vals, pt_num
 
-    def solution_index_map(self, direction='forward'):
+    def _solution_index_map(self, direction='forward'):
         """
             Function creates a map between the `Point number` as found in the solution file, and the `Point number` in the diagnostic d. file.
             It was found that when AUTO cannot converge, it still logs the point and the d. file index then does not correspond with the sol file.
