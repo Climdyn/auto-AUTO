@@ -4,7 +4,6 @@ import warnings
 import logging
 import traceback
 import glob
-from fileinput import filename
 
 logger = logging.getLogger('logger')
 
