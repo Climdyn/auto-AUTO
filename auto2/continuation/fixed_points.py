@@ -4,6 +4,7 @@ import warnings
 import logging
 import traceback
 import glob
+from fileinput import filename
 
 logger = logging.getLogger('logger')
 
@@ -215,7 +216,7 @@ class FixedPointContinuation(Continuation):
             fp_file_list = glob.glob('fp*.pickle')
             fp_branch_numbers = list(map(lambda filename: int(filename.split('_')[1].split('.')[0]), fp_file_list))
             if branch_number in fp_branch_numbers:
-                fp = FixedPointContinuation(self.model_name, self.config_object)
+                fp = FixedPointContinuation(self.model_name, self.config_object, self._path_name)
                 try:
                     fp.load('fp_'+str(branch_number)+'.pickle', load_initial_data=False)
 
@@ -230,7 +231,7 @@ class FixedPointContinuation(Continuation):
                 po_file_list = glob.glob('po*.pickle')
                 po_branch_numbers = list(map(lambda s: int(s.split('_')[1].split('.')[0]), po_file_list))
                 if branch_number in po_branch_numbers:
-                    hp = poc.PeriodicOrbitContinuation(self.model_name, self.config_object)
+                    hp = poc.PeriodicOrbitContinuation(self.model_name, self.config_object, self._path_name)
                     try:
                         hp.load('po_' + str(branch_number) + '.pickle', load_initial_data=False)
 

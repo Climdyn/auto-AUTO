@@ -263,7 +263,7 @@ class PeriodicOrbitContinuation(Continuation):
             fp_file_list = glob.glob('fp*.pickle')
             fp_branch_numbers = list(map(lambda filename: int(filename.split('_')[1].split('.')[0]), fp_file_list))
             if branch_number in fp_branch_numbers:
-                fp = fpc.FixedPointContinuation(self.model_name, self.config_object)
+                fp = fpc.FixedPointContinuation(self.model_name, self.config_object, self._path_name)
                 try:
                     fp.load('fp_'+str(branch_number)+'.pickle', load_initial_data=False)
 
@@ -278,7 +278,7 @@ class PeriodicOrbitContinuation(Continuation):
                 po_file_list = glob.glob('po*.pickle')
                 po_branch_numbers = list(map(lambda filename: int(filename.split('_')[1].split('.')[0]), po_file_list))
                 if branch_number in po_branch_numbers:
-                    hp = PeriodicOrbitContinuation(self.model_name, self.config_object)
+                    hp = PeriodicOrbitContinuation(self.model_name, self.config_object, self._path_name)
                     try:
                         hp.load('po_' + str(branch_number) + '.pickle', load_initial_data=False)
 
