@@ -30,9 +30,9 @@ import auto2.continuation.periodic_orbits as poc
 
 class FixedPointContinuation(Continuation):
 
-    def __init__(self, model_name, config_object):
+    def __init__(self, model_name, config_object, path_name):
 
-        Continuation.__init__(self, model_name, config_object)
+        Continuation.__init__(self, model_name, config_object, path_name)
 
         # plots default behaviours
         self._default_marker = 'x'
@@ -205,6 +205,9 @@ class FixedPointContinuation(Continuation):
                 return None
 
     def _set_from_dict(self, state, load_initial_data=True):
+        # store the pathname to pass to the updated class
+        state['_path_name'] = self._path_name
+
         self.__dict__.clear()
         self.__dict__.update(state)
         if isinstance(self.initial_data, dict) and load_initial_data:

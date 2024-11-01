@@ -24,7 +24,7 @@ try:
             break
     else:
         # sys.path.append(auto_directory + '/python/auto')
-        sys.path.append(auto_directory + '/python')
+        sys.path.append(sys.path.join(auto_directory, 'python'))
 except KeyError:
     logger.warning('Unable to find auto directory environment variable.')
 
@@ -35,14 +35,24 @@ from auto.parseS import AUTOSolution
 
 class BifurcationDiagram(object):
 
-    def __init__(self, model_name=None):
+    def __init__(self, model_name=None, path_name=None):
 
         self.initial_points = None
         self.model_name = model_name
+        if path_name is None:
+            self._path_name = ''
+        else:
+            if os.path.exists(path_name):
+                self._path_name = path_name
+            else:
+                warnings.warn("Path name given does not exist.")
+                self._path_name = ''
+
         if model_name is not None:
-            self.config_object = ConfigParser('c.'+model_name)
+            self.config_object = ConfigParser(os.path.join(self._path_name, 'c.'+model_name))
         else:
             self.config_object = None
+            
         self.fp_branches = dict()
         self.po_branches = dict()
 
@@ -693,15 +703,18 @@ class BifurcationDiagram(object):
         return state
 
     def _set_from_dict(self, state, load_initial_data=True):
+        # store the pathname to pass to the updated class
+        state['_path_name'] = self._path_name
+
         self.__dict__.clear()
         self.__dict__.update(state)
-        self.config_object = ConfigParser('c.'+self.model_name)
+        self.config_object = ConfigParser(os.path.join(self._path_name, 'c.'+self.model_name))
         for branch_number in self.fp_branches:
-            fp = FixedPointContinuation(self.model_name, self.config_object)
+            fp = FixedPointContinuation(self.model_name, self.config_object, path_name=self._path_name)
             fp.load('fp_' + str(branch_number) + '.pickle', load_initial_data=load_initial_data)
             self.fp_branches[branch_number]['continuation'] = fp
         for branch_number in self.po_branches:
-            po = PeriodicOrbitContinuation(self.model_name, self.config_object)
+            po = PeriodicOrbitContinuation(self.model_name, self.config_object, path_name=self._path_name)
             po.load('po_' + str(branch_number) + '.pickle', load_initial_data=load_initial_data)
             self.po_branches[branch_number]['continuation'] = po
 
@@ -720,12 +733,12 @@ class BifurcationDiagram(object):
             filename = self.model_name + '.pickle'
             warnings.warn('No filename provided. Using a default one: ' + filename)
         state = self._get_dict()
-        with open(filename, 'wb') as f:
+        with open(os.path.join(self._path_name, filename), 'wb') as f:
             pickle.dump(state, f, **kwargs)
 
     def load(self, filename, load_initial_data=True, **kwargs):
         try:
-            with open(filename, 'rb') as f:
+            with open(os.path.join(self._path_name, filename), 'rb') as f:
                 tmp_dict = pickle.load(f, **kwargs)
         except FileNotFoundError:
             warnings.warn('File not found. Unable to load data.')
