@@ -225,33 +225,49 @@ class PeriodicOrbitContinuation(Continuation):
     def orbit_stability(self, idx):
         if isinstance(idx, str):
             if idx[0] == '-':
-                idx = self.find_solution_index(idx)
-                if idx is not None:
-                    return self.continuation['backward'].data[0].diagnostics[idx]['Multipliers']
+                if self.continuation['backward'] is not None:
+                    idx = self.find_solution_index(idx)
+                    if idx is not None:
+                        return self.continuation['backward'].data[0].diagnostics[idx]['Multipliers']
+                    else:
+                        warnings.warn('No orbit stability to show.')
+                        return None
                 else:
-                    warnings.warn('No backward branch to show the diagnostic for.')
+                    warnings.warn('No backward branch to show the stability for.')
                     return None
             else:
-                idx = self.find_solution_index(idx)
-                if idx is not None:
-                    return self.continuation['forward'].data[0].diagnostics[idx]['Multipliers']
+                if self.continuation['forward'] is not None:
+                    idx = self.find_solution_index(idx)
+                    if idx is not None:
+                        return self.continuation['forward'].data[0].diagnostics[idx]['Multipliers']
+                    else:
+                        warnings.warn('No orbit stability to show.')
+                        return None
                 else:
-                    warnings.warn('No forward branch to show the diagnostic for.')
+                    warnings.warn('No forward branch to show the stability for.')
                     return None
 
         if idx >= 0:
             if self.continuation['forward'] is not None:
-                ix_map = self._solution_index_map(direction='forward')
-                return self.continuation['forward'].data[0].diagnostics.__dict__['data'][ix_map[idx]]['Multipliers']
+                ix_map = self._solutions_index_map(direction='forward')
+                if idx in ix_map:
+                    return self.continuation['forward'].data[0].diagnostics.__dict__['data'][ix_map[idx]]['Multipliers']
+                else:
+                    warnings.warn('Point index not found. No orbit stability to show.')
+                    return None
             else:
-                warnings.warn('No forward branch to show the diagnostic for.')
+                warnings.warn('No forward branch to show the stability for.')
                 return None
         else:
             if self.continuation['backward'] is not None:
-                ix_map = self._solution_index_map(direction='backward')
-                return self.continuation['backward'].data[0].diagnostics.__dict__['data'][ix_map[-idx]]['Multipliers']
+                ix_map = self._solutions_index_map(direction='backward')
+                if -idx in ix_map:
+                    return self.continuation['backward'].data[0].diagnostics.__dict__['data'][ix_map[-idx]]['Multipliers']
+                else:
+                    warnings.warn('Point index not found. No orbit stability to show.')
+                    return None
             else:
-                warnings.warn('No backward branch to show the diagnostic for.')
+                warnings.warn('No backward branch to show the stability for.')
                 return None
 
     def _set_from_dict(self, state, load_initial_data=True):

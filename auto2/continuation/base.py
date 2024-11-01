@@ -173,33 +173,47 @@ class Continuation(ABC):
         if self.continuation is not None:
             if isinstance(idx, str):
                 if idx[0] == '-':
-                    idx = self.find_solution_index(idx)
-                    ix_map = self._solution_index_map(direction='backward')
-                    if idx is not None:
-                        return self.continuation['backward'].data[0].diagnostics[ix_map[idx]]['Text']
+                    if self.continuation['backward'] is not None:
+                        idx = self.find_solution_index(idx)
+                        if idx is not None:
+                            return self.continuation['backward'].data[0].diagnostics[idx]['Text']
+                        else:
+                            warnings.warn('No point diagnostic to show.')
+                            return None
                     else:
                         warnings.warn('No backward branch to show the diagnostic for.')
                         return None
                 else:
-                    idx = self.find_solution_index(idx)
-                    ix_map = self._solution_index_map(direction='forward')
-                    if idx is not None:
-                        return self.continuation['forward'].data[0].diagnostics[ix_map[idx]]['Text']
+                    if self.continuation['forward'] is not None:
+                        idx = self.find_solution_index(idx)
+                        if idx is not None:
+                            return self.continuation['forward'].data[0].diagnostics[idx]['Text']
+                        else:
+                            warnings.warn('No point diagnostic to show.')
+                            return None
                     else:
                         warnings.warn('No forward branch to show the diagnostic for.')
                         return None
 
             if idx >= 0:
                 if self.continuation['forward'] is not None:
-                    ix_map = self._solution_index_map(direction='forward')
-                    return self.continuation['forward'].data[0].diagnostics[ix_map[idx]]['Text']
+                    ix_map = self._solutions_index_map(direction='forward')
+                    if idx in ix_map:
+                        return self.continuation['forward'].data[0].diagnostics[ix_map[idx]]['Text']
+                    else:
+                        warnings.warn('Point index not found. No point diagnostic to show.')
+                        return None
                 else:
                     warnings.warn('No forward branch to show the diagnostic for.')
                     return None
             else:
                 if self.continuation['backward'] is not None:
-                    ix_map = self._solution_index_map(direction='backward')
-                    return self.continuation['backward'].data[0].diagnostics[ix_map[-idx]]['Text']
+                    ix_map = self._solutions_index_map(direction='backward')
+                    if -idx in ix_map:
+                        return self.continuation['backward'].data[0].diagnostics[ix_map[-idx]]['Text']
+                    else:
+                        warnings.warn('Point index not found. No point diagnostic to show.')
+                        return None
                 else:
                     warnings.warn('No backward branch to show the diagnostic for.')
                     return None
@@ -261,7 +275,7 @@ class Continuation(ABC):
         for line in rows:
             if "Multiplier" in line:
                 if len(line) == 9:
-                    # Assumes a split array of [BR, PT, "Multilier", multiplier num, FM_re, FM_im, "Abs.", "Val", ab_val]
+                    # Assumes a split array of [BR, PT, "Multiplier", multiplier num, FM_re, FM_im, "Abs.", "Val", ab_val]
                     if pt_num == -1:
                         pt_num = int(line[1])
                     else:
@@ -290,7 +304,7 @@ class Continuation(ABC):
 
             elif "Eigenvalue" in line:
                 if len(line) == 6:
-                    # Assumes a split array of [BR, PT, "Multilier", multiplier num":", lambda_re, lambda_im]
+                    # Assumes a split array of [BR, PT, "Multiplier", multiplier num":", lambda_re, lambda_im]
                     if pt_num == -1:
                         pt_num = int(line[1])
                     else:
@@ -319,13 +333,13 @@ class Continuation(ABC):
             else:
                 continue
 
-        # if pt_num has not been updataed, attempt to update it using the first row of data:
+        # if pt_num has not been updated, attempt to update it using the first row of data:
         if rows[0][1] == "PT":
             pt_num = int(rows[1][1])
 
         return extracted_vals, pt_num
 
-    def _solution_index_map(self, direction='forward'):
+    def _solutions_index_map(self, direction='forward'):
         """
             Function creates a map between the `Point number` as found in the solution file, and the `Point number` in the diagnostic d. file.
             It was found that when AUTO cannot converge, it still logs the point and the d. file index then does not correspond with the sol file.
