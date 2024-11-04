@@ -32,7 +32,7 @@ from auto.AUTOExceptions import AUTORuntimeError
 
 class Continuation(ABC):
 
-    def __init__(self, model_name, config_object, path_name=''):
+    def __init__(self, model_name, config_object, path_name=None):
         self.config_object = config_object
         self.model_name = model_name
         self.continuation = dict()

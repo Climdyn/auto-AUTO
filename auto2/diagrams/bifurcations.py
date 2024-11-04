@@ -112,7 +112,7 @@ class BifurcationDiagram(object):
             if 'ICP' not in used_continuation_kwargs:
                 used_continuation_kwargs['ICP'] = [self.config_object.continuation_parameters[0]]
 
-            fp = FixedPointContinuation(model_name=self.model_name, config_object=self.config_object)
+            fp = FixedPointContinuation(model_name=self.model_name, config_object=self.config_object, path_name=self._path_name)
             fp.make_continuation(initial_data, **used_continuation_kwargs)
 
             self._check_fp_continuation_against_itself(ncomp, fp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol)
@@ -181,7 +181,7 @@ class BifurcationDiagram(object):
                                 used_continuation_kwargs['ISW'] = -1
                                 used_continuation_kwargs['PAR'] = {}
                                 used_continuation_kwargs['IBR'] = br_num
-                                fp = FixedPointContinuation(model_name=self.model_name, config_object=self.config_object)
+                                fp = FixedPointContinuation(model_name=self.model_name, config_object=self.config_object, path_name=self._path_name)
                                 fp.make_continuation(bp, **used_continuation_kwargs)
 
                                 logger.debug('Continuation done. Checking now against previous continuation...')
@@ -275,7 +275,7 @@ class BifurcationDiagram(object):
                             if 11 not in used_continuation_kwargs['ICP']:
                                 used_continuation_kwargs['ICP'].append(11)
 
-                    hp = PeriodicOrbitContinuation(model_name=self.model_name, config_object=self.config_object)
+                    hp = PeriodicOrbitContinuation(model_name=self.model_name, config_object=self.config_object, path_name=self._path_name)
                     hp.make_continuation(hb, max_bp=max_number_bp_detected, **used_continuation_kwargs)
 
                     logger.debug('Continuation done. Checking now against previous continuation...')
@@ -429,7 +429,7 @@ class BifurcationDiagram(object):
                                             _ = used_continuation_kwargs.pop('PAR')
 
                                         used_continuation_kwargs['IBR'] = br_num
-                                        hp = PeriodicOrbitContinuation(model_name=self.model_name, config_object=self.config_object)
+                                        hp = PeriodicOrbitContinuation(model_name=self.model_name, config_object=self.config_object, path_name=self._path_name)
                                         hp.make_continuation(bp, only_forward=not backward_bp_continuation, max_bp=max_number_bp_detected, **used_continuation_kwargs)
                                         logger.debug('Continuation done. Checking now against previous continuation...')
                                         self._check_po_continuation_against_itself(hp, used_continuation_kwargs, extra_comparison_parameters,
@@ -513,7 +513,7 @@ class BifurcationDiagram(object):
                                         _ = used_continuation_kwargs.pop('PAR')
 
                                     used_continuation_kwargs['IBR'] = br_num
-                                    hp = PeriodicOrbitContinuation(model_name=self.model_name, config_object=self.config_object)
+                                    hp = PeriodicOrbitContinuation(model_name=self.model_name, config_object=self.config_object, path_name=self._path_name)
                                     hp.make_continuation(pd, max_bp=max_number_bp_detected, **used_continuation_kwargs)
                                     logger.debug('Continuation done. Checking now against previous continuation...')
                                     self._check_po_continuation_against_itself(hp, used_continuation_kwargs, extra_comparison_parameters,
@@ -653,7 +653,7 @@ class BifurcationDiagram(object):
             used_continuation_kwargs = deepcopy(continuation_kwargs)
             used_continuation_kwargs['IBR'] = br_num
             used_continuation_kwargs['IPS'] = 2
-            hp = PeriodicOrbitContinuation(model_name=self.model_name, config_object=self.config_object)
+            hp = PeriodicOrbitContinuation(model_name=self.model_name, config_object=self.config_object, path_name=self._path_name)
             hp.make_continuation(initial_data, only_forward=only_forward, max_bp=max_number_bp_detected, **used_continuation_kwargs)
             logger.debug('Continuation done. Checking now against previous continuation...')
             self._check_po_continuation_against_itself(hp, used_continuation_kwargs, extra_comparison_parameters,
@@ -717,7 +717,7 @@ class BifurcationDiagram(object):
             fp.load('fp_' + str(branch_number) + '.pickle', load_initial_data=load_initial_data)
             self.fp_branches[branch_number]['continuation'] = fp
         for branch_number in self.po_branches:
-            po = PeriodicOrbitContinuation(self.model_name, self.config_object, path_name=self._path_name)
+            po = PeriodicOrbitContinuation(model_name=self.model_name, config_object=self.config_object, path_name=self._path_name)
             po.load('po_' + str(branch_number) + '.pickle', load_initial_data=load_initial_data)
             self.po_branches[branch_number]['continuation'] = po
 
