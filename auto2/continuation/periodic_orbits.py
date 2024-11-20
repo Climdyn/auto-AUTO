@@ -226,9 +226,11 @@ class PeriodicOrbitContinuation(Continuation):
         if isinstance(idx, str):
             if idx[0] == '-':
                 if self.continuation['backward'] is not None:
-                    idx = self.find_solution_index(idx)
+                    s = self.get_solution_by_label(idx)
+                    idx = s['PT']
+                    ix_map = self._solutions_index_map(direction='backward')
                     if idx is not None:
-                        return self.continuation['backward'].data[0].diagnostics[idx]['Multipliers']
+                        return self.continuation['backward'].data[0].diagnostics[ix_map[idx]]['Multipliers']
                     else:
                         warnings.warn('No orbit stability to show.')
                         return None
@@ -237,9 +239,11 @@ class PeriodicOrbitContinuation(Continuation):
                     return None
             else:
                 if self.continuation['forward'] is not None:
-                    idx = self.find_solution_index(idx)
+                    s = self.get_solution_by_label(idx)
+                    idx = s['PT']
+                    ix_map = self._solutions_index_map(direction='forward')
                     if idx is not None:
-                        return self.continuation['forward'].data[0].diagnostics[idx]['Multipliers']
+                        return self.continuation['forward'].data[0].diagnostics[ix_map[idx]]['Multipliers']
                     else:
                         warnings.warn('No orbit stability to show.')
                         return None
@@ -251,7 +255,7 @@ class PeriodicOrbitContinuation(Continuation):
             if self.continuation['forward'] is not None:
                 ix_map = self._solutions_index_map(direction='forward')
                 if idx in ix_map:
-                    return self.continuation['forward'].data[0].diagnostics.__dict__['data'][ix_map[idx]]['Multipliers']
+                    return self.continuation['forward'].data[0].diagnostics[ix_map[idx]]['Multipliers']
                 else:
                     warnings.warn('Point index not found. No orbit stability to show.')
                     return None
@@ -262,7 +266,7 @@ class PeriodicOrbitContinuation(Continuation):
             if self.continuation['backward'] is not None:
                 ix_map = self._solutions_index_map(direction='backward')
                 if -idx in ix_map:
-                    return self.continuation['backward'].data[0].diagnostics.__dict__['data'][ix_map[-idx]]['Multipliers']
+                    return self.continuation['backward'].data[0].diagnostics[ix_map[-idx]]['Multipliers']
                 else:
                     warnings.warn('Point index not found. No orbit stability to show.')
                     return None
