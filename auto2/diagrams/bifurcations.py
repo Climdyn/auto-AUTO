@@ -383,7 +383,7 @@ class BifurcationDiagram(object):
                                 else:
                                     logger.debug('Now checking the stability of the point.')
                                     try:
-                                        bp_stability = np.array(parent_continuation.orbit_stability(direction * (bp['PT'] - 1)))
+                                        bp_stability = np.array(parent_continuation.orbit_stability(direction * bp['PT']))
                                         # max_accept = 1. / np.nanmin(np.abs(np.where(bp_stability == 0, np.nan, bp_stability)))
                                         max_accept = np.finfo(np.float64).max * 1.e-10
                                         looks_dubious = np.max(bp_stability) > max_accept
