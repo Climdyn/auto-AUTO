@@ -411,13 +411,11 @@ class Continuation(ABC):
         if d is not None:
             rd['forward'] = list()
             for idx in d['forward']:
-                s = self.continuation['forward'].getIndex(idx)
-                idx_pt = s['PT']
+                idx_pt = self.continuation['forward'].getIndex(idx)['PT']
                 rd['forward'].append(abs(idx_pt))
             rd['backward'] = list()
             for idx in d['backward']:
-                s = self.continuation['backward'].getIndex(idx)
-                idx_pt = s['PT']
+                idx_pt = self.continuation['backward'].getIndex(idx)['PT']
                 rd['backward'].append(abs(idx_pt))
             return rd
         else:
