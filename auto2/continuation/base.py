@@ -174,7 +174,7 @@ class Continuation(ABC):
             if isinstance(idx, str):
                 if idx[0] == '-':
                     if self.continuation['backward'] is not None:
-                        idx = self.find_solution_index(idx)
+                        idx = self._find_solution_python_auto_index(idx)
                         if idx is not None:
                             return self.continuation['backward'].data[0].diagnostics[idx]['Text']
                         else:
@@ -185,7 +185,7 @@ class Continuation(ABC):
                         return None
                 else:
                     if self.continuation['forward'] is not None:
-                        idx = self.find_solution_index(idx)
+                        idx = self._find_solution_python_auto_index(idx)
                         if idx is not None:
                             return self.continuation['forward'].data[0].diagnostics[idx]['Text']
                         else:
@@ -221,6 +221,10 @@ class Continuation(ABC):
             return None
 
     def find_solution_index(self, label):
+        s = self.get_solution_by_label(label)
+        return s['PT']
+
+    def _find_solution_python_auto_index(self, label):
         if self.continuation:
             if label[0] == "-":
                 if self.solutions_label['backward'] is not None:
@@ -238,7 +242,7 @@ class Continuation(ABC):
                     else:
                         warnings.warn('No solution found.')
                         return None
-                    return self.solutions_index['backward'][idx]
+                    return self._solutions_python_auto_index['backward'][idx]
                 else:
                     return None
             else:
@@ -256,7 +260,7 @@ class Continuation(ABC):
                     else:
                         warnings.warn('No solution found.')
                         return None
-                    return self.solutions_index['forward'][idx]
+                    return self._solutions_python_auto_index['forward'][idx]
                 else:
                     return None
         else:
@@ -402,6 +406,24 @@ class Continuation(ABC):
 
     @property
     def solutions_index(self):
+        d = self.solutions_list_by_direction
+        rd = dict()
+        if d is not None:
+            rd['forward'] = list()
+            for sol in d['forward']:
+                idx_pt = sol['PT']
+                rd['forward'].append(abs(idx_pt))
+            rd['backward'] = list()
+            for sol in d['backward']:
+                idx_pt = sol['PT']
+                rd['backward'].append(abs(idx_pt))
+            return rd
+        else:
+            return None
+
+
+    @property
+    def _solutions_python_auto_index(self):
         if self.continuation:
             d = dict()
             if self.continuation['forward'] is not None:
@@ -420,7 +442,7 @@ class Continuation(ABC):
 
     @property
     def solutions_label(self):
-        indices = self.solutions_index
+        indices = self._solutions_python_auto_index
         if indices is not None:
             d = dict()
             if indices['forward']:
@@ -503,7 +525,7 @@ class Continuation(ABC):
 
     @property
     def solutions_list_by_direction(self):
-        indices = self.solutions_index
+        indices = self._solutions_python_auto_index
         labels = self.solutions_label
         sd = dict()
         if indices is not None:
@@ -554,6 +576,26 @@ class Continuation(ABC):
                 return self.continuation['backward'].getLabel(label)
             elif label[0] != '-' and self.continuation['forward'] is not None:
                 return self.continuation['forward'].getLabel(label)
+            else:
+                return None
+        else:
+            return None
+
+    def get_solution_by_index(self, idx):
+        if self.continuation:
+            sd = self.solutions_list_by_direction
+            if idx >= 0:
+                for s in sd['forward']:
+                    if s['PT'] == idx:
+                        return s
+                else:
+                    warnings.warn(f'Solution for index {idx} not found.')
+            elif idx < 0:
+                for s in sd['backward']:
+                    if s['PT'] == abs(idx):
+                        return s
+                else:
+                    warnings.warn(f'Solution for index {idx} not found.')
             else:
                 return None
         else:
