@@ -174,9 +174,11 @@ class Continuation(ABC):
             if isinstance(idx, str):
                 if idx[0] == '-':
                     if self.continuation['backward'] is not None:
-                        idx = self._find_solution_python_auto_index(idx)
+                        s = self.get_solution_by_label(idx)
+                        idx = s['PT']
+                        ix_map = self._solutions_index_map(direction='backward')
                         if idx is not None:
-                            return self.continuation['backward'].data[0].diagnostics[idx]['Text']
+                            return self.continuation['backward'].data[0].diagnostics[ix_map[idx]]['Text']
                         else:
                             warnings.warn('No point diagnostic to show.')
                             return None
@@ -185,9 +187,11 @@ class Continuation(ABC):
                         return None
                 else:
                     if self.continuation['forward'] is not None:
-                        idx = self._find_solution_python_auto_index(idx)
+                        s = self.get_solution_by_label(idx)
+                        idx = s['PT']
+                        ix_map = self._solutions_index_map(direction='forward')
                         if idx is not None:
-                            return self.continuation['forward'].data[0].diagnostics[idx]['Text']
+                            return self.continuation['forward'].data[0].diagnostics[ix_map[idx]]['Text']
                         else:
                             warnings.warn('No point diagnostic to show.')
                             return None
