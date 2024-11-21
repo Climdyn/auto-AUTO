@@ -412,11 +412,13 @@ class Continuation(ABC):
             rd['forward'] = list()
             for idx in d['forward']:
                 s = self.continuation['forward'].getIndex(idx)
-                rd['forward'].append(s['PT'])
+                idx_pt = s['PT']
+                rd['forward'].append(abs(idx_pt))
             rd['backward'] = list()
             for idx in d['backward']:
                 s = self.continuation['backward'].getIndex(idx)
-                rd['backward'].append(s['PT'])
+                idx_pt = s['PT']
+                rd['backward'].append(abs(idx_pt))
             return rd
         else:
             return None
