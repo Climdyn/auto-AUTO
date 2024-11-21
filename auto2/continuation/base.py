@@ -406,16 +406,16 @@ class Continuation(ABC):
 
     @property
     def solutions_index(self):
-        d = self._solutions_python_auto_index
+        d = self.solutions_list_by_direction
         rd = dict()
         if d is not None:
             rd['forward'] = list()
-            for idx in d['forward']:
-                idx_pt = self.continuation['forward'].getIndex(idx)['PT']
+            for sol in d['forward']:
+                idx_pt = sol['PT']
                 rd['forward'].append(abs(idx_pt))
             rd['backward'] = list()
-            for idx in d['backward']:
-                idx_pt = self.continuation['backward'].getIndex(idx)['PT']
+            for sol in d['backward']:
+                idx_pt = sol['PT']
                 rd['backward'].append(abs(idx_pt))
             return rd
         else:
