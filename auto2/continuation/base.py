@@ -748,7 +748,7 @@ class Continuation(ABC):
         solutions_types: list(str), optional
             The types of solution to consider in the search.
             Default to `['HB', 'BP', 'UZ', 'PD', 'TR', 'LP']`.
-        forward: bool or None
+        forward: bool or None, optional
             If `True`, search only in the forward continuation.
             If `False`, search only in the backward continuation.
             If `None`, search in both backward and forward direction.
@@ -847,6 +847,29 @@ class Continuation(ABC):
             return None
 
     def get_filtered_solutions_list(self, labels=None, indices=None, parameters=None, values=None, forward=None, tol=0.01):
+        """Filter the full solutions list of the branch with different selection rules.
+
+        Parameters
+        ----------
+        labels: str or list(str), optional
+            dd
+        indices: list(int), optional
+            dd
+        parameters: str or list(str) or ~numpy.ndarray(str), optional
+            dd
+        values: float or list(float) or ~numpy.ndarray(float), optional
+            dd
+        forward: bool or None, optional
+            If `True`, search only in the forward continuation.
+            If `False`, search only in the backward continuation.
+            If `None`, search in both backward and forward direction.
+            Default to `None`.
+        tol: float or list(float) or ~numpy.ndarray(float)
+            dd
+
+        Returns
+        -------
+        """
 
         if parameters is not None:
             if isinstance(parameters, (list, tuple)):
@@ -902,7 +925,7 @@ class Continuation(ABC):
                 indices = [indices]
             new_solutions_list = list()
             for sol in solutions_list:
-                if sol['PT'] - 1 in indices:
+                if sol['PT'] in indices:
                     new_solutions_list.append(sol)
             solutions_list = new_solutions_list
         elif parameters is not None:
