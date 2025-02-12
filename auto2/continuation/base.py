@@ -1,3 +1,15 @@
+
+"""
+
+    Continuation base class definition
+    ==================================
+
+    This module implements the definition used by any subsequent continuation
+    in auto-AUTO.
+
+
+"""
+
 import re
 from abc import ABC, abstractmethod
 import os
@@ -31,6 +43,31 @@ from auto.AUTOExceptions import AUTORuntimeError
 
 
 class Continuation(ABC):
+    """Base class for any continuation in auto-AUTO.
+
+    Parameters
+    ----------
+    model_name: str
+        The name of the model to load. Used to load the .f90 file of the provided model.
+    config_object: ~auto2.parsers.config.ConfigParser
+        A loaded ConfigParser object.
+
+    Attributes
+    ----------
+    model_name: str
+        The name of the loaded model. Used to load the .f90 file of the provided model.
+    config_object: ~auto2.parsers.config.ConfigParser
+        A loaded ConfigParser object.
+    continuation: dict
+        Dictionary holding the forward and backward continuation data.
+    branch_number: int
+        The branch number attributed to the continuation(s).
+    initial_data: ~numpy.ndarray or AUTO solution object
+        The initial data used to start the continuation(s).
+    auto_filename_suffix: str
+        Suffix for the |AUTO| files used to save the continuation(s) data and parameters on disk.
+
+    """
 
     def __init__(self, model_name, config_object):
         self.config_object = config_object
@@ -51,14 +88,60 @@ class Continuation(ABC):
 
     @abstractmethod
     def make_continuation(self, initial_data, auto_suffix="", only_forward=False, **continuation_kwargs):
+        """Make both forward and backward (if possible) continuation.
+        To be implemented in subclasses.
+
+        Parameters
+        ----------
+        initial_data: ~numpy.ndarray
+            Initial data used to start the continuation(s).
+        auto_suffix: str
+            Suffix to use for the |AUTO| and Pickle files used to save the continuation(s)
+            data, parameters and metadata on disk.
+        only_forward: bool
+            If `True`, compute only the forward continuation (positive `DS` parameter).
+            If `False`, compute in both backward and forward direction.
+            Default to `False`.
+        continuation_kwargs: dict
+            Keyword arguments to be passed to the |AUTO| continuation.
+
+        """
         pass
 
     @abstractmethod
     def make_forward_continuation(self, initial_data, auto_suffix="", **continuation_kwargs):
+        """Make the forward continuation.
+        To be implemented in subclasses.
+
+        Parameters
+        ----------
+        initial_data: ~numpy.ndarray
+            Initial data used to start the continuation(s).
+        auto_suffix: str
+            Suffix to use for the |AUTO| and Pickle files used to save the continuation
+            data, parameters and metadata on disk.
+        continuation_kwargs: dict
+            Keyword arguments to be passed to the |AUTO| continuation.
+
+        """
         pass
 
     @abstractmethod
     def make_backward_continuation(self, initial_data, auto_suffix="", **continuation_kwargs):
+        """Make the backward continuation.
+        To be implemented in subclasses.
+
+        Parameters
+        ----------
+        initial_data: ~numpy.ndarray
+            Initial data used to start the continuation(s).
+        auto_suffix: str
+            Suffix to use for the |AUTO| and Pickle files used to save the continuation
+            data, parameters and metadata on disk.
+        continuation_kwargs: dict
+            Keyword arguments to be passed to the |AUTO| continuation.
+
+        """
         pass
 
     def _get_dict(self):
@@ -76,6 +159,14 @@ class Continuation(ABC):
         pass
 
     def auto_save(self, auto_suffix):
+        """Save the |AUTO| files for both the forward and backward continuations if they exist.
+
+        Parameters
+        ----------
+        auto_suffix: str
+            Suffix to use for the |AUTO| files used to save the continuation data on disk.
+
+        """
         if self.continuation:
             for direction in ['forward', 'backward']:
                 if self.continuation[direction] is not None:
@@ -83,6 +174,14 @@ class Continuation(ABC):
         self.auto_filename_suffix = auto_suffix
 
     def auto_load(self, auto_suffix):
+        """Load the |AUTO| files for both the forward and backward continuations if they exist.
+
+        Parameters
+        ----------
+        auto_suffix: str
+            Suffix to use for the |AUTO| files used to load the continuation data from disk.
+
+        """
         self.continuation = dict()
         for direction in ['forward', 'backward']:
             try:
@@ -97,6 +196,23 @@ class Continuation(ABC):
             self.auto_filename_suffix = auto_suffix
 
     def save(self, filename=None, auto_filename_suffix=None, **kwargs):
+        """Save the |AUTO| files and the branch parameters and metadata for both
+        the forward and backward continuations if they exist.
+        The branch parameters and metadata will be stored in a Pickle file.
+
+        Parameters
+        ----------
+        filename: str or None, optional
+             The filename used to store the continuation(s) parameters and metadata
+             to disk in Pickle format.
+             If `None`, will assign a default generic name.
+             Default is `None`.
+        auto_filename_suffix: str or None, optional
+            Suffix to use for the |AUTO| files used to save the continuation data from disk.
+             If `None`, will assign a default generic suffix.
+             Default is `None`.
+
+        """
         if auto_filename_suffix is None:
             if self.isfixedpoint:
                 self.auto_filename_suffix = "fp_"+str(self.branch_number)
@@ -117,6 +233,20 @@ class Continuation(ABC):
             pickle.dump(state, f, **kwargs)
 
     def load(self, filename, load_initial_data=True, **kwargs):
+        """Load the |AUTO| files and the branch parameters and metadata for both
+        the forward and backward continuations if they exist.
+
+        Parameters
+        ----------
+        filename: str
+             The filename used to store the continuation(s) parameters and metadata
+             to disk in Pickle format.
+        load_initial_data: bool
+            Try or not to load the initial data field.
+            Default to `True`.
+
+        """
+
         try:
             with open(filename, 'rb') as f:
                 tmp_dict = pickle.load(f, **kwargs)
@@ -128,6 +258,7 @@ class Continuation(ABC):
 
     @property
     def isfixedpoint(self):
+        """bool: True if the current object is a fixed point continuation."""
         if self.config_object.parameters_dict[11] not in self.available_variables and 11 not in self.available_variables:
             return True
         else:
@@ -135,10 +266,13 @@ class Continuation(ABC):
 
     @property
     def isperiodicorbit(self):
+        """bool: True if the current object is a periodic orbit continuation."""
         return not self.isfixedpoint
 
     @property
     def available_variables(self):
+        """list(str): Return the available variables in the continuation data."""
+        # TODO: check if output should not be converted to a list. keys might be an iterator.
         if self.continuation:
             if self.continuation['forward'] is not None:
                 return self.continuation['forward'].data[0].keys()
@@ -150,6 +284,7 @@ class Continuation(ABC):
             return None
 
     def diagnostics(self):
+        """str: Return the AUTO diagnostics of the continuations as a string."""
         if self.continuation:
             s = ''
             if self.continuation['forward'] is not None:
@@ -165,11 +300,36 @@ class Continuation(ABC):
             return None
 
     def print_diagnostics(self):
+        """Method which prints the AUTO diagnostics of the continuations."""
         if self.continuation:
             s = self.diagnostics()
             print(s)
 
     def point_diagnostic(self, idx):
+        """Method which returns the diagnostic of given point of the continuation.
+
+        Parameters
+        ----------
+        idx: str or int
+            |AUTO| index of the point to give the diagnostic from.
+            If `idx`:
+
+            * is a string, it should identify the label of the point, assuming the
+              point has a label. Backward continuation label must be preceded by
+              a `'-'` character. E.g. `'HB2'` would identify the second Hopf bifurcation
+              point of the forward continuation, while `'-UZ3'` identifies the third
+              user-defined label of the backward branch.
+            * is an integer, it corresponds to the index of the point. Positive
+              integers identify points on the forward continuation, while negative integers
+              identify points on the backward continuation. The zero index identifies the
+              initial point of the continuations.
+
+        Returns
+        -------
+        point_diagnostic
+            The point diagnostic.
+            TODO: Find the exact structure that is returned.
+        """
         if self.continuation is not None:
             if isinstance(idx, str):
                 if idx[0] == '-':
@@ -225,6 +385,26 @@ class Continuation(ABC):
             return None
 
     def find_solution_index(self, label):
+        """Find the index of a given solution label.
+
+        Parameters
+        ----------
+        label: str
+            A string with the label of the point for which to return the solution object.
+            Backward continuation label must be preceded by a `'-'` character. E.g. `'HB2'`
+            identifies the second Hopf bifurcation point of the forward continuation,
+            while `'-UZ3'` identifies the third user-defined label of the backward branch.
+
+        Returns
+        -------
+        int
+            The AUTO index of the provided label.
+            Positive integers identify points on the forward
+            continuation, while negative integers identify points on the backward
+            continuation.
+            The zero index identifies the initial point of the continuations.
+
+        """
         s = self.get_solution_by_label(label)
         return s['PT']
 
@@ -348,9 +528,8 @@ class Continuation(ABC):
         return extracted_vals, pt_num
 
     def _solutions_index_map(self, direction='forward'):
-        """
-            Function creates a map between the `Point number` as found in the solution file, and the `Point number` in the diagnostic d. file.
-            It was found that when AUTO cannot converge, it still logs the point and the d. file index then does not correspond with the sol file.
+        """Function creates a map between the `Point number` as found in the solution file, and the `Point number` in the diagnostic d. file.
+        It was found that when AUTO cannot converge, it still logs the point and the d. file index then does not correspond with the sol file.
         """
         ix_map = dict()
 
@@ -372,6 +551,7 @@ class Continuation(ABC):
 
     @property
     def stability(self):
+        """dict(list): The stability information of both forward and backward continuations."""
         if self.continuation:
             s = dict()
             for direction in ['forward', 'backward']:
@@ -385,6 +565,7 @@ class Continuation(ABC):
 
     @property
     def number_of_points(self):
+        """dict(int): The number of points of both forward and backward continuations."""
         if self.continuation:
             n = dict()
             for direction in ['forward', 'backward']:
@@ -398,6 +579,7 @@ class Continuation(ABC):
 
     @property
     def continuation_parameters(self):
+        """dict(list(str)): The continuation parameters of both forward and backward continuations."""
         if self.continuation:
             if self.continuation['forward']:
                 return self.continuation['forward'].c['ICP']
@@ -410,6 +592,7 @@ class Continuation(ABC):
 
     @property
     def solutions_index(self):
+        """dict(list(int)): The indices of all the solutions of both forward and backward continuations."""
         d = self.solutions_list_by_direction
         rd = dict()
         if d is not None:
@@ -424,7 +607,6 @@ class Continuation(ABC):
             return rd
         else:
             return None
-
 
     @property
     def _solutions_python_auto_index(self):
@@ -446,6 +628,7 @@ class Continuation(ABC):
 
     @property
     def solutions_label(self):
+        """dict(list(str)): The labels of all the solutions of both forward and backward continuations."""
         indices = self._solutions_python_auto_index
         if indices is not None:
             d = dict()
@@ -471,6 +654,7 @@ class Continuation(ABC):
 
     @property
     def number_of_solutions(self):
+        """dict(int): The number of solutions of both forward and backward continuations."""
         sd = dict()
         sols = self.solutions_list_by_direction
         if self.continuation:
@@ -482,6 +666,7 @@ class Continuation(ABC):
 
     @property
     def full_solutions_list_by_label(self):
+        """list(AUTO solution object): The full list of solutions sorted by labels of both forward and backward continuations."""
         sd = self.solutions_list_by_direction_and_by_label
         if sd['backward']:
             sl = sd['backward']
@@ -493,6 +678,8 @@ class Continuation(ABC):
 
     @property
     def full_solutions_list(self):
+        """list(AUTO solution object): The full list of solutions of the branch ordered from the last solution of the backward
+         continuation to the last solution of the forward continuation."""
         sd = self.solutions_list_by_direction
         if sd['backward']:
             if self.solutions_label['backward'][0] == 'EP':
@@ -507,6 +694,8 @@ class Continuation(ABC):
 
     @property
     def solutions_list_by_direction_and_by_label(self):
+        """dict(list(AUTO solution object)): The full list of solutions sorted by labels and direction for both forward
+        and backward continuations."""
         sd = dict()
         if self.solutions_label is not None:
             sd['forward'] = list()
@@ -529,6 +718,8 @@ class Continuation(ABC):
 
     @property
     def solutions_list_by_direction(self):
+        """dict(list(AUTO solution object)): The full list of solutions sorted by direction for both
+        forward and backward continuations."""
         indices = self._solutions_python_auto_index
         labels = self.solutions_label
         sd = dict()
@@ -548,6 +739,26 @@ class Continuation(ABC):
         return sd
 
     def solutions_parameters(self, parameters, solutions_types=('HB', 'BP', 'UZ', 'PD', 'TR', 'LP'), forward=None):
+        """Return the parameters value for the solutions of the backward and forward continuations.
+
+        Parameters
+        ----------
+        parameters: list(str)
+            The parameters to be returned.
+        solutions_types: list(str), optional
+            The types of solution to consider in the search.
+            Default to `['HB', 'BP', 'UZ', 'PD', 'TR', 'LP']`.
+        forward: bool or None
+            If `True`, search only in the forward continuation.
+            If `False`, search only in the backward continuation.
+            If `None`, search in both backward and forward direction.
+            Default to `None`.
+
+        Returns
+        -------
+        ~numpy.ndarray
+            The values of the requested solutions parameters.
+        """
         if not isinstance(parameters, (tuple, list)):
             parameters = [parameters]
         if isinstance(solutions_types, (tuple, list)):
@@ -574,6 +785,21 @@ class Continuation(ABC):
         return np.squeeze(np.array(list(params.values()))).reshape((len(parameters), -1))
 
     def get_solution_by_label(self, label):
+        """Get the |AUTO| solution object corresponding to a given label.
+
+        Parameters
+        ----------
+        label: str
+            A string with the label of the point for which to return the solution object.
+            Backward continuation label must be preceded by a `'-'` character. E.g. `'HB2'`
+            identifies the second Hopf bifurcation point of the forward continuation,
+            while `'-UZ3'` identifies the third user-defined label of the backward branch.
+
+        Returns
+        -------
+        AUTO solution object
+            The sought AUTO solution object.
+        """
         if self.continuation:
             if label[0] == '-' and self.continuation['backward'] is not None:
                 label = label[1:]
@@ -586,6 +812,21 @@ class Continuation(ABC):
             return None
 
     def get_solution_by_index(self, idx):
+        """Get the |AUTO| solution object corresponding to a index.
+
+        Parameters
+        ----------
+        idx: int
+            The index of the point. Positive integers identify points on the forward
+            continuation, while negative integers identify points on the backward
+            continuation.
+            The zero index identifies the initial point of the continuations.
+
+        Returns
+        -------
+        AUTO solution object
+            The sought AUTO solution object.
+        """
         if self.continuation:
             sd = self.solutions_list_by_direction
             if idx >= 0:
