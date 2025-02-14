@@ -17,6 +17,7 @@ import sys
 import warnings
 import logging
 import pickle
+from contextlib import contextmanager
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -31,7 +32,7 @@ try:
             break
     else:
         # sys.path.append(auto_directory + '/python/auto')
-        sys.path.append(auto_directory + '/python')
+        sys.path.append(sys.path.join(auto_directory, 'python'))
 except KeyError:
     logger.warning('Unable to find auto directory environment variable.')
 
@@ -69,13 +70,22 @@ class Continuation(ABC):
 
     """
 
-    def __init__(self, model_name, config_object):
+    def __init__(self, model_name, config_object, path_name=None):
         self.config_object = config_object
         self.model_name = model_name
         self.continuation = dict()
         self.branch_number = None
         self.initial_data = None
         self.auto_filename_suffix = ""
+
+        if path_name is None:
+            self._path_name = None
+        else:
+            if os.path.exists(path_name):
+                self._path_name = path_name
+            else:
+                warnings.warn("Path name given does not exist.")
+                self._path_name = None
 
         # plots default behaviours
         self._default_marker = None
@@ -158,6 +168,21 @@ class Continuation(ABC):
     def _set_from_dict(self, state, load_initial_data=True):
         pass
 
+    @contextmanager
+    def temporary_chdir(self, new_dir):
+        """
+            As AUTOCommands does not provide functionality to pass a filepath, this is a workaround to switch paths for loading/saving.
+        """
+        # Store the current directory
+        original_dir = os.getcwd()
+        if self._path_name is not None:
+            os.chdir(new_dir)
+        try:
+            yield
+        finally:
+            # Restore the original directory
+            os.chdir(original_dir)
+    
     def auto_save(self, auto_suffix):
         """Save the |AUTO| files for both the forward and backward continuations if they exist.
 
@@ -170,7 +195,9 @@ class Continuation(ABC):
         if self.continuation:
             for direction in ['forward', 'backward']:
                 if self.continuation[direction] is not None:
-                    ac.save(self.continuation[direction], auto_suffix + '_' + direction)
+                    # TODO: I would rather not manually change directory like this, but I can find no option in AUTOcommands to pass a filepath
+                    with self.temporary_chdir(self._path_name):
+                        ac.save(self.continuation[direction], auto_suffix + '_' + direction)
         self.auto_filename_suffix = auto_suffix
 
     def auto_load(self, auto_suffix):
@@ -185,7 +212,10 @@ class Continuation(ABC):
         self.continuation = dict()
         for direction in ['forward', 'backward']:
             try:
-                r = ac.loadbd(auto_suffix + '_' + direction)
+                # Changing the directory
+                # TODO: I would rather not manually change directory like this, but I can find no option in AUTOcommands to pass a filepath
+                with self.temporary_chdir(self._path_name):
+                    r = ac.loadbd(auto_suffix + '_' + direction)
                 self.continuation[direction] = r
             except (FileNotFoundError, OSError, AUTORuntimeError):
                 self.continuation[direction] = None
@@ -229,7 +259,9 @@ class Continuation(ABC):
                 filename = "po_"+str(self.branch_number)+'.pickle'
             warnings.warn('No pickle filename prefix provided. Using a default one: ' + filename)
         state = self._get_dict()
-        with open(filename, 'wb') as f:
+
+        filepath = filename if self._path_name is None else os.path.join(self._path_name, filename)
+        with open(filepath, 'wb') as f:
             pickle.dump(state, f, **kwargs)
 
     def load(self, filename, load_initial_data=True, **kwargs):
@@ -248,7 +280,8 @@ class Continuation(ABC):
         """
 
         try:
-            with open(filename, 'rb') as f:
+            filepath = filename if self._path_name is None else os.path.join(self._path_name, filename)
+            with open(filepath, 'rb') as f:
                 tmp_dict = pickle.load(f, **kwargs)
         except FileNotFoundError:
             warnings.warn('File not found. Unable to load data.')

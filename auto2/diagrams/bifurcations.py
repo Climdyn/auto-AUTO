@@ -24,7 +24,7 @@ try:
             break
     else:
         # sys.path.append(auto_directory + '/python/auto')
-        sys.path.append(auto_directory + '/python')
+        sys.path.append(sys.path.join(auto_directory, 'python'))
 except KeyError:
     logger.warning('Unable to find auto directory environment variable.')
 
@@ -35,14 +35,25 @@ from auto.parseS import AUTOSolution
 
 class BifurcationDiagram(object):
 
-    def __init__(self, model_name=None):
+    def __init__(self, model_name=None, path_name=None):
 
         self.initial_points = None
         self.model_name = model_name
+        if path_name is None:
+            self._path_name = None
+        else:
+            if os.path.exists(path_name):
+                self._path_name = path_name
+            else:
+                warnings.warn("Path name given does not exist.")
+                self._path_name = None
+
         if model_name is not None:
-            self.config_object = ConfigParser('c.'+model_name)
+            filepath = 'c.'+model_name if self._path_name is None else os.path.join(self._path_name, 'c.'+model_name)
+            self.config_object = ConfigParser(filepath)
         else:
             self.config_object = None
+            
         self.fp_branches = dict()
         self.po_branches = dict()
 
@@ -101,7 +112,7 @@ class BifurcationDiagram(object):
             if 'ICP' not in used_continuation_kwargs:
                 used_continuation_kwargs['ICP'] = [self.config_object.continuation_parameters[0]]
 
-            fp = FixedPointContinuation(model_name=self.model_name, config_object=self.config_object)
+            fp = FixedPointContinuation(model_name=self.model_name, config_object=self.config_object, path_name=self._path_name)
             fp.make_continuation(initial_data, **used_continuation_kwargs)
 
             self._check_fp_continuation_against_itself(ncomp, fp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol)
@@ -170,7 +181,7 @@ class BifurcationDiagram(object):
                                 used_continuation_kwargs['ISW'] = -1
                                 used_continuation_kwargs['PAR'] = {}
                                 used_continuation_kwargs['IBR'] = br_num
-                                fp = FixedPointContinuation(model_name=self.model_name, config_object=self.config_object)
+                                fp = FixedPointContinuation(model_name=self.model_name, config_object=self.config_object, path_name=self._path_name)
                                 fp.make_continuation(bp, **used_continuation_kwargs)
 
                                 logger.debug('Continuation done. Checking now against previous continuation...')
@@ -264,7 +275,7 @@ class BifurcationDiagram(object):
                             if 11 not in used_continuation_kwargs['ICP']:
                                 used_continuation_kwargs['ICP'].append(11)
 
-                    hp = PeriodicOrbitContinuation(model_name=self.model_name, config_object=self.config_object)
+                    hp = PeriodicOrbitContinuation(model_name=self.model_name, config_object=self.config_object, path_name=self._path_name)
                     hp.make_continuation(hb, max_bp=max_number_bp_detected, **used_continuation_kwargs)
 
                     logger.debug('Continuation done. Checking now against previous continuation...')
@@ -418,7 +429,7 @@ class BifurcationDiagram(object):
                                             _ = used_continuation_kwargs.pop('PAR')
 
                                         used_continuation_kwargs['IBR'] = br_num
-                                        hp = PeriodicOrbitContinuation(model_name=self.model_name, config_object=self.config_object)
+                                        hp = PeriodicOrbitContinuation(model_name=self.model_name, config_object=self.config_object, path_name=self._path_name)
                                         hp.make_continuation(bp, only_forward=not backward_bp_continuation, max_bp=max_number_bp_detected, **used_continuation_kwargs)
                                         logger.debug('Continuation done. Checking now against previous continuation...')
                                         self._check_po_continuation_against_itself(hp, used_continuation_kwargs, extra_comparison_parameters,
@@ -502,7 +513,7 @@ class BifurcationDiagram(object):
                                         _ = used_continuation_kwargs.pop('PAR')
 
                                     used_continuation_kwargs['IBR'] = br_num
-                                    hp = PeriodicOrbitContinuation(model_name=self.model_name, config_object=self.config_object)
+                                    hp = PeriodicOrbitContinuation(model_name=self.model_name, config_object=self.config_object, path_name=self._path_name)
                                     hp.make_continuation(pd, max_bp=max_number_bp_detected, **used_continuation_kwargs)
                                     logger.debug('Continuation done. Checking now against previous continuation...')
                                     self._check_po_continuation_against_itself(hp, used_continuation_kwargs, extra_comparison_parameters,
@@ -642,7 +653,7 @@ class BifurcationDiagram(object):
             used_continuation_kwargs = deepcopy(continuation_kwargs)
             used_continuation_kwargs['IBR'] = br_num
             used_continuation_kwargs['IPS'] = 2
-            hp = PeriodicOrbitContinuation(model_name=self.model_name, config_object=self.config_object)
+            hp = PeriodicOrbitContinuation(model_name=self.model_name, config_object=self.config_object, path_name=self._path_name)
             hp.make_continuation(initial_data, only_forward=only_forward, max_bp=max_number_bp_detected, **used_continuation_kwargs)
             logger.debug('Continuation done. Checking now against previous continuation...')
             self._check_po_continuation_against_itself(hp, used_continuation_kwargs, extra_comparison_parameters,
@@ -693,15 +704,20 @@ class BifurcationDiagram(object):
         return state
 
     def _set_from_dict(self, state, load_initial_data=True):
+        # store the pathname to pass to the updated class
+        state['_path_name'] = self._path_name
+
         self.__dict__.clear()
         self.__dict__.update(state)
-        self.config_object = ConfigParser('c.'+self.model_name)
+
+        filepath = 'c.' + self.model_name if self._path_name is None else os.path.join(self._path_name, 'c.' + self.model_name)
+        self.config_object = ConfigParser(filepath)
         for branch_number in self.fp_branches:
-            fp = FixedPointContinuation(self.model_name, self.config_object)
+            fp = FixedPointContinuation(self.model_name, self.config_object, path_name=self._path_name)
             fp.load('fp_' + str(branch_number) + '.pickle', load_initial_data=load_initial_data)
             self.fp_branches[branch_number]['continuation'] = fp
         for branch_number in self.po_branches:
-            po = PeriodicOrbitContinuation(self.model_name, self.config_object)
+            po = PeriodicOrbitContinuation(model_name=self.model_name, config_object=self.config_object, path_name=self._path_name)
             po.load('po_' + str(branch_number) + '.pickle', load_initial_data=load_initial_data)
             self.po_branches[branch_number]['continuation'] = po
 
@@ -720,12 +736,14 @@ class BifurcationDiagram(object):
             filename = self.model_name + '.pickle'
             warnings.warn('No filename provided. Using a default one: ' + filename)
         state = self._get_dict()
-        with open(filename, 'wb') as f:
+        filepath = filename if self._path_name is None else os.path.join(self._path_name, filename)
+        with open(filepath, 'wb') as f:
             pickle.dump(state, f, **kwargs)
 
     def load(self, filename, load_initial_data=True, **kwargs):
         try:
-            with open(filename, 'rb') as f:
+            filepath = filename if self._path_name is None else os.path.join(self._path_name, filename)
+            with open(filepath, 'rb') as f:
                 tmp_dict = pickle.load(f, **kwargs)
         except FileNotFoundError:
             warnings.warn('File not found. Unable to load data.')

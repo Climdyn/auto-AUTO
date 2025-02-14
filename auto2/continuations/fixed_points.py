@@ -30,9 +30,9 @@ import auto2.continuations.periodic_orbits as poc
 
 class FixedPointContinuation(Continuation):
 
-    def __init__(self, model_name, config_object):
+    def __init__(self, model_name, config_object, path_name=None):
 
-        Continuation.__init__(self, model_name, config_object)
+        Continuation.__init__(self, model_name, config_object, path_name)
 
         # plots default behaviours
         self._default_marker = 'x'
@@ -231,6 +231,9 @@ class FixedPointContinuation(Continuation):
                 return None
 
     def _set_from_dict(self, state, load_initial_data=True):
+        # store the pathname to pass to the updated class
+        state['_path_name'] = self._path_name
+
         self.__dict__.clear()
         self.__dict__.update(state)
         if isinstance(self.initial_data, dict) and load_initial_data:
@@ -238,7 +241,7 @@ class FixedPointContinuation(Continuation):
             fp_file_list = glob.glob('fp*.pickle')
             fp_branch_numbers = list(map(lambda filename: int(filename.split('_')[1].split('.')[0]), fp_file_list))
             if branch_number in fp_branch_numbers:
-                fp = FixedPointContinuation(self.model_name, self.config_object)
+                fp = FixedPointContinuation(model_name=self.model_name, config_object=self.config_object, path_name=self._path_name)
                 try:
                     fp.load('fp_'+str(branch_number)+'.pickle', load_initial_data=False)
 
@@ -253,7 +256,7 @@ class FixedPointContinuation(Continuation):
                 po_file_list = glob.glob('po*.pickle')
                 po_branch_numbers = list(map(lambda s: int(s.split('_')[1].split('.')[0]), po_file_list))
                 if branch_number in po_branch_numbers:
-                    hp = poc.PeriodicOrbitContinuation(self.model_name, self.config_object)
+                    hp = poc.PeriodicOrbitContinuation(model_name=self.model_name, config_object=self.config_object, path_name=self._path_name)
                     try:
                         hp.load('po_' + str(branch_number) + '.pickle', load_initial_data=False)
 
