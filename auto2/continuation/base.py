@@ -848,13 +848,18 @@ class Continuation(ABC):
 
     def get_filtered_solutions_list(self, labels=None, indices=None, parameters=None, values=None, forward=None, tol=0.01):
         """Filter the full solutions list of the branch with different selection rules.
+        Selection rules are selected by specifying a given keyword.
 
         Parameters
         ----------
         labels: str or list(str), optional
-            dd
-        indices: list(int), optional
-            dd
+            Label or list of labels to look for the solutions. Labels are two-characters string specifying the solutions types to return.
+            For example `'BP'` will return all the branching points of the continuations.
+            This activates the selection rule based on labels and disable the others.
+        indices: int or list(int), optional
+            Index or list of indices to look for the solutions. AUTO index of solutions can be inquired for example by calling the
+            :meth:`print_summary` method of a given :class:`Continuation` object.
+            This activates the selection rule based on indices and disable the others.
         parameters: str or list(str) or ~numpy.ndarray(str), optional
             dd
         values: float or list(float) or ~numpy.ndarray(float), optional
@@ -865,10 +870,16 @@ class Continuation(ABC):
             If `None`, search in both backward and forward direction.
             Default to `None`.
         tol: float or list(float) or ~numpy.ndarray(float)
-            dd
+            The numerical tolerance of the comparison to determine if the values of solutions.
+            If a single float is provided, assume the same tolerance for each parameter.
+            If a list or a 1-D array is passed, it must have the dimension of the number of parameters, each value in the
+            array corresponding to a parameter.
 
         Returns
         -------
+        list(AUTO solution objects):
+            A list of the sought solutions
+
         """
 
         if parameters is not None:
@@ -1306,6 +1317,29 @@ class Continuation(ABC):
         return ax
 
     def same_solutions_as(self, other, parameters, solutions_types=('HB', 'BP', 'UZ', 'PD', 'TR', 'LP'), tol=2.e-2):
+        """Check if the continuation has exactly the same solutions as another Continuation object.
+
+        Parameters
+        ----------
+        other: Continuation
+            The other continuation object to check the solutions.
+        parameters: list(str)
+            The parameters to be considered to check if the solutions are the same.
+        solutions_types: list(str)
+            The types of solution to consider in the search.
+            Default to `['HB', 'BP', 'UZ', 'PD', 'TR', 'LP']`.
+        tol: float or list(float) or ~numpy.ndarray(float)
+            The numerical tolerance of the comparison to determine if two solutions are equal.
+            If a single float is provided, assume the same tolerance for each parameter.
+            If a list or a 1-D array is passed, it must have the dimension of the number of parameters, each value in the
+            array corresponding to a parameter.
+
+        Returns
+        -------
+        bool:
+            `True` if both continuations have exactly the same solutions according to the specified parameters.
+
+        """
 
         ssol = self.solutions_parameters(parameters, solutions_types)
         osol = other.solutions_parameters(parameters, solutions_types)
@@ -1327,6 +1361,36 @@ class Continuation(ABC):
             return np.all(np.abs(diff).T < tol)
 
     def solutions_in(self, other, parameters, solutions_types=('HB', 'BP', 'UZ', 'PD', 'TR', 'LP'), tol=2.e-2, return_parameters=False, return_solutions=False):
+        """Check if the continuation solutions are all included in the solutions of another Continuation object.
+
+        Parameters
+        ----------
+        other: Continuation
+            The other continuation object to check the solutions.
+        parameters: list(str)
+            The parameters to be considered to check if the solutions are the same.
+        solutions_types: list(str)
+            The types of solution to consider in the search.
+            Default to `['HB', 'BP', 'UZ', 'PD', 'TR', 'LP']`.
+        tol: float or list(float) or ~numpy.ndarray(float)
+            The numerical tolerance of the comparison to determine if two solutions are equal.
+            If a single float is provided, assume the same tolerance for each parameter.
+            If a list or a 1-D array is passed, it must have the dimension of the number of parameters, each value in the
+            array corresponding to a parameter.
+        return_parameters: bool
+            If `True`, return an additional array with the values of the parameters for which the solutions of the two
+            Continuation objects match.
+
+        Returns
+        -------
+        bool:
+            `True` if the solutions are all contained in the other continuations according to the specified parameters.
+        ~numpy.ndarray:
+            If `return_parameters` is `True`, an array with the values of the parameters for which the solutions of the two
+            continuations match.
+
+        """
+
         res, params, sol = self.solutions_part_of(other, parameters, solutions_types, tol, True, True, None)
         if res:
             res = [params.shape[1] == self.number_of_solutions]
@@ -1343,6 +1407,44 @@ class Continuation(ABC):
             return res
 
     def solutions_part_of(self, other, parameters, solutions_types=('HB', 'BP', 'UZ', 'PD', 'TR', 'LP'), tol=2.e-2, return_parameters=False, return_solutions=False, forward=None):
+        """Check if a subset of the continuation solutions are included in the solutions of another Continuation object.
+
+        Parameters
+        ----------
+        other: Continuation
+            The other continuation object to check the solutions.
+        parameters: list(str)
+            The parameters to be considered to check if the solutions are the same.
+        solutions_types: list(str)
+            The types of solution to consider in the search.
+            Default to `['HB', 'BP', 'UZ', 'PD', 'TR', 'LP']`.
+        tol: float or list(float) or ~numpy.ndarray(float)
+            The numerical tolerance of the comparison to determine if two solutions are equal.
+            If a single float is provided, assume the same tolerance for each parameter.
+            If a list or a 1-D array is passed, it must have the dimension of the number of parameters, each value in the
+            array corresponding to a parameter.
+        return_parameters: bool
+            If `True`, return an additional array with the values of the parameters for which the solutions of the two
+            Continuation objects match.
+        return_solutions: bool
+            If `True`, return an additional list with the AUTO solution objects.
+        forward: bool or None, optional
+            If `True`, search only in the forward continuation.
+            If `False`, search only in the backward continuation.
+            If `None`, search in both backward and forward direction.
+            Default to `None`.
+
+        Returns
+        -------
+        bool:
+            `True` if the solutions are all contained in the other continuations according to the specified parameters.
+        ~numpy.ndarray:
+            If `return_parameters` is `True`, an array with the values of the parameters for which the solutions of the two
+            continuations match.
+        list(AUTO solution object):
+            If `return_solutions` is `True`, a list of the solutions which are included in the other Continuation object.
+
+        """
 
         if isinstance(tol, (list, tuple)):
             tol = np.array(tol)
@@ -1383,6 +1485,48 @@ class Continuation(ABC):
             return res
 
     def branch_possibly_cross(self, other, parameters, solutions_types=('HB', 'BP', 'UZ', 'PD', 'TR', 'LP'), tol=2.e-2, return_parameters=False, return_solutions=False, forward=None):
+        """Check if the continuations of two Continuation objects are possibly crossing at a given bifurcation point.
+
+        Warnings
+        --------
+        As indicated by the `possibly`, this test is weak and can be wrong.
+
+        Parameters
+        ----------
+        other: Continuation
+            The other continuation object to check the solutions.
+        parameters: list(str)
+            The parameters to be considered to check if the solutions are the same.
+        solutions_types: list(str)
+            The types of solution to consider in the search.
+            Default to `['HB', 'BP', 'UZ', 'PD', 'TR', 'LP']`.
+        tol: float or list(float) or ~numpy.ndarray(float)
+            The numerical tolerance of the comparison to determine if two solutions are equal.
+            If a single float is provided, assume the same tolerance for each parameter.
+            If a list or a 1-D array is passed, it must have the dimension of the number of parameters, each value in the
+            array corresponding to a parameter.
+        return_parameters: bool
+            If `True`, return an additional array with the values of the parameters for which the solutions of the two
+            Continuation objects match.
+        return_solutions: bool
+            If `True`, return an additional list with the AUTO solution objects.
+        forward: bool or None, optional
+            If `True`, search only in the forward continuation.
+            If `False`, search only in the backward continuation.
+            If `None`, search in both backward and forward direction.
+            Default to `None`.
+
+        Returns
+        -------
+        bool:
+            `True` if the solutions are all contained in the other continuations according to the specified parameters.
+        ~numpy.ndarray:
+            If `return_parameters` is `True`, an array with the values of the parameters for which the solutions of the two
+            continuations match.
+        list(AUTO solution object):
+            If `return_solutions` is `True`, a list of the solutions which are included in the other Continuation object.
+
+        """
 
         if isinstance(tol, (list, tuple)):
             tol = np.array(tol)
@@ -1423,6 +1567,13 @@ class Continuation(ABC):
             return res
 
     def summary(self):
+        """Return the summary of the |AUTO| continuations.
+
+        Returns
+        -------
+        str:
+            The summary.
+        """
 
         summary_str = ""
         if self.continuation['forward'] is not None:
@@ -1438,6 +1589,7 @@ class Continuation(ABC):
         return summary_str
 
     def print_summary(self):
+        """Print the summary of the |AUTO| continuations."""
 
         if self.continuation:
             s = self.summary()
@@ -1445,6 +1597,45 @@ class Continuation(ABC):
 
     def check_for_repetitions(self, parameters, tol=2.e-2, return_parameters=False, return_non_repeating_solutions=False,
                               return_repeating_solutions=False, forward=None):
+        """Check in solutions in the Continuation object are repeating, possibly indicating that the continuation is looping
+        on itself.
+
+        Parameters
+        ----------
+        parameters: list(str)
+            The parameters to be considered to check if the solutions are the same.
+        tol: float or list(float) or ~numpy.ndarray(float)
+            The numerical tolerance of the comparison to determine if two solutions are equal.
+            If a single float is provided, assume the same tolerance for each parameter.
+            If a list or a 1-D array is passed, it must have the dimension of the number of parameters, each value in the
+            array corresponding to a parameter.
+        return_parameters: bool
+            If `True`, return an additional array with the values of the parameters for which the solutions are repeating.
+        return_repeating_solutions: bool
+            If `True`, return an additional list with the AUTO solution objects which repeat.
+        return_non_repeating_solutions: bool
+            If `True`, return an additional list with the AUTO solution objects which do nott repeat.
+        forward: bool or None, optional
+            If `True`, search only in the forward continuation.
+            If `False`, search only in the backward continuation.
+            If `None`, search in both backward and forward direction.
+            Default to `None`.
+
+        Returns
+        -------
+        dict(list(bool)):
+            A dictionary with a list of boolean for each direction, indicating for each solution if it is repeating or not.
+        dict(~numpy.ndarray):
+            If `return_parameters` is `True`, a dictionary with for each direction an array with the values of the parameters for the solutions
+            are repeating.
+        dict(list(AUTO solution object)):
+            If `return_non_repeating_solutions` is `True`, a dictionary with for each direction a list of the solutions which are
+            included which do not repeat.
+        dict(list(AUTO solution object)):
+            If `return_repeating_solutions` is `True`, a dictionary with for each direction a list of the solutions which are
+            included which do repeat.
+
+        """
 
         if isinstance(tol, (list, tuple)):
             tol = np.array(tol)
