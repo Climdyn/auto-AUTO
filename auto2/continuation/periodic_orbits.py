@@ -32,9 +32,9 @@ import auto2.continuation.fixed_points as fpc
 
 class PeriodicOrbitContinuation(Continuation):
 
-    def __init__(self, model_name, config_object):
+    def __init__(self, model_name, config_object, path_name=None):
 
-        Continuation.__init__(self, model_name, config_object)
+        Continuation.__init__(self, model_name, config_object, path_name)
 
         # plots default behaviours
         self._default_marker = ''
@@ -275,6 +275,9 @@ class PeriodicOrbitContinuation(Continuation):
                 return None
 
     def _set_from_dict(self, state, load_initial_data=True):
+        # store the pathname to pass to the updated class
+        state['_path_name'] = self._path_name
+        
         self.__dict__.clear()
         self.__dict__.update(state)
         if isinstance(self.initial_data, dict) and load_initial_data:
@@ -282,7 +285,7 @@ class PeriodicOrbitContinuation(Continuation):
             fp_file_list = glob.glob('fp*.pickle')
             fp_branch_numbers = list(map(lambda filename: int(filename.split('_')[1].split('.')[0]), fp_file_list))
             if branch_number in fp_branch_numbers:
-                fp = fpc.FixedPointContinuation(self.model_name, self.config_object)
+                fp = fpc.FixedPointContinuation(model_name=self.model_name, config_object=self.config_object, path_name=self._path_name)
                 try:
                     fp.load('fp_'+str(branch_number)+'.pickle', load_initial_data=False)
 
@@ -297,7 +300,7 @@ class PeriodicOrbitContinuation(Continuation):
                 po_file_list = glob.glob('po*.pickle')
                 po_branch_numbers = list(map(lambda filename: int(filename.split('_')[1].split('.')[0]), po_file_list))
                 if branch_number in po_branch_numbers:
-                    hp = PeriodicOrbitContinuation(self.model_name, self.config_object)
+                    hp = PeriodicOrbitContinuation(model_name=self.model_name, config_object=self.config_object, path_name=self._path_name)
                     try:
                         hp.load('po_' + str(branch_number) + '.pickle', load_initial_data=False)
 
