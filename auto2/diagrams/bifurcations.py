@@ -28,8 +28,8 @@ try:
 except KeyError:
     logger.warning('Unable to find auto directory environment variable.')
 
-from auto2.continuation.fixed_points import FixedPointContinuation
-from auto2.continuation.periodic_orbits import PeriodicOrbitContinuation
+from auto2.continuations.fixed_points import FixedPointContinuation
+from auto2.continuations.periodic_orbits import PeriodicOrbitContinuation
 from auto.parseS import AUTOSolution
 
 

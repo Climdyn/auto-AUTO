@@ -9,6 +9,6 @@ TODO: make the user guide.
 Base class module
 -----------------
 
-.. automodule:: auto2.continuation.base
+.. automodule:: auto2.continuations.base
     :show-inheritance:
     :members:
