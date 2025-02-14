@@ -32,7 +32,7 @@ try:
             break
     else:
         # sys.path.append(auto_directory + '/python/auto')
-        sys.path.append(sys.path.join(auto_directory, 'python'))
+        sys.path.append(os.path.join(auto_directory, 'python'))
 except KeyError:
     logger.warning('Unable to find auto directory environment variable.')
 
