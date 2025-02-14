@@ -52,6 +52,8 @@ class Continuation(ABC):
         The name of the model to load. Used to load the .f90 file of the provided model.
     config_object: ~auto2.parsers.config.ConfigParser
         A loaded ConfigParser object.
+    path_name: str, optional
+        TODO: Document here
 
     Attributes
     ----------
@@ -84,7 +86,8 @@ class Continuation(ABC):
             if os.path.exists(path_name):
                 self._path_name = path_name
             else:
-                warnings.warn("Path name given does not exist.")
+                warnings.warn("Path name given does not exist. Using the current working directory.")
+                # TODO: add a method to manually set the path_name
                 self._path_name = None
 
         # plots default behaviours
@@ -195,7 +198,6 @@ class Continuation(ABC):
         if self.continuation:
             for direction in ['forward', 'backward']:
                 if self.continuation[direction] is not None:
-                    # TODO: I would rather not manually change directory like this, but I can find no option in AUTOcommands to pass a filepath
                     with self.temporary_chdir(self._path_name):
                         ac.save(self.continuation[direction], auto_suffix + '_' + direction)
         self.auto_filename_suffix = auto_suffix
@@ -213,7 +215,6 @@ class Continuation(ABC):
         for direction in ['forward', 'backward']:
             try:
                 # Changing the directory
-                # TODO: I would rather not manually change directory like this, but I can find no option in AUTOcommands to pass a filepath
                 with self.temporary_chdir(self._path_name):
                     r = ac.loadbd(auto_suffix + '_' + direction)
                 self.continuation[direction] = r
