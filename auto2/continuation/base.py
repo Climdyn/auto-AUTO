@@ -847,7 +847,11 @@ class Continuation(ABC):
             return None
 
     def get_filtered_solutions_list(self, labels=None, indices=None, parameters=None, values=None, forward=None, tol=0.01):
-        """Filter the full solutions list of the branch with different selection rules.
+        """Filter the full solutions list of the branch with different selection rules:
+        * Based on solution labels
+        * Based on solution indices
+        * Based matching solution parameters values with a specified list of values
+
         Selection rules are selected by specifying a given keyword.
 
         Parameters
@@ -861,16 +865,24 @@ class Continuation(ABC):
             :meth:`print_summary` method of a given :class:`Continuation` object.
             This activates the selection rule based on indices and disable the others.
         parameters: str or list(str) or ~numpy.ndarray(str), optional
-            dd
+            Parameter or list of parameters for which to match the solutions values to one provided by the `values` argument.
         values: float or list(float) or ~numpy.ndarray(float), optional
-            dd
+            List of parameters values to match to the solutions parameters values.
+            Can be a float if only one parameter is specified in the `parameters` arguments, otherwise a list or a :class:`~numpy.ndarray` array
+            must be provided.
+            If a list is provided, assuming `n` parameters were specified in the `parameters` argument
+            and`m` values are sought, it should be a nested list with the following structure:
+            `[[param1_value1, param1_value2, ..., param1_valuem], ..., [paramn_value1, paramn_value2, ..., paramn_valuem]]`
+            If a :class:`~numpy.ndarray` array is provided, with the same assumptions, it should be a 2-D array with shape (n, m) with the
+            parameters values.
         forward: bool or None, optional
             If `True`, search only in the forward continuation.
             If `False`, search only in the backward continuation.
             If `None`, search in both backward and forward direction.
             Default to `None`.
         tol: float or list(float) or ~numpy.ndarray(float)
-            The numerical tolerance of the comparison to determine if the values of solutions.
+            The numerical tolerance of the values comparison if the selection rule based on parameters values is activated
+            (by setting the arguments `parameters` and `values`).
             If a single float is provided, assume the same tolerance for each parameter.
             If a list or a 1-D array is passed, it must have the dimension of the number of parameters, each value in the
             array corresponding to a parameter.
