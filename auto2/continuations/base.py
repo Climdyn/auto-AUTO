@@ -53,7 +53,7 @@ class Continuation(ABC):
     config_object: ~auto2.parsers.config.ConfigParser
         A loaded ConfigParser object.
     path_name: str, optional
-        TODO: Document here
+        The directory path where files are read/saved, if None, defaults to current working directory.
 
     Attributes
     ----------
@@ -1004,6 +1004,39 @@ class Continuation(ABC):
 
     def plot_branch_parts(self, variables=(0, 1), ax=None, figsize=(10, 8), markersize=12., plot_kwargs=None, marker_kwargs=None,
                           excluded_labels=('UZ', 'EP'), plot_sol_points=False, variables_name=None, cmap=None):
+        """Plots a bifurcation diagram, consisting of branches for specified variables and the bifurcation points.
+
+        Parameters
+        ----------
+        variables: tuple[int, int], optional
+            The index of the variables plot.
+            The first value in the tuple determines the variable plot on the x-axis, and the second value determines the variable plot on the y-axis.
+            Defaults to `(0, 1)`.
+        ax: `matplotlib.axes.Axes` or None, optional
+            A matplotlib axis object to plot on. If None, a new figure is created.
+        figsize: tuple(float, float), optional
+            Dimension of the figure that is returned, only used if `ax` is not passed.
+            Defaults to `(10, 8)`.
+        markersize: float, optional
+            Size of the text plotted to display the bifurcation points. Defaults to `12.`.
+        plot_kwargs: dict or None, optional
+            Optional key word arguments to pass to the plotting function, controlling the curves of the bifurcation diagram.
+        marker_kwargs: dict or None, optional
+            Optional key word arguments to pass to the plotting function, controlling the styles of the bifurcation point labels.
+        excluded_labels: Iterable[str], optional
+            An iterable collection of strings, the strings are the bifurcation point label names that are not plotted.
+        plot_sol_points: bool, optional
+            If `True`, a point is added to the points where a solution is stored. Defaults to False.
+        variables_name: list[str] or None, optional
+            The strings used to plot the axis labels. If `None` defaults to the AUTO labels.
+        cmap: cmap or None, optional
+            The cmap used for plotting. If `None`, defaults to 'Reds'
+
+        Returns
+        -------
+        matplotlib.pyplot axis objet:
+            An axis object showing the bifurcation diagram.
+        """
 
         if not self.continuation:
             return None
@@ -1110,6 +1143,33 @@ class Continuation(ABC):
 
     def plot_branch_parts_3D(self, variables=(0, 1, 2), ax=None, figsize=(10, 8), markersize=12., plot_kwargs=None, marker_kwargs=None,
                              excluded_labels=('UZ', 'EP'), variables_name=None):
+        """Plots a bifurcation diagram on a 3 dimensional plot, consisting of branches for specified variables and the bifurcation points.
+
+        Parameters
+        ----------
+        variables: tuple[int, int, int], optional
+            The index of the variables plot.
+            The first value in the tuple determines the variable plot on the x-axis, the second the y-axis, and the third value determines the z-axis.
+            Defaults to `(0, 1, 2)`.
+        ax: `matplotlib.axes.Axes` or None, optional
+            A matplotlib axis object to plot on. If None, a new figure is created.
+        figsize: tuple(float, float), optional
+            Dimension of the figure that is returned, only used if `ax` is not passed.
+            Defaults to `(10, 8)`.
+        markersize: float, optional
+            Size of the text plotted to display the bifurcation points. Defaults to `12.`.
+        plot_kwargs: dict or None, optional
+            Optional key word arguments to pass to the plotting function, controlling the curves of the bifurcation diagram.
+        marker_kwargs: dict or None, optional
+            Optional key word arguments to pass to the plotting function, controlling the styles of the bifurcation point labels.
+        excluded_labels: Iterable[str], optional
+            An iterable collection of strings, the strings are the bifurcation point label names that are not plotted.
+
+        Returns
+        -------
+        matplotlib.pyplot axis objet:
+            An axis object showing the bifurcation diagram using a 3 dimensional projection.
+        """
 
         if not self.continuation:
             return None
@@ -1216,6 +1276,61 @@ class Continuation(ABC):
                        linewidth=None, color_solutions=False, plot_kwargs=None, labels=None, indices=None, parameter=None, value=None,
                        variables_name=None, tol=0.01):
 
+        """
+        Plots the stored solutions for a given set of variables. Fixed points are plotted using points, periodic orbits are plot as curves.
+        Solutions that are plotted are filtered here using the `get_filtered_solutions_list` method.
+
+        Parameters
+        ----------
+        variables: tuple(int, int), optional
+            The index of the variables plot.
+            The first value in the tuple determines the variable plot on the x-axis, the second the y-axis.
+            Defaults to `(0, 1)`.
+        ax: matplotlib.axes.Axes, optional
+            A matplotlib axis object to plot on. If None, a new figure is created.
+        figsize: figsize: tuple(float, float), optional
+            Dimension of the figure that is returned, only used if `ax` is not passed.
+            Defaults to `(10, 8)`.
+        markersize: float, optional
+            Size of the text plotted to display the bifurcation points. Defaults to `12.
+        marker : str, optional
+            The marker style used for plotting fixed points. If `None`, set to default marker.
+        linestyle : str, optional
+            The line style used for plotting the periodic orbit solutions. If `None`, set to default marker.
+        linewidth : float, optional
+            The width of the lines showing the periodic solutions. If `None`, set to the default.
+        color_solutions : bool, optional
+            Whether to color each solution differently.
+            If `True`, and `parameter` is valid, then solutions are colored based on the parameter value of the given solution.
+            If `False`, all solutions are colored identically, controlled using `plot_kwargs`.
+             Default is False.
+        plot_kwargs: dict or None, optional
+            Additional keyword arguments for the plotting function. Default is `None`.
+        labels: Iterable[str], optional
+            Label or list of labels to look for the solutions. Labels are two-characters string specifying the solutions types to return.
+            If `None`, solutions are not filtered by label. Default is `None`.
+        indices: int or list(int), optional Index or list of indices to look for the solutions.
+            AUTO index of solutions can be inquired for example by calling the :meth:`print_summary` method of a given :class:`Continuation` object.
+            This activates the selection rule based on indices and disable the others
+        parameter: str or list(str) or ~numpy. ndarray(str), optional
+            Parameter or list of parameters for which to match the solutions values to one provided by the `value` argument.
+        value: float or list(float) or ~numpy. ndarray(float), optional List of parameters values to match to the solutions parameters values.
+            Can be a float if only one parameter is specified in the `parameters` arguments, otherwise a list or a :class:`~numpy. ndarray` array must be provided.
+        variables_name: list[str] or None, optional
+            The strings used to plot the axis labels. If `None` defaults to the AUTO labels.
+        tol: float or list(float) or ~numpy. ndarray(float)
+            The numerical tolerance of the values comparison if the selection rule based on parameters values is activated (by setting the arguments `parameters` and `values`).
+            If a single float is provided, assume the same tolerance for each parameter.
+            If a list or a 1-D array is passed, it must have the dimension of the number of parameters, each value in the array corresponding to a parameter.
+            Default is 0.01.
+
+        Returns
+        -------
+        matplotlib.pyplot axis objet:
+            An axis object showing the bifurcation diagram.
+
+        """
+
         if markersize is None:
             markersize = self._default_markersize
         if marker is None:
@@ -1293,6 +1408,56 @@ class Continuation(ABC):
     def plot_solutions_3D(self, variables=(0, 1, 2), ax=None, figsize=(10, 8), markersize=None, marker=None, linestyle=None,
                        linewidth=None, plot_kwargs=None, labels=None, indices=None, parameter=None, value=None,
                        variables_name=None, tol=0.01):
+        """
+        Plots the stored solutions for a given set of variables, using a 3 dimensional projection.
+        Fixed points are plotted using points, periodic orbits are plot as curves.
+        Solutions that are plotted are filtered here using the `get_filtered_solutions_list` method.
+
+        Parameters
+        ----------
+        variables: tuple(int, int, int), optional
+            The index of the variables plot.
+            The first value in the tuple determines the variable plot on the x-axis, the second the y-axis.
+            Defaults to `(0, 1, 2)`.
+        ax: matplotlib.axes.Axes, optional
+            A matplotlib axis object to plot on. If None, a new figure is created.
+        figsize: figsize: tuple(float, float), optional
+            Dimension of the figure that is returned, only used if `ax` is not passed.
+            Defaults to `(10, 8)`.
+        markersize: float, optional
+            Size of the text plotted to display the bifurcation points. Defaults to `12.
+        marker : str, optional
+            The marker style used for plotting fixed points. If `None`, set to default marker.
+        linestyle : str, optional
+            The line style used for plotting the periodic orbit solutions. If `None`, set to default marker.
+        linewidth : float, optional
+            The width of the lines showing the periodic solutions. If `None`, set to the default.
+        plot_kwargs: dict or None, optional
+            Additional keyword arguments for the plotting function. Default is `None`.
+        labels: Iterable[str], optional
+            Label or list of labels to look for the solutions. Labels are two-characters string specifying the solutions types to return.
+            If `None`, solutions are not filtered by label. Default is `None`.
+        indices: int or list(int), optional Index or list of indices to look for the solutions.
+            AUTO index of solutions can be inquired for example by calling the :meth:`print_summary` method of a given :class:`Continuation` object.
+            This activates the selection rule based on indices and disable the others
+        parameter: str or list(str) or ~numpy. ndarray(str), optional
+            Parameter or list of parameters for which to match the solutions values to one provided by the `values` argument.
+        value: float or list(float) or ~numpy. ndarray(float), optional List of parameters values to match to the solutions parameters values.
+            Can be a float if only one parameter is specified in the `parameters` arguments, otherwise a list or a :class:`~numpy. ndarray` array must be provided.
+        variables_name: list[str] or None, optional
+            The strings used to plot the axis labels. If `None` defaults to the AUTO labels.
+        tol: float or list(float) or ~numpy. ndarray(float)
+            The numerical tolerance of the values comparison if the selection rule based on parameters values is activated (by setting the arguments `parameters` and `values`).
+            If a single float is provided, assume the same tolerance for each parameter.
+            If a list or a 1-D array is passed, it must have the dimension of the number of parameters, each value in the array corresponding to a parameter.
+            Default is 0.01.
+
+        Returns
+        -------
+        matplotlib.pyplot axis objet:
+            An axis object showing the bifurcation diagram, using a 3 dimensional projection.
+
+        """
 
         if markersize is None:
             markersize = self._default_markersize
