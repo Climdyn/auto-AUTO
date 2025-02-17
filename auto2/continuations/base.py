@@ -53,7 +53,8 @@ class Continuation(ABC):
     config_object: ~auto2.parsers.config.ConfigParser
         A loaded ConfigParser object.
     path_name: str, optional
-        The directory path where files are read/saved, if None, defaults to current working directory.
+        The directory path where files are read/saved.
+        If `None`, defaults to current working directory.
 
     Attributes
     ----------
@@ -80,15 +81,9 @@ class Continuation(ABC):
         self.initial_data = None
         self.auto_filename_suffix = ""
 
-        if path_name is None:
-            self._path_name = None
-        else:
-            if os.path.exists(path_name):
-                self._path_name = path_name
-            else:
-                warnings.warn("Path name given does not exist. Using the current working directory.")
-                # TODO: add a method to manually set the path_name
-                self._path_name = None
+        self._path_name = None
+        if path_name is not None:
+            self.set_path_name(path_name)
 
         # plots default behaviours
         self._default_marker = None
@@ -171,6 +166,25 @@ class Continuation(ABC):
     def _set_from_dict(self, state, load_initial_data=True):
         pass
 
+    @property
+    def path_name(self):
+        """str: The path where the |AUTO| and AUTO² files must be or are stored."""
+        return self._path_name
+
+    def set_path_name(self, path_name):
+        """Set the path where the |AUTO| and AUTO² files must be or are stored.
+
+        Parameters
+        ----------
+        path_name: str
+            The path.
+        """
+        if os.path.exists(path_name):
+            self._path_name = path_name
+        else:
+            warnings.warn("Path name given does not exist. Using the current working directory.")
+            self._path_name = None
+
     @contextmanager
     def temporary_chdir(self, new_dir):
         """
@@ -234,14 +248,14 @@ class Continuation(ABC):
         Parameters
         ----------
         filename: str or None, optional
-             The filename used to store the continuation(s) parameters and metadata
-             to disk in Pickle format.
-             If `None`, will assign a default generic name.
-             Default is `None`.
+            The filename used to store the continuation(s) parameters and metadata
+            to disk in Pickle format.
+            If `None`, will assign a default generic name.
+            Default is `None`.
         auto_filename_suffix: str or None, optional
             Suffix to use for the |AUTO| files used to save the continuation data from disk.
-             If `None`, will assign a default generic suffix.
-             Default is `None`.
+            If `None`, will assign a default generic suffix.
+            Default is `None`.
 
         """
         if auto_filename_suffix is None:
@@ -272,8 +286,8 @@ class Continuation(ABC):
         Parameters
         ----------
         filename: str
-             The filename used to store the continuation(s) parameters and metadata
-             to disk in Pickle format.
+            The filename used to store the continuation(s) parameters and metadata
+            to disk in Pickle format.
         load_initial_data: bool
             Try or not to load the initial data field.
             Default to `True`.
@@ -306,7 +320,6 @@ class Continuation(ABC):
     @property
     def available_variables(self):
         """list(str): Return the available variables in the continuation data."""
-        # TODO: check if output should not be converted to a list. keys might be an iterator.
         if self.continuation:
             if self.continuation['forward'] is not None:
                 return self.continuation['forward'].data[0].keys()
@@ -316,6 +329,11 @@ class Continuation(ABC):
                 return None
         else:
             return None
+
+    @property
+    def phase_space_variables(self):
+        """list(str): Return the variables of the phase space of the configured dynamical system."""
+        return self.config_object.variables
 
     def diagnostics(self):
         """str: Return the AUTO diagnostics of the continuations as a string."""
@@ -334,13 +352,13 @@ class Continuation(ABC):
             return None
 
     def print_diagnostics(self):
-        """Method which prints the AUTO diagnostics of the continuations."""
+        """Method which prints the full AUTO diagnostics of the continuations."""
         if self.continuation:
             s = self.diagnostics()
             print(s)
 
     def point_diagnostic(self, idx):
-        """Method which returns the diagnostic of given point of the continuation.
+        """Method which returns the diagnostic of a given point of the continuation.
 
         Parameters
         ----------
@@ -360,9 +378,8 @@ class Continuation(ABC):
 
         Returns
         -------
-        point_diagnostic
+        str
             The point diagnostic.
-            TODO: Find the exact structure that is returned.
         """
         if self.continuation is not None:
             if isinstance(idx, str):
@@ -417,6 +434,28 @@ class Continuation(ABC):
                     return None
         else:
             return None
+
+    def print_point_diagnostic(self, idx):
+        """Method which prints the diagnostic of a given point of the continuation.
+
+        Parameters
+        ----------
+        idx: str or int
+            |AUTO| index of the point to give the diagnostic from.
+            If `idx`:
+
+            * is a string, it should identify the label of the point, assuming the
+              point has a label. Backward continuation label must be preceded by
+              a `'-'` character. E.g. `'HB2'` would identify the second Hopf bifurcation
+              point of the forward continuation, while `'-UZ3'` identifies the third
+              user-defined label of the backward branch.
+            * is an integer, it corresponds to the index of the point. Positive
+              integers identify points on the forward continuation, while negative integers
+              identify points on the backward continuation. The zero index identifies the
+              initial point of the continuations.
+
+        """
+        print(self.point_diagnostic(idx))
 
     def find_solution_index(self, label):
         """Find the index of a given solution label.
@@ -887,6 +926,7 @@ class Continuation(ABC):
         * Based matching solution parameters values with a specified list of values
 
         Selection rules are selected by specifying a given keyword.
+        If no selection rule is provided, return the full list of solution in the selected direction(s).
 
         Parameters
         ----------
@@ -914,12 +954,13 @@ class Continuation(ABC):
             If `False`, search only in the backward continuation.
             If `None`, search in both backward and forward direction.
             Default to `None`.
-        tol: float or list(float) or ~numpy.ndarray(float)
+        tol: float or list(float) or ~numpy.ndarray(float), optional
             The numerical tolerance of the values comparison if the selection rule based on parameters values is activated
             (by setting the arguments `parameters` and `values`).
             If a single float is provided, assume the same tolerance for each parameter.
             If a list or a 1-D array is passed, it must have the dimension of the number of parameters, each value in the
             array corresponding to a parameter.
+            Default to `0.01`.
 
         Returns
         -------
@@ -1004,38 +1045,44 @@ class Continuation(ABC):
 
     def plot_branch_parts(self, variables=(0, 1), ax=None, figsize=(10, 8), markersize=12., plot_kwargs=None, marker_kwargs=None,
                           excluded_labels=('UZ', 'EP'), plot_sol_points=False, variables_name=None, cmap=None):
-        """Plots a bifurcation diagram, consisting of branches for specified variables and the bifurcation points.
+        """Plots a bifurcation diagram  along specified variables, with branches and the bifurcation points
+        of fixed points and periodic orbits.
 
         Parameters
         ----------
-        variables: tuple[int, int], optional
-            The index of the variables plot.
-            The first value in the tuple determines the variable plot on the x-axis, and the second value determines the variable plot on the y-axis.
+        variables: tuple(int or str, int or str), optional
+            The index or label of the variables along which the bifurcation diagram is plotted.
+            If labels are used, it should be labels of the available monitored variables during the continuations
+            (if their labels have been defined in the AUTO configuration file) given by :meth:`available_variables`.
+            The first value in the tuple determines the variable plot on the x-axis and the second the y-axis.
             Defaults to `(0, 1)`.
-        ax: `matplotlib.axes.Axes` or None, optional
-            A matplotlib axis object to plot on. If None, a new figure is created.
+        ax: matplotlib.axes.Axes or None, optional
+            A |Matplotlib| axis object to plot on. If `None`, a new figure is created.
         figsize: tuple(float, float), optional
             Dimension of the figure that is returned, only used if `ax` is not passed.
             Defaults to `(10, 8)`.
         markersize: float, optional
-            Size of the text plotted to display the bifurcation points. Defaults to `12.`.
+            Size of the text plotted to display the bifurcation points. Defaults to `12`.
         plot_kwargs: dict or None, optional
             Optional key word arguments to pass to the plotting function, controlling the curves of the bifurcation diagram.
         marker_kwargs: dict or None, optional
             Optional key word arguments to pass to the plotting function, controlling the styles of the bifurcation point labels.
-        excluded_labels: Iterable[str], optional
-            An iterable collection of strings, the strings are the bifurcation point label names that are not plotted.
+        excluded_labels: str or list(str), optional
+            A list of 2-characters strings, controlling the bifurcation point type that are not plotted.
+            For example `['BP']` will result in branching points not being plotted.
+            Can be set to the string `'all'`, which results in no bifurcation being plotted at all.
+            Default to `['UZ','EP']`.
         plot_sol_points: bool, optional
             If `True`, a point is added to the points where a solution is stored. Defaults to False.
-        variables_name: list[str] or None, optional
-            The strings used to plot the axis labels. If `None` defaults to the AUTO labels.
+        variables_name: list(str) or None, optional
+            The strings used to define the axis labels. If `None` defaults to the AUTO labels.
         cmap: cmap or None, optional
             The cmap used for plotting. If `None`, defaults to 'Reds'
 
         Returns
         -------
-        matplotlib.pyplot axis objet:
-            An axis object showing the bifurcation diagram.
+        matplotlib.axes.Axes
+            A |Matplotlib| axis object showing the bifurcation diagram using a 3-dimensional projection.
         """
 
         if not self.continuation:
@@ -1143,16 +1190,19 @@ class Continuation(ABC):
 
     def plot_branch_parts_3D(self, variables=(0, 1, 2), ax=None, figsize=(10, 8), markersize=12., plot_kwargs=None, marker_kwargs=None,
                              excluded_labels=('UZ', 'EP'), variables_name=None):
-        """Plots a bifurcation diagram on a 3 dimensional plot, consisting of branches for specified variables and the bifurcation points.
+        """Plots a bifurcation diagram on a 3-dimensional figure along specified variables, with branches and the bifurcation points
+        of fixed points and periodic orbits.
 
         Parameters
         ----------
-        variables: tuple[int, int, int], optional
-            The index of the variables plot.
+        variables: tuple(int or str, int or str, int or str), optional
+            The index or label of the variables along which the bifurcation diagram is plotted.
+            If labels are used, it should be labels of the available monitored variables during the continuations
+            (if their labels have been defined in the AUTO configuration file) given by :meth:`available_variables`.
             The first value in the tuple determines the variable plot on the x-axis, the second the y-axis, and the third value determines the z-axis.
             Defaults to `(0, 1, 2)`.
-        ax: `matplotlib.axes.Axes` or None, optional
-            A matplotlib axis object to plot on. If None, a new figure is created.
+        ax: matplotlib.axes.Axes or None, optional
+            A |Matplotlib| axis object to plot on. If `None`, a new figure is created.
         figsize: tuple(float, float), optional
             Dimension of the figure that is returned, only used if `ax` is not passed.
             Defaults to `(10, 8)`.
@@ -1162,13 +1212,18 @@ class Continuation(ABC):
             Optional key word arguments to pass to the plotting function, controlling the curves of the bifurcation diagram.
         marker_kwargs: dict or None, optional
             Optional key word arguments to pass to the plotting function, controlling the styles of the bifurcation point labels.
-        excluded_labels: Iterable[str], optional
-            An iterable collection of strings, the strings are the bifurcation point label names that are not plotted.
+        excluded_labels: str or list(str), optional
+            A list of 2-characters strings, controlling the bifurcation point type that are not plotted.
+            For example `['BP']` will result in branching points not being plotted.
+            Can be set to the string `'all'`, which results in no bifurcation being plotted at all.
+            Default to `['UZ','EP']`.
+        variables_name: list(str) or None, optional
+            The strings used to define the axis labels. If `None` defaults to the AUTO labels.
 
         Returns
         -------
-        matplotlib.pyplot axis objet:
-            An axis object showing the bifurcation diagram using a 3 dimensional projection.
+        matplotlib.axes.Axes
+            A |Matplotlib| axis object showing the bifurcation diagram using a 3-dimensional projection.
         """
 
         if not self.continuation:
@@ -1278,21 +1333,24 @@ class Continuation(ABC):
 
         """
         Plots the stored solutions for a given set of variables. Fixed points are plotted using points, periodic orbits are plot as curves.
-        Solutions that are plotted are filtered here using the `get_filtered_solutions_list` method.
+        Solutions that are plotted are filtered here using the selection rule-based :meth:`get_filtered_solutions_list` method.
+        However, if no selection rule is provided, it will plot all the solutions.
 
         Parameters
         ----------
-        variables: tuple(int, int), optional
-            The index of the variables plot.
-            The first value in the tuple determines the variable plot on the x-axis, the second the y-axis.
-            Defaults to `(0, 1)`.
-        ax: matplotlib.axes.Axes, optional
-            A matplotlib axis object to plot on. If None, a new figure is created.
+        variables: tuple(int or str, int or str), optional
+            The index or label of the variables shown in the plot.
+            If labels are used, it should be labels of the phase space variables
+            (if they have been defined in the AUTO configuration file) given by :meth:`phase_space_variables`.
+            The first value in the tuple determines the variable plot on the x-axis, the second determines the y-axis.
+            Defaults to the first two variables: `(0, 1)`.
+        ax: matplotlib.axes.Axes or None, optional
+            A |Matplotlib| axis object to plot on. If `None`, a new figure is created.
         figsize: figsize: tuple(float, float), optional
             Dimension of the figure that is returned, only used if `ax` is not passed.
             Defaults to `(10, 8)`.
         markersize: float, optional
-            Size of the text plotted to display the bifurcation points. Defaults to `12.
+            Size of the text plotted to display the bifurcation points. Defaults to `12`.
         marker : str, optional
             The marker style used for plotting fixed points. If `None`, set to default marker.
         linestyle : str, optional
@@ -1301,33 +1359,50 @@ class Continuation(ABC):
             The width of the lines showing the periodic solutions. If `None`, set to the default.
         color_solutions : bool, optional
             Whether to color each solution differently.
-            If `True`, and `parameter` is valid, then solutions are colored based on the parameter value of the given solution.
+            If `True`, and `parameter` argument is provided and valid, then solutions are colored based on the parameter value of a given solution.
+            Use the cmap provided in the `plot_kwargs` argument. If no cmap is provided there, use `Blues` cmap by default.
             If `False`, all solutions are colored identically, controlled using `plot_kwargs`.
-             Default is False.
+            Default is `False`.
         plot_kwargs: dict or None, optional
             Additional keyword arguments for the plotting function. Default is `None`.
-        labels: Iterable[str], optional
+        labels: str or list(str), optional
+            **Selection rule to select particular solutions (see** :meth:`get_filtered_solutions_list` **for more details.).**
             Label or list of labels to look for the solutions. Labels are two-characters string specifying the solutions types to return.
-            If `None`, solutions are not filtered by label. Default is `None`.
-        indices: int or list(int), optional Index or list of indices to look for the solutions.
-            AUTO index of solutions can be inquired for example by calling the :meth:`print_summary` method of a given :class:`Continuation` object.
-            This activates the selection rule based on indices and disable the others
-        parameter: str or list(str) or ~numpy. ndarray(str), optional
-            Parameter or list of parameters for which to match the solutions values to one provided by the `value` argument.
-        value: float or list(float) or ~numpy. ndarray(float), optional List of parameters values to match to the solutions parameters values.
-            Can be a float if only one parameter is specified in the `parameters` arguments, otherwise a list or a :class:`~numpy. ndarray` array must be provided.
-        variables_name: list[str] or None, optional
+            For example `'BP'` will return all the branching points of the continuations.
+            This activates the selection rule based on labels and disable the others.
+        indices: int or list(int), optional
+            **Selection rule to select particular solutions (see** :meth:`get_filtered_solutions_list` **for more details.).**
+            Index or list of indices to look for the solutions. AUTO index of solutions can be inquired for example by calling the
+            :meth:`print_summary` method of a given :class:`Continuation` object.
+            This activates the selection rule based on indices and disable the others.
+        parameter: str or list(str) or ~numpy.ndarray(str), optional
+            **Selection rule to select particular solutions (see** :meth:`get_filtered_solutions_list` **for more details.).**
+            Parameter or list of parameters for which to match the solutions values to one provided by the `values` argument.
+        value: float or list(float) or ~numpy.ndarray(float), optional
+            **Selection rule to select particular solutions (see** :meth:`get_filtered_solutions_list` **for more details.).**
+            List of parameters values to match to the solutions parameters values.
+            Can be a float if only one parameter is specified in the `parameters` arguments, otherwise a list or a :class:`~numpy.ndarray` array
+            must be provided.
+            If a list is provided, assuming `n` parameters were specified in the `parameters` argument
+            and`m` values are sought, it should be a nested list with the following structure:
+            `[[param1_value1, param1_value2, ..., param1_valuem], ..., [paramn_value1, paramn_value2, ..., paramn_valuem]]`
+            If a :class:`~numpy.ndarray` array is provided, with the same assumptions, it should be a 2-D array with shape (n, m) with the
+            parameters values.
+        variables_name: list(str) or None, optional
             The strings used to plot the axis labels. If `None` defaults to the AUTO labels.
-        tol: float or list(float) or ~numpy. ndarray(float)
-            The numerical tolerance of the values comparison if the selection rule based on parameters values is activated (by setting the arguments `parameters` and `values`).
+            Defaults to `None`.
+        tol: float or list(float) or ~numpy. ndarray(float), optional
+            The numerical tolerance of the values comparison if the selection rule based on parameters values is activated
+            (by setting the arguments `parameters` and `values`).
             If a single float is provided, assume the same tolerance for each parameter.
-            If a list or a 1-D array is passed, it must have the dimension of the number of parameters, each value in the array corresponding to a parameter.
-            Default is 0.01.
+            If a list or a 1-D array is passed, it must have the dimension of the number of parameters, each value in the
+            array corresponding to a parameter.
+            Default to `0.01`.
 
         Returns
         -------
-        matplotlib.pyplot axis objet:
-            An axis object showing the bifurcation diagram.
+        matplotlib.axes.Axes
+            A |Matplotlib| axis object with the plot of the solutions.
 
         """
 
@@ -1409,23 +1484,27 @@ class Continuation(ABC):
                        linewidth=None, plot_kwargs=None, labels=None, indices=None, parameter=None, value=None,
                        variables_name=None, tol=0.01):
         """
-        Plots the stored solutions for a given set of variables, using a 3 dimensional projection.
-        Fixed points are plotted using points, periodic orbits are plot as curves.
-        Solutions that are plotted are filtered here using the `get_filtered_solutions_list` method.
+        Plots the stored solutions for a given set of variables, using a 3-dimensional projection.
+        Fixed points are plotted using points, periodic orbits are plotted as curves.
+        Solutions that are plotted are filtered here using the selection rule-based :meth:`get_filtered_solutions_list` method.
+        However, if no selection rule is provided, it will plot all the solutions.
 
         Parameters
         ----------
-        variables: tuple(int, int, int), optional
-            The index of the variables plot.
-            The first value in the tuple determines the variable plot on the x-axis, the second the y-axis.
-            Defaults to `(0, 1, 2)`.
-        ax: matplotlib.axes.Axes, optional
-            A matplotlib axis object to plot on. If None, a new figure is created.
-        figsize: figsize: tuple(float, float), optional
+        variables: tuple(int or str, int or str, int or str), optional
+            The index or label of the variables shown in the plot.
+            If labels are used, it should be labels of the phase space variables
+            (if they have been defined in the AUTO configuration file) given by :meth:`phase_space_variables`.
+            The first value in the tuple determines the variable plot on the x-axis, the second determines the y-axis,
+            and the last value determines the z-axis.
+            Defaults to the first three variables: `(0, 1, 2)`.
+        ax: matplotlib.axes.Axes or None, optional
+            A |Matplotlib| axis object to plot on. If `None`, a new figure is created.
+        figsize: tuple(float, float), optional
             Dimension of the figure that is returned, only used if `ax` is not passed.
             Defaults to `(10, 8)`.
         markersize: float, optional
-            Size of the text plotted to display the bifurcation points. Defaults to `12.
+            Size of the text plotted to display the bifurcation points. Defaults to `12`.
         marker : str, optional
             The marker style used for plotting fixed points. If `None`, set to default marker.
         linestyle : str, optional
@@ -1434,28 +1513,44 @@ class Continuation(ABC):
             The width of the lines showing the periodic solutions. If `None`, set to the default.
         plot_kwargs: dict or None, optional
             Additional keyword arguments for the plotting function. Default is `None`.
-        labels: Iterable[str], optional
+        labels: str or list(str), optional
+            **Selection rule to select particular solutions (see** :meth:`get_filtered_solutions_list` **for more details.).**
             Label or list of labels to look for the solutions. Labels are two-characters string specifying the solutions types to return.
-            If `None`, solutions are not filtered by label. Default is `None`.
-        indices: int or list(int), optional Index or list of indices to look for the solutions.
-            AUTO index of solutions can be inquired for example by calling the :meth:`print_summary` method of a given :class:`Continuation` object.
-            This activates the selection rule based on indices and disable the others
-        parameter: str or list(str) or ~numpy. ndarray(str), optional
+            For example `'BP'` will return all the branching points of the continuations.
+            This activates the selection rule based on labels and disable the others.
+        indices: int or list(int), optional
+            **Selection rule to select particular solutions (see** :meth:`get_filtered_solutions_list` **for more details.).**
+            Index or list of indices to look for the solutions. AUTO index of solutions can be inquired for example by calling the
+            :meth:`print_summary` method of a given :class:`Continuation` object.
+            This activates the selection rule based on indices and disable the others.
+        parameter: str or list(str) or ~numpy.ndarray(str), optional
+            **Selection rule to select particular solutions (see** :meth:`get_filtered_solutions_list` **for more details.).**
             Parameter or list of parameters for which to match the solutions values to one provided by the `values` argument.
-        value: float or list(float) or ~numpy. ndarray(float), optional List of parameters values to match to the solutions parameters values.
-            Can be a float if only one parameter is specified in the `parameters` arguments, otherwise a list or a :class:`~numpy. ndarray` array must be provided.
-        variables_name: list[str] or None, optional
+        value: float or list(float) or ~numpy.ndarray(float), optional
+            **Selection rule to select particular solutions (see** :meth:`get_filtered_solutions_list` **for more details.).**
+            List of parameters values to match to the solutions parameters values.
+            Can be a float if only one parameter is specified in the `parameters` arguments, otherwise a list or a :class:`~numpy.ndarray` array
+            must be provided.
+            If a list is provided, assuming `n` parameters were specified in the `parameters` argument
+            and`m` values are sought, it should be a nested list with the following structure:
+            `[[param1_value1, param1_value2, ..., param1_valuem], ..., [paramn_value1, paramn_value2, ..., paramn_valuem]]`
+            If a :class:`~numpy.ndarray` array is provided, with the same assumptions, it should be a 2-D array with shape (n, m) with the
+            parameters values.
+        variables_name: list(str) or None, optional
             The strings used to plot the axis labels. If `None` defaults to the AUTO labels.
-        tol: float or list(float) or ~numpy. ndarray(float)
-            The numerical tolerance of the values comparison if the selection rule based on parameters values is activated (by setting the arguments `parameters` and `values`).
+            Defaults to `None`.
+        tol: float or list(float) or ~numpy. ndarray(float), optional
+            The numerical tolerance of the values comparison if the selection rule based on parameters values is activated
+            (by setting the arguments `parameters` and `values`).
             If a single float is provided, assume the same tolerance for each parameter.
-            If a list or a 1-D array is passed, it must have the dimension of the number of parameters, each value in the array corresponding to a parameter.
-            Default is 0.01.
+            If a list or a 1-D array is passed, it must have the dimension of the number of parameters, each value in the
+            array corresponding to a parameter.
+            Default to `0.01`.
 
         Returns
         -------
-        matplotlib.pyplot axis objet:
-            An axis object showing the bifurcation diagram, using a 3 dimensional projection.
+        matplotlib.axes.Axes
+            A |Matplotlib| axis object with the 3-dimensional plot of the solutions.
 
         """
 
@@ -1594,13 +1689,15 @@ class Continuation(ABC):
 
         Returns
         -------
-        bool:
+        solutions_in: bool
             `True` if the solutions are all contained in the other continuations according to the specified parameters.
-        ~numpy.ndarray:
+        solutions_in_values: ~numpy.ndarray:
             If `return_parameters` is `True`, an array with the values of the parameters for which the solutions of the two
             continuations match.
 
         """
+        # problem in the docstring above: no sphinx highlight of types due to https://github.com/sphinx-doc/sphinx/issues/9394
+        # letting the problem unsolved because a patch might come later
 
         res, params, sol = self.solutions_part_of(other, parameters, solutions_types, tol, True, True, None)
         if res:
@@ -1647,12 +1744,12 @@ class Continuation(ABC):
 
         Returns
         -------
-        bool:
+        part_of: bool
             `True` if the solutions are all contained in the other continuations according to the specified parameters.
-        ~numpy.ndarray:
+        solutions_part_of_values: ~numpy.ndarray:
             If `return_parameters` is `True`, an array with the values of the parameters for which the solutions of the two
             continuations match.
-        list(AUTO solution object):
+        solutions_part_of: list(AUTO solution object):
             If `return_solutions` is `True`, a list of the solutions which are included in the other Continuation object.
 
         """
@@ -1729,12 +1826,12 @@ class Continuation(ABC):
 
         Returns
         -------
-        bool:
+        crossing: bool
             `True` if the solutions are all contained in the other continuations according to the specified parameters.
-        ~numpy.ndarray:
+        crossing_values: ~numpy.ndarray
             If `return_parameters` is `True`, an array with the values of the parameters for which the solutions of the two
             continuations match.
-        list(AUTO solution object):
+        solutions_list: list(AUTO solution object)
             If `return_solutions` is `True`, a list of the solutions which are included in the other Continuation object.
 
         """
@@ -1782,7 +1879,7 @@ class Continuation(ABC):
 
         Returns
         -------
-        str:
+        str
             The summary.
         """
 
@@ -1834,15 +1931,15 @@ class Continuation(ABC):
 
         Returns
         -------
-        dict(list(bool)):
+        repeating: dict(list(bool))
             A dictionary with a list of boolean for each direction, indicating for each solution if it is repeating or not.
-        dict(~numpy.ndarray):
+        repeating_values: dict(~numpy.ndarray)
             If `return_parameters` is `True`, a dictionary with for each direction an array with the values of the parameters for the solutions
             are repeating.
-        dict(list(AUTO solution object)):
+        non_repeating_solutions_list: dict(list(AUTO solution object))
             If `return_non_repeating_solutions` is `True`, a dictionary with for each direction a list of the solutions which are
             included which do not repeat.
-        dict(list(AUTO solution object)):
+        repeating_solutions_list: dict(list(AUTO solution object))
             If `return_repeating_solutions` is `True`, a dictionary with for each direction a list of the solutions which are
             included which do repeat.
 

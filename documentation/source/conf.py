@@ -113,4 +113,6 @@ rst_epilog = """
    :format: html
 
 .. |AUTO| replace:: :raw-html:`<a href="https://github.com/auto-07p/auto-07p">AUTO</a>`
+.. |Matplotlib| replace:: :raw-html:`<a href="https://matplotlib.org/">Matplotlib</a>`
+
 """

@@ -13,7 +13,7 @@ to enhance the original AUTO-07p Python interface with a top layer which allows 
 * automate the continuation of as many branches as possible, branching whenever possible to construct full
   bifurcation trees, and finishing computations based on a predefined logic
   (meeting other branches, looping branches, etc...)
-* plot results with `Matplotlib`_
+* plot results with |Matplotlib|
 * perform these computation in `Jupyter`_ notebooks
 
 .. toctree::
@@ -21,9 +21,6 @@ to enhance the original AUTO-07p Python interface with a top layer which allows 
    :caption: Contents:
 
    files/references
-
-.. _Matplotlib: https://matplotlib.org
-.. _Jupyter: https://jupyter.org/
 
 Indices and tables
 ==================
