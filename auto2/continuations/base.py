@@ -4,7 +4,7 @@
     Continuation base class definition
     ==================================
 
-    This module implements the definition used by any subsequent continuation
+    This module implements the definition used by any subsequent continuation subclass
     in auto-AUTO.
 
 
@@ -66,7 +66,7 @@ class Continuation(ABC):
         Dictionary holding the forward and backward continuation data.
     branch_number: int
         The branch number attributed to the continuation(s).
-    initial_data: ~numpy.ndarray or AUTO solution object
+    initial_data: ~numpy.ndarray or AUTOSolution object
         The initial data used to start the continuation(s).
     auto_filename_suffix: str
         Suffix for the |AUTO| files used to save the continuation(s) data and parameters on disk.
@@ -141,7 +141,7 @@ class Continuation(ABC):
 
         Parameters
         ----------
-        initial_data: ~numpy.ndarray
+        initial_data: ~numpy.ndarray or AUTOSolution object
             Initial data used to start the continuation(s).
         auto_suffix: str
             Suffix to use for the |AUTO| and Pickle files used to save the continuation
@@ -739,7 +739,7 @@ class Continuation(ABC):
 
     @property
     def full_solutions_list_by_label(self):
-        """list(AUTO solution object): The full list of solutions sorted by labels of both forward and backward continuations."""
+        """list(AUTOSolution object): The full list of solutions sorted by labels of both forward and backward continuations."""
         sd = self.solutions_list_by_direction_and_by_label
         if sd['backward']:
             sl = sd['backward']
@@ -751,7 +751,7 @@ class Continuation(ABC):
 
     @property
     def full_solutions_list(self):
-        """list(AUTO solution object): The full list of solutions of the branch ordered from the last solution of the backward
+        """list(AUTOSolution object): The full list of solutions of the branch ordered from the last solution of the backward
          continuation to the last solution of the forward continuation."""
         sd = self.solutions_list_by_direction
         if sd['backward']:
@@ -767,7 +767,7 @@ class Continuation(ABC):
 
     @property
     def solutions_list_by_direction_and_by_label(self):
-        """dict(list(AUTO solution object)): The full list of solutions sorted by labels and direction for both forward
+        """dict(list(AUTOSolution object)): The full list of solutions sorted by labels and direction for both forward
         and backward continuations."""
         sd = dict()
         if self.solutions_label is not None:
@@ -791,7 +791,7 @@ class Continuation(ABC):
 
     @property
     def solutions_list_by_direction(self):
-        """dict(list(AUTO solution object)): The full list of solutions sorted by direction for both
+        """dict(list(AUTOSolution object)): The full list of solutions sorted by direction for both
         forward and backward continuations."""
         indices = self._solutions_python_auto_index
         labels = self.solutions_label
@@ -870,7 +870,7 @@ class Continuation(ABC):
 
         Returns
         -------
-        AUTO solution object
+        AUTOSolution object
             The sought AUTO solution object.
         """
         if self.continuation:
@@ -897,7 +897,7 @@ class Continuation(ABC):
 
         Returns
         -------
-        AUTO solution object
+        AUTOSolution object
             The sought AUTO solution object.
         """
         if self.continuation:
@@ -964,7 +964,7 @@ class Continuation(ABC):
 
         Returns
         -------
-        list(AUTO solution objects):
+        list(AUTOSolution objects):
             A list of the sought solutions
 
         """
@@ -1749,7 +1749,7 @@ class Continuation(ABC):
         solutions_part_of_values: ~numpy.ndarray:
             If `return_parameters` is `True`, an array with the values of the parameters for which the solutions of the two
             continuations match.
-        solutions_part_of: list(AUTO solution object):
+        solutions_part_of: list(AUTOSolution object):
             If `return_solutions` is `True`, a list of the solutions which are included in the other Continuation object.
 
         """
@@ -1831,7 +1831,7 @@ class Continuation(ABC):
         crossing_values: ~numpy.ndarray
             If `return_parameters` is `True`, an array with the values of the parameters for which the solutions of the two
             continuations match.
-        solutions_list: list(AUTO solution object)
+        solutions_list: list(AUTOSolution object)
             If `return_solutions` is `True`, a list of the solutions which are included in the other Continuation object.
 
         """
@@ -1936,10 +1936,10 @@ class Continuation(ABC):
         repeating_values: dict(~numpy.ndarray)
             If `return_parameters` is `True`, a dictionary with for each direction an array with the values of the parameters for the solutions
             are repeating.
-        non_repeating_solutions_list: dict(list(AUTO solution object))
+        non_repeating_solutions_list: dict(list(AUTOSolution object))
             If `return_non_repeating_solutions` is `True`, a dictionary with for each direction a list of the solutions which are
             included which do not repeat.
-        repeating_solutions_list: dict(list(AUTO solution object))
+        repeating_solutions_list: dict(list(AUTOSolution object))
             If `return_repeating_solutions` is `True`, a dictionary with for each direction a list of the solutions which are
             included which do repeat.
 
