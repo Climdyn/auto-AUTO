@@ -12,3 +12,10 @@ Base class module
 .. automodule:: auto2.continuations.base
     :show-inheritance:
     :members:
+
+Fixed points continuation module
+--------------------------------
+
+.. automodule:: auto2.continuations.fixed_points
+    :show-inheritance:
+    :members:

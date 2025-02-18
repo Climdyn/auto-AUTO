@@ -1,7 +1,7 @@
 """
 
     Fixed Point Continuation class definition
-    ==================================
+    =========================================
 
     This module implements the fixed point continuation methods.
 
@@ -95,11 +95,17 @@ class FixedPointContinuation(Continuation):
             Default to `False`.
         continuation_kwargs: dict
             Keyword arguments to be passed to the |AUTO| continuation.
-            See below for futher details
+            See below for further details.
 
-        Continuation Keyword Arguments
-        ------------------------------
-        See Section 10.8 in the |AUTO| documentation for further details.
+        Notes
+        -----
+
+        **AUTO Continuation Keyword Arguments**: See Section 10.8 in the |AUTO| documentation for further details.
+        We provide below the most important ones:
+
+        Other Parameters
+        ----------------
+
         DS: float, optional
             AUTO uses pseudo-arclength continuation for following solution families.
             The pseudo-arclength stepsize is the distance between the current solution and the next solution on a family.
@@ -121,7 +127,7 @@ class FixedPointContinuation(Continuation):
         ILP: int, optional
             If `ILP=0`: No detection of folds. This is the recommended choise in the AUTO documentation.
             If `ILP=1`: Detection of folds. To be used if subsequent fold continuation is intended.
-        SP: list[str], optional
+        SP: list(str), optional
             This constant controls the detection of bifurcations and adds stopping conditions.
             It is specified as a list of bifurcation type strings followed by an optional number.
             If this number is 0, then the detection of this bifurcation is turned off, and if it is missing then the detection is turned on.

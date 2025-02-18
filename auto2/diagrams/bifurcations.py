@@ -62,7 +62,9 @@ class BifurcationDiagram(object):
 
         * `'parameters'`: a dictionary of with the used continuation parameter and its value at which the `initial_data` (see below)
           is valid. I.e. its structure is `{'parameter_name': parameter_value}`.
-        * `'initial_data'`: a 1-D Numpy :class:`~numpy.ndarray` with the coordinates in phase space of the initial point.
+        * `'initial_data'`: a 1-D Numpy :class:`~numpy.ndarray` with the coordinates in phase space of the initial point, or an
+          AUTOSolution object.
+
     model_name: str
         The name of the loaded model. Used to load the .f90 file of the provided model.
     config_object: ~auto2.parsers.config.ConfigParser
@@ -202,6 +204,40 @@ class BifurcationDiagram(object):
             self._path_name = None
 
     def compute_fixed_points_diagram(self, initial_points=None, extra_comparison_parameters=None, comparison_tol=2.e-2, **continuation_kwargs):
+        """Method which starts the computation of a fixed points bifurcation diagrams using a set of provided initial points.
+
+        Parameters
+        ----------
+        initial_points: list(dict) or None, optional
+            List of initial fixed points to consider for computing the diagram.
+            Each entry in the list is a dictionary with the following two keys:
+
+            * `'parameters'`: a dictionary of with the used continuation parameter and its value at which the `initial_data` (see below)
+              is valid. I.e. its structure is `{'parameter_name': parameter_value}`. Can be overloaded by the values found in
+              the `continuation_kwargs`.
+            * `'initial_data'`: a 1-D Numpy :class:`~numpy.ndarray` with the coordinates in phase space of the initial point, or an
+              AUTOSolution object.
+
+            If `None`, recompute the fixed points already present in the :attr:`initial_points` class attribute.
+            Default to `None`.
+        extra_comparison_parameters: list(str or int) or None
+            List of extra parameters labels or numbers to use in the various comparison to determine the validity of the continuations.
+            If `None`, only the defaults parameters will be considered, i.e. the continuation parameter and the `L2` norm.
+            Otherwise, the specified parameters are added to the two default ones.
+            Default to `None`.
+        comparison_tol: float or list(float) or ~numpy.ndarray(float), optional
+            The numerical tolerance of the parameters comparison done to check the continuations validity.
+            If a single float is provided, assume the same tolerance for each parameter.
+            If a list or a 1-D array is passed, it must have the dimension `2+len(extra_comparison_parameters)`, each value in the
+            array corresponding to a parameter.
+            Default to `0.02`.
+        continuation_kwargs: dict
+            Parameters to pass to AUTO for each continuation.
+            See the :meth:`~auto2.continuations.fixed_points.FixedPointContinuation.make_continuation` method of the
+            :class:`~~auto2.continuations.fixed_points.FixedPointContinuation` class for more details
+            about the available AUTO parameters.
+
+        """
 
         logger.info('Starting the computation of the fixed points bifurcation diagram with model '+str(self.model_name))
 
