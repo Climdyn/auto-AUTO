@@ -1,3 +1,13 @@
+
+"""
+
+Bifurcation diagram class definition
+====================================
+
+This module defines the bifurcation diagram object used in auto-AUTO.
+
+"""
+
 import os
 import sys
 import warnings
@@ -36,17 +46,68 @@ from auto.parseS import AUTOSolution
 class BifurcationDiagram(object):
 
     def __init__(self, model_name=None, path_name=None):
+        """Base class for any continuation in auto-AUTO.
+
+        Parameters
+        ----------
+        model_name: str
+            The name of the model to load. Used to load the .f90 file of the provided model.
+        path_name: str, optional
+            The directory path where files are read/saved.
+            If `None`, defaults to current working directory.
+
+        Attributes
+        ----------
+        initial_points:
+            List of initial points used to start the bifurcation diagram
+        model_name: str
+            The name of the loaded model. Used to load the .f90 file of the provided model.
+        config_object: ~auto2.parsers.config.ConfigParser
+            The ConfigParser object used during the continuations.
+        fp_branches: dict(Continuation)
+            Dictionary holding the continuations of the fixed points of the bifurcation diagram, each labelled by their
+            branch number (i.e. dictionary keys are the branch number).
+        po_branches: dict(Continuation)
+            Dictionary holding the continuations of the periodic orbits of the bifurcation diagram, each labelled by their
+            branch number (i.e. dictionary keys are the branch number).
+        fp_parent: dict(int or None)
+            Dictionary holding the branch number of the parents of a given fixed point branch (whose branch number is the dictionary key).
+            `None` if there is no parent branch.
+        fp_branches_with_all_bp_computed: list(int)
+            List of fixed point branch number for which all the branching points of the branch have been continued.
+        fp_branches_with_all_hb_computed: list(int)
+            List of fixed point branch number for which all the Hopf bifurcations of the branch have been continued.
+        computed_bp_by_fp_branch: dict(list(int))
+            List of solution indices of branching points which have been continued for each fixed point branch
+            (indexed by their branch number forming the dictionary keys).
+        computed_hb_by_fp_branch: dict(list(int))
+            List of solution indices of Hopf bifurcations which have been continued for each fixed point branch
+            (indexed by their branch number forming the dictionary keys).
+        po_parent: dict(int or None)
+            Dictionary holding the branch number of the parents of a given periodic orbit branch (whose branch number is the dictionary key).
+            `None` if there is no parent branch.
+        po_branches_with_all_bp_computed: list(int)
+            List of periodic orbit branch number for which all the branching points of the branch have been continued.
+        po_branches_with_all_pd_computed: list(int)
+            List of periodic orbit branch number for which all the period doubling bifurcations of the branch have been continued.
+        computed_bp_by_fp_branch: dict(list(int))
+            List of solution indices of branching points which have been continued for periodic orbit each branch
+            (indexed by their branch number forming the dictionary keys).
+        valid_bp_by_po_branch:
+
+        computed_pd_by_fp_branch: dict(list(int))
+            List of solution indices of Hopf bifurcations which have been continued for periodic orbit each branch
+            (indexed by their branch number forming the dictionary keys).
+        valid_pd_by_po_branch:
+
+        """
 
         self.initial_points = None
         self.model_name = model_name
-        if path_name is None:
-            self._path_name = None
-        else:
-            if os.path.exists(path_name):
-                self._path_name = path_name
-            else:
-                warnings.warn("Path name given does not exist.")
-                self._path_name = None
+
+        self._path_name = None
+        if path_name is not None:
+            self.set_path_name(path_name)
 
         if model_name is not None:
             filepath = 'c.'+model_name if self._path_name is None else os.path.join(self._path_name, 'c.'+model_name)
@@ -78,6 +139,25 @@ class BifurcationDiagram(object):
         self._comparison_solutions_types = ('HB', 'BP', 'UZ', 'PD', 'EP', 'TR', 'LP')
         self._figure_legend_handles = list()
         self._figure_3d_legend_handles = list()
+
+    @property
+    def path_name(self):
+        """str: The path where the |AUTO| and AUTO² files must be or are stored."""
+        return self._path_name
+
+    def set_path_name(self, path_name):
+        """Set the path where the |AUTO| and AUTO² files must be or are stored.
+
+        Parameters
+        ----------
+        path_name: str
+            The path.
+        """
+        if os.path.exists(path_name):
+            self._path_name = path_name
+        else:
+            warnings.warn("Path name given does not exist. Using the current working directory.")
+            self._path_name = None
 
     def compute_fixed_points_diagram(self, initial_points=None, extra_comparison_parameters=None, comparison_tol=2.e-2, **continuation_kwargs):
 
