@@ -44,63 +44,105 @@ from auto.parseS import AUTOSolution
 
 
 class BifurcationDiagram(object):
+    """Base class for any continuation in auto-AUTO.
+
+    Parameters
+    ----------
+    model_name: str
+        The name of the model to load. Used to load the .f90 file of the provided model.
+    path_name: str, optional
+        The directory path where files are read/saved.
+        If `None`, defaults to current working directory.
+
+    Attributes
+    ----------
+    initial_points: list(dict)
+        List of initial points used to start the bifurcation diagram. It has the following structure:
+        Each point is an entry in the list and is specified with a dictionary with the following two keys:
+
+        * `'parameters'`: a dictionary of with the used continuation parameter and its value at which the `initial_data` (see below)
+          is valid. I.e. its structure is `{'parameter_name': parameter_value}`.
+        * `'initial_data'`: a 1-D Numpy :class:`~numpy.ndarray` with the coordinates in phase space of the initial point.
+    model_name: str
+        The name of the loaded model. Used to load the .f90 file of the provided model.
+    config_object: ~auto2.parsers.config.ConfigParser
+        The ConfigParser object used during the continuations.
+    fp_branches: dict
+        Dictionary holding the continuations data of the fixed points of the bifurcation diagram, each labelled by their
+        branch number (i.e. dictionary keys are the branch number).
+        Each entry of the dictionary is itself a dictionary characterizing te branch and with the following entries:
+
+        * `'parameters'`: A list of the parameters values used to start the continuation(s).
+        * `'continuation'`: A :class:`~auto2.continuations.base.Continuation` object including the continuation(s) data.
+        * `'continuation_kwargs'`: A dictionary containing the AUTO parameters used to start the continuation(s).
+    po_branches: dict
+        Dictionary holding the continuations of the periodic orbits of the bifurcation diagram, each labelled by their
+        branch number (i.e. dictionary keys are the branch number).
+        Each entry of the dictionary is itself a dictionary characterizing te branch and with the following entries:
+
+        * `'parameters'`: A list of the parameters values used to start the continuation(s).
+        * `'continuation'`: A :class:`~auto2.continuations.base.Continuation` object including the continuation(s) data.
+        * `'continuation_kwargs'`: A dictionary containing the AUTO parameters used to start the continuation(s).
+    fp_parent: dict(int or None)
+        Dictionary holding the branch number of the parents of a given fixed point branch (whose branch number is the dictionary key).
+        `None` if there is no parent branch.
+    fp_branches_with_all_bp_computed: list(int)
+        List of fixed point branch number for which all the branching points of the branch have been continued.
+    fp_branches_with_all_hb_computed: list(int)
+        List of fixed point branch number for which all the Hopf bifurcations of the branch have been continued.
+    computed_bp_by_fp_branch: dict(list(int))
+        List of solution label number of branching points which have been continued for each fixed point branch
+        (indexed by their branch number forming the dictionary keys).
+        E.g. for a given branch, `[1, 2]` indicates that the branches emanating from
+        the first and second branching points on the `forward` continuation have been computed.
+        Negative label numbers indicate branching points on the `backward` continuation.
+    computed_hb_by_fp_branch: dict(list(int))
+        List of solution label number of Hopf bifurcations which have been continued for each fixed point branch
+        (indexed by their branch number forming the dictionary keys).
+        E.g. for a given branch, `[1, 2]` indicates that the branches emanating from
+        the first and second Hopf points on the `forward` continuation have been computed.
+        Negative label numbers indicate branching points on the `backward` continuation.
+    po_parent: dict(int or None)
+        Dictionary holding the branch number of the parents of a given periodic orbit branch (whose branch number is the dictionary key).
+        `None` if there is no parent branch.
+    po_branches_with_all_bp_computed: list(int)
+        List of periodic orbit branch number for which all the branching points of the branch have been continued.
+    po_branches_with_all_pd_computed: list(int)
+        List of periodic orbit branch number for which all the period doubling bifurcations of the branch have been continued.
+    computed_bp_by_po_branch: dict(list(int))
+        List of solution label number of branching points which have been continued for each periodic orbit
+        (indexed by their branch number forming the dictionary keys).
+        E.g. for a given branch, `[1, 2]` indicates that the branches emanating from
+        the first and second branching points on the `forward` continuation have been computed.
+        Negative label numbers indicate branching points on the `backward` continuation.
+    valid_bp_by_po_branch:
+        List of solution label number periodic orbit branching points which have resulted in a valid continuation for each periodic orbit
+        (indexed by their branch number forming the dictionary keys).
+        E.g. for a given branch, `[1, 2]` indicates that the branches emanating from
+        the first and second periodic orbit branching points on the `forward` continuation were valid.
+        Negative label numbers indicate branching points on the `backward` continuation.
+        **A valid continuation is a continuation for which no subset is identified with another branch or another part of itself (loops).**
+    computed_pd_by_po_branch: dict(list(int))
+        List of solution label number of period doubling bifurcations which have been continued for each periodic orbit
+        (indexed by their branch number forming the dictionary keys).
+        E.g. for a given branch, `[1, 2]` indicates that the branches emanating from
+        the first and second period doubling points on the `forward` continuation have been computed.
+        Negative label numbers indicate branching points on the `backward` continuation.
+    valid_pd_by_po_branch: dict(list(int))
+        List of solution label number of period doubling bifurcations which have resulted in a valid continuation for each periodic orbit
+        (indexed by their branch number forming the dictionary keys).
+        E.g. for a given branch, `[1, 2]` indicates that the branches emanating from
+        the first and second period doubling points on the `forward` continuation were valid.
+        Negative label numbers indicate branching points on the `backward` continuation.
+        **A valid continuation is a continuation for which no subset is identified with another branch or another part of itself (loops).**
+    fp_computed: bool
+        Whether all the fixed points continuations possibilities of the bifurcation diagram have been computed.
+    po_computed: bool
+        Whether all the periodic orbits continuations possibilities of the bifurcation diagram have been computed.
+
+    """
 
     def __init__(self, model_name=None, path_name=None):
-        """Base class for any continuation in auto-AUTO.
-
-        Parameters
-        ----------
-        model_name: str
-            The name of the model to load. Used to load the .f90 file of the provided model.
-        path_name: str, optional
-            The directory path where files are read/saved.
-            If `None`, defaults to current working directory.
-
-        Attributes
-        ----------
-        initial_points:
-            List of initial points used to start the bifurcation diagram
-        model_name: str
-            The name of the loaded model. Used to load the .f90 file of the provided model.
-        config_object: ~auto2.parsers.config.ConfigParser
-            The ConfigParser object used during the continuations.
-        fp_branches: dict(Continuation)
-            Dictionary holding the continuations of the fixed points of the bifurcation diagram, each labelled by their
-            branch number (i.e. dictionary keys are the branch number).
-        po_branches: dict(Continuation)
-            Dictionary holding the continuations of the periodic orbits of the bifurcation diagram, each labelled by their
-            branch number (i.e. dictionary keys are the branch number).
-        fp_parent: dict(int or None)
-            Dictionary holding the branch number of the parents of a given fixed point branch (whose branch number is the dictionary key).
-            `None` if there is no parent branch.
-        fp_branches_with_all_bp_computed: list(int)
-            List of fixed point branch number for which all the branching points of the branch have been continued.
-        fp_branches_with_all_hb_computed: list(int)
-            List of fixed point branch number for which all the Hopf bifurcations of the branch have been continued.
-        computed_bp_by_fp_branch: dict(list(int))
-            List of solution indices of branching points which have been continued for each fixed point branch
-            (indexed by their branch number forming the dictionary keys).
-        computed_hb_by_fp_branch: dict(list(int))
-            List of solution indices of Hopf bifurcations which have been continued for each fixed point branch
-            (indexed by their branch number forming the dictionary keys).
-        po_parent: dict(int or None)
-            Dictionary holding the branch number of the parents of a given periodic orbit branch (whose branch number is the dictionary key).
-            `None` if there is no parent branch.
-        po_branches_with_all_bp_computed: list(int)
-            List of periodic orbit branch number for which all the branching points of the branch have been continued.
-        po_branches_with_all_pd_computed: list(int)
-            List of periodic orbit branch number for which all the period doubling bifurcations of the branch have been continued.
-        computed_bp_by_fp_branch: dict(list(int))
-            List of solution indices of branching points which have been continued for periodic orbit each branch
-            (indexed by their branch number forming the dictionary keys).
-        valid_bp_by_po_branch:
-
-        computed_pd_by_fp_branch: dict(list(int))
-            List of solution indices of Hopf bifurcations which have been continued for periodic orbit each branch
-            (indexed by their branch number forming the dictionary keys).
-        valid_pd_by_po_branch:
-
-        """
 
         self.initial_points = None
         self.model_name = model_name
