@@ -11,7 +11,7 @@ to enhance the original AUTO-07p Python interface with a top layer which allows 
 * automate the continuation of as many branches as possible, branching whenever possible to construct full
   bifurcation trees, and finishing computations based on a predefined logic
   (meeting other branches, looping branches, etc...)
-* plot results with |Matplotlib|
+* plot results with [Matplotlib](https://matplotlib.org)
 * perform these computations in [Jupyter](https://jupyter.org) notebooks
 
 About
@@ -33,20 +33,17 @@ Installation
 
 Here how to install AUTO from GitHub:
 
-* First clone the AUTO repository somewhere:
-
+First clone the AUTO repository somewhere:
 
     git clone https://github.com/auto-07p/auto-07p.git
 
-* Then in a terminal, in the created folder, run:
-
+Then in a terminal, in the created folder, run:
 
     ./configure
     make
 
-* Your AUTO installation should now be finished, but you still need to add the 
+Your AUTO installation should now be finished, but you still need to add the 
 following line to your `.bashrc` file:
-
 
     source [path-to-auto-07p]/cmds/auto.env.sh
 
@@ -97,7 +94,6 @@ To build the documentation, please run (with the conda environment activated):
     cd documentation
     make html
 
-You may need to install [make](https://www.gnu.org/software/make/) if it is not already present on your system.
 Once built, the documentation is available [here](./documentation/build/html/index.html).
 
 Forthcoming developments
