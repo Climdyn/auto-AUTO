@@ -9,4 +9,5 @@ Documentation of the classes and functions of AUTO².
 
    technical/continuations
    technical/diagrams
+   technical/parsers
 
