@@ -47,13 +47,18 @@ following line to your `.bashrc` file:
 
     source [path-to-auto-07p]/cmds/auto.env.sh
 
-In addition, we recommend that you edit this file so that the `AUTO_DIR` environment 
+In addition, we recommend that you edit the file `auto.env.sh` so that the `AUTO_DIR` environment 
 variable specified there points to the correct folder where you installed AUTO.
 
  > Be sure to have all the AUTO requirements pre-installed. See AUTO documentation for 
 > more details. In case of issues, we recommend reading the documentation completely.
 
-After that last step, you have AUTO properly configured and are ready to install auto-AUTO.
+After that last step, you should be able to launch AUTO in command line by typing:
+
+    auto
+
+If it works, you will end up in the AUTO Python prompt.
+It means you have AUTO properly configured and are ready to install auto-AUTO.
 
 > If AUTO version is changing over time, you need to update the version from GitHub and do
 > the installation again.
