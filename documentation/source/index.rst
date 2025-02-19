@@ -22,6 +22,8 @@ to enhance the original AUTO-07p Python interface with a top layer which allows 
 
    files/references
 
+.. _Jupyter: https://jupyter.org/
+
 Indices and tables
 ==================
 
