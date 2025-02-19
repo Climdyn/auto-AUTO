@@ -1,0 +1,4 @@
+
+Rationale behind auto-AUTO
+==========================
+
