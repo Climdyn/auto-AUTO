@@ -19,3 +19,10 @@ Fixed points continuation module
 .. automodule:: auto2.continuations.fixed_points
     :show-inheritance:
     :members:
+
+Periodic orbits continuation module
+-----------------------------------
+
+.. automodule:: auto2.continuations.periodic_orbits
+    :show-inheritance:
+    :members:
