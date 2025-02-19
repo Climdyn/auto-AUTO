@@ -220,7 +220,7 @@ class BifurcationDiagram(object):
 
             If `None`, recompute the fixed points already present in the :attr:`initial_points` class attribute.
             Default to `None`.
-        extra_comparison_parameters: list(str or int) or None
+        extra_comparison_parameters: list(str or int) or None, optional
             List of extra parameters labels or numbers to use in the various comparison to determine the validity of the continuations.
             If `None`, only the defaults parameters will be considered, i.e. the continuation parameter and the `L2` norm.
             Otherwise, the specified parameters are added to the two default ones.
@@ -234,7 +234,7 @@ class BifurcationDiagram(object):
         continuation_kwargs: dict
             Parameters to pass to AUTO for each continuation.
             See the :meth:`~auto2.continuations.fixed_points.FixedPointContinuation.make_continuation` method of the
-            :class:`~~auto2.continuations.fixed_points.FixedPointContinuation` class for more details
+            :class:`~auto2.continuations.fixed_points.FixedPointContinuation` class for more details
             about the available AUTO parameters.
 
         """
@@ -376,7 +376,53 @@ class BifurcationDiagram(object):
         self.fp_computed = True
 
     def compute_periodic_orbits_diagram(self, end_level=10, extra_comparison_parameters=None, comparison_tol=2.e-2,
-                                        remove_dubious_bp=True, max_number_bp=None, max_number_bp_detected=None, backward_bp_continuation=False, **continuation_kwargs):
+                                        remove_dubious_bp=True, max_number_bp=None, max_number_bp_detected=None,
+                                        backward_bp_continuation=False, **continuation_kwargs):
+        """Method which starts the computation of the periodic orbits of a bifurcation diagram where
+        the fixed points have already been continued. It will start by continuing the Hopf bifurcations, then the resulting branching
+        and period doubling points. Each computation is done level by level in the the developing tree of the bifurcation
+        diagram. For instance, fixed point continuation is the level `0`, and the continuations of the Hopf bifurcations form
+        the level `1`. Computation stops either if all the bifurcation points have been computed/continued, or if a specified level of the
+        tree has been reached.
+
+        Parameters
+        ----------
+        end_level: int, optional
+            Level of the periodic orbits bifurcation diagram tree where the computation must stop.
+            Defaults to `10`.
+        extra_comparison_parameters: list(str or int) or None, optional
+            List of extra parameters labels or numbers to use in the various comparison to determine the validity of the continuations.
+            If `None`, only the defaults parameters will be considered, i.e. the continuation parameter and the `L2` norm.
+            Otherwise, the specified parameters are added to the two default ones.
+            Default to `None`.
+        comparison_tol: float or list(float) or ~numpy.ndarray(float), optional
+            The numerical tolerance of the parameters comparison done to check the continuations validity.
+            If a single float is provided, assume the same tolerance for each parameter.
+            If a list or a 1-D array is passed, it must have the dimension `2+len(extra_comparison_parameters)`, each value in the
+            array corresponding to a parameter.
+            Default to `0.02`.
+        remove_dubious_bp: bool, optional
+            Do not compute continuation of branching points for which the stability information include HUGE numbers, indicating
+            a possible problem in the parent continuation.
+        max_number_bp: int or None, optional
+            Only continue the first `max_number_bp` branching points of the parent branches.
+            If `None`, continue all the branching points of the parent branches.
+            Defaults to `None`.
+        max_number_bp_detected: int or None, optional
+            Number of branching points detected during the continuations of periodic orbits,
+            before turning off the detection of branching points.
+            If `None`, the detection of branching points is never turned off.
+            Defaults to `None`.
+        backward_bp_continuation: bool, optional
+            Compute also the `backward` continuation at the branching points.
+            Defaults to `False`.
+        continuation_kwargs: dict
+            Parameters to pass to AUTO for each continuation.
+            See the :meth:`~auto2.continuations.periodic_orbits.PeriodicOrbitContinuation.make_continuation` method of the
+            :class:`~auto2.continuations.periodic_orbits.PeriodicOrbitContinuation` class for more details
+            about the available AUTO parameters.
+
+        """
 
         logger.info('Starting the computation of the periodic orbits bifurcation diagram with model '+str(self.model_name))
         logger.info('Computing periodic orbits up to level '+str(end_level))
@@ -472,6 +518,54 @@ class BifurcationDiagram(object):
     def restart_periodic_orbits_diagram(self, end_level=10, extra_comparison_parameters=None, comparison_tol=2.e-2,
                                         remove_dubious_bp=True, max_number_bp=None, max_number_bp_detected=None,
                                         backward_bp_continuation=False, restart=True, **continuation_kwargs):
+        """Method which restarts the computation of the periodic orbits of a bifurcation diagram stopped previously at a certain level
+        of the developing tree of the bifurcation diagram.
+        Each computation is done level by level in the the developing tree of the bifurcation diagram.
+        For instance, fixed point continuation is the level `0`, and the continuations of the Hopf bifurcations form
+        the level `1`. Computation stops either if all the bifurcation points have been computed/continued, or if a specified level of the
+        tree has been reached.
+
+        Parameters
+        ----------
+        end_level: int, optional
+            Level of the periodic orbits bifurcation diagram tree where the computation must stop.
+            Defaults to `10`.
+        extra_comparison_parameters: list(str or int) or None, optional
+            List of extra parameters labels or numbers to use in the various comparison to determine the validity of the continuations.
+            If `None`, only the defaults parameters will be considered, i.e. the continuation parameter and the `L2` norm.
+            Otherwise, the specified parameters are added to the two default ones.
+            Default to `None`.
+        comparison_tol: float or list(float) or ~numpy.ndarray(float), optional
+            The numerical tolerance of the parameters comparison done to check the continuations validity.
+            If a single float is provided, assume the same tolerance for each parameter.
+            If a list or a 1-D array is passed, it must have the dimension `2+len(extra_comparison_parameters)`, each value in the
+            array corresponding to a parameter.
+            Default to `0.02`.
+        remove_dubious_bp: bool, optional
+            Do not compute continuation of branching points for which the stability information include HUGE numbers, indicating
+            a possible problem in the parent continuation.
+        max_number_bp: int or None, optional
+            Only continue the first `max_number_bp` branching points of the parent branches.
+            If `None`, continue all the branching points of the parent branches.
+            Defaults to `None`.
+        max_number_bp_detected: int or None, optional
+            Number of branching points detected during the continuations of periodic orbits,
+            before turning off the detection of branching points.
+            If `None`, the detection of branching points is never turned off.
+            Defaults to `None`.
+        backward_bp_continuation: bool, optional
+            Compute also the `backward` continuation at the branching points.
+            Defaults to `False`.
+        restart: bool, optional
+            Whether to restart or simply start the computation of the periodic orbits bifurcation diagram.
+            Defaults to `True` which means restart.
+        continuation_kwargs: dict
+            Parameters to pass to AUTO for each continuation.
+            See the :meth:`~auto2.continuations.periodic_orbits.PeriodicOrbitContinuation.make_continuation` method of the
+            :class:`~auto2.continuations.periodic_orbits.PeriodicOrbitContinuation` class for more details
+            about the available AUTO parameters.
+
+        """
 
         if self.po_computed:
             logger.info('Computation up to level ' + str(end_level) + ' was asked but bifurcation diagram is complete.')
@@ -728,8 +822,43 @@ class BifurcationDiagram(object):
                 self.po_computed = True
                 logger.info('All possible periodic orbit branches have been computed.')
 
-    def add_periodic_orbit(self, initial_data, extra_comparison_parameters=None, comparison_tol=2.e-2, max_number_bp_detected=None, only_forward=False,
-                           **continuation_kwargs):
+    def add_periodic_orbit(self, initial_data, extra_comparison_parameters=None, comparison_tol=2.e-2,
+                           max_number_bp_detected=None, only_forward=False, **continuation_kwargs):
+        """Continue and then add manually a given periodic orbit to the periodic orbit bifurcation diagram.
+
+        Parameters
+        ----------
+        initial_data: AUTOSolution or str
+            Initial data used to start the continuation(s). Should be an AUTOSolution or a string indicating the path to
+            a file containing the data of the periodic orbit to start from. See the `dat` parameter in the AUTO parameters
+            documentation for more detail about how this data file must be organized (you can also find this documented
+            below).
+        extra_comparison_parameters: list(str or int) or None, optional
+            List of extra parameters labels or numbers to use in the various comparison to determine the validity of the continuations.
+            If `None`, only the defaults parameters will be considered, i.e. the continuation parameter and the `L2` norm.
+            Otherwise, the specified parameters are added to the two default ones.
+            Default to `None`.
+        comparison_tol: float or list(float) or ~numpy.ndarray(float), optional
+            The numerical tolerance of the parameters comparison done to check the continuations validity.
+            If a single float is provided, assume the same tolerance for each parameter.
+            If a list or a 1-D array is passed, it must have the dimension `2+len(extra_comparison_parameters)`, each value in the
+            array corresponding to a parameter.
+            Default to `0.02`.
+        max_number_bp_detected: int or None, optional
+            Number of branching points detected during the continuations of periodic orbits,
+            before turning off the detection of branching points.
+            If `None`, the detection of branching points is never turned off.
+            Defaults to `None`.
+        only_forward: bool, optional
+            If `True`, compute only the forward continuation (positive `DS` parameter).
+            If `False`, compute in both backward and forward direction.
+            Default to `False`.
+        continuation_kwargs: dict
+            Parameters to pass to AUTO for each continuation.
+            See the :meth:`~auto2.continuations.periodic_orbits.PeriodicOrbitContinuation.make_continuation` method of the
+            :class:`~auto2.continuations.periodic_orbits.PeriodicOrbitContinuation` class for more details
+            about the available AUTO parameters.
+        """
 
         logger.info('Continuing manually PO provided by user')
 
@@ -888,6 +1017,25 @@ class BifurcationDiagram(object):
             self.po_branches[branch_number]['continuation'].save()
 
     def save(self, filename=None, **kwargs):
+        """Save the |AUTO| files and the branch parameters and metadata for the whole
+        bifurcation diagram.
+        The continuation branches parameters and metadata will be stored in a Pickle file
+        according to given naming convention.
+        The data and metadata of the bifurcation diagram will be stored in a separate Pickle
+        file with a provided file name.
+
+
+        Parameters
+        ----------
+        filename: str or None, optional
+            The filename used to store parameters and metadata of the bifurcation diagram
+            to disk in Pickle format.
+            If `None`, will assign a default generic name.
+            Default is `None`.
+        kwargs: dict, optional
+            Keyword arguments passed to Pickle.
+
+        """
         self._save_fp_branches()
         self._save_po_branches()
         if filename is None:
@@ -899,6 +1047,21 @@ class BifurcationDiagram(object):
             pickle.dump(state, f, **kwargs)
 
     def load(self, filename, load_initial_data=True, **kwargs):
+        """Load the |AUTO| files and the branch parameters and metadata corresponding to a whole
+        bifurcation diagram.
+
+        Parameters
+        ----------
+        filename: str
+            The filename from which to load Pickle file with the parameters and
+            metadata of the bifurcation diagram.
+        load_initial_data: bool, optional
+            Load nor not the initial data into the BifurcationDiagram object.
+            Default to `True`.
+        kwargs: dict, optional
+            Keyword arguments passed to Pickle.
+
+        """
         try:
             filepath = filename if self._path_name is None else os.path.join(self._path_name, filename)
             with open(filepath, 'rb') as f:
@@ -1712,13 +1875,26 @@ class BifurcationDiagram(object):
 
     @property
     def number_of_fp_branches(self):
+        """int: Number of fixed points continuation branches
+        in the bifurcation diagram."""
         return len(self.fp_branches.keys())
 
     @property
     def number_of_po_branches(self):
+        """int: Number of periodic orbits continuation branches
+        in the bifurcation diagram."""
         return len(self.po_branches.keys())
 
     def get_continuation(self, idx):
+        """Get the continuation dictionary of a give branch,
+        indexed by his branch number.
+
+        Parameters
+        ----------
+        idx: int
+            The branch number of the sought branch continuation dictionary.
+
+        """
         if idx in self.fp_branches:
             return self.fp_branches[idx]['continuation']
         elif idx in self.po_branches:
@@ -1728,6 +1904,8 @@ class BifurcationDiagram(object):
 
     @property
     def periodic_orbits_variables_list(self):
+        """list(str): Returns the list of variable names used in
+        the periodic orbits continuations."""
         for branch_number in self.po_branches:
             branch = self.get_continuation(branch_number)
             sl = branch.available_variables
@@ -1737,6 +1915,8 @@ class BifurcationDiagram(object):
 
     @property
     def fixed_points_variables_list(self):
+        """list(str): Returns the list of variable names used in
+        the fixed points continuations."""
         for branch_number in self.fp_branches:
             branch = self.get_continuation(branch_number)
             sl = branch.available_variables
@@ -1746,6 +1926,8 @@ class BifurcationDiagram(object):
 
     @property
     def fixed_points_solutions_list(self):
+        """list(AUTOSolution): list of all the fixed points solutions
+        of the bifurcation diagram."""
         sl = list()
         for branch_number in self.fp_branches:
             branch = self.get_continuation(branch_number)
@@ -1754,6 +1936,8 @@ class BifurcationDiagram(object):
 
     @property
     def periodic_orbits_solutions_list(self):
+        """list(AUTOSolution): list of all the periodic orbits solutions
+        of the bifurcation diagram."""
         sl = list()
         for branch_number in self.po_branches:
             branch = self.get_continuation(branch_number)
@@ -1762,6 +1946,8 @@ class BifurcationDiagram(object):
 
     @property
     def full_solutions_list(self):
+        """list(AUTOSolution): list of all the solutions
+        of the bifurcation diagram."""
         sl = self.fixed_points_solutions_list
         sl.extend(self.periodic_orbits_solutions_list)
         return sl
