@@ -29,7 +29,7 @@ Installation
 #### Installing AUTO
 
 > To use auto-AUTO, you need the [bleeding edge version of AUTO](https://github.com/auto-07p/auto-07p) available 
-> on Github for this codebase to work properly !
+> on GitHub for this codebase to work properly !
 
 Here how to install AUTO from GitHub:
 
@@ -106,8 +106,8 @@ Forthcoming developments
 
 * Regime diagrams object
 
-Contributing to qgs
--------------------
+Contributing to auto-AUTO
+-------------------------
 
 If you want to contribute actively, please contact the main authors.
 

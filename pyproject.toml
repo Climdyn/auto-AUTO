@@ -12,7 +12,7 @@ description = "An AUTO-07p automatic search algorithm codebase"
 readme = "README.md"
 authors = [
     { name = "Jonathan Demaeyer", email = "jodemaey@meteo.be" },
-    { name = "Oísin Hamilton", email = "jodemaey@meteo.be" },
+    { name = "Oísin Hamilton", email = "oisin.hamilton@meteo.be" },
 ]
 license = { file = "LICENSE.txt" }
 classifiers = [
@@ -38,7 +38,7 @@ dependencies = [
 
 [project.urls]
 homepage = "https://github.com/Climdyn/auto-AUTO"
-documentation = "https://auto2.readthedocs.io"
+documentation = "https://auto-auto.readthedocs.io"
 
 [tool.setuptools]
 packages = ["auto2",

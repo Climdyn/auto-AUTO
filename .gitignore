@@ -13,4 +13,5 @@ __pycache__
 clean
 *.log
 build
-
+*.egg-info
+dist
