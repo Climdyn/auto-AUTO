@@ -65,7 +65,12 @@ It means you have AUTO properly configured and are ready to install auto-AUTO.
 
 #### Installing auto-AUTO with pip
 
-TODO
+The easiest way to install and run qgs is to use [pip](https://pypi.org/).
+Type in a terminal
+
+    pip install auto-AUTO
+
+and you are set!
 
 #### Installing auto-AUTO with Anaconda
 
@@ -100,6 +105,8 @@ To build the documentation, please run (with the conda environment activated):
     make html
 
 Once built, the documentation is available [here](./documentation/build/html/index.html).
+
+The documentation is also available online on read the docs: [https://auto-auto.readthedocs.io/](https://auto-auto.readthedocs.io/)
 
 Forthcoming developments
 ------------------------
