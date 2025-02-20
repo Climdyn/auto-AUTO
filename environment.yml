@@ -1,6 +1,7 @@
 name: auto2
 channels:
   - conda-forge
+  - numba
   - defaults
 dependencies:
   - python>=3.8
@@ -8,6 +9,8 @@ dependencies:
   - jupyter
   - matplotlib>=3.4
   - numpy
+  - numba
+  - scipy
   - sphinx
   - sphinx_rtd_theme>0.5.1
   - pytest
