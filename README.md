@@ -5,7 +5,7 @@ auto-AUTO (or AUTO²)
 [![PyPI version](https://badge.fury.io/py/auto-auto.svg)](https://badge.fury.io/py/auto-auto)
 [![PyPI pyversions](https://img.shields.io/pypi/pyversions/auto-auto.svg)](https://pypi.org/project/auto-auto/)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14901321.svg)](https://doi.org/10.5281/zenodo.14901321)
-[![Documentation Status](https://readthedocs.org/projects/auto-auto/badge/?version=latest)](https://auto-auto.readthedocs.io/en/latest/?badge=latest)
+[![Documentation Status](https://img.shields.io/badge/docs-passing-green.svg)](https://climdyn.github.io/auto-AUTO/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 General Information
@@ -117,7 +117,7 @@ To build the documentation, please run (with the conda environment activated):
 
 Once built, the documentation is available [here](./documentation/build/html/index.html).
 
-The documentation is also available online on read the docs: [https://auto-auto.readthedocs.io/](https://auto-auto.readthedocs.io/)
+The documentation is also available online at https://climdyn.github.io/auto-AUTO .
 
 Forthcoming developments
 ------------------------

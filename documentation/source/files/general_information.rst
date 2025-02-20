@@ -102,6 +102,8 @@ To build the documentation, please run (with the conda environment activated): :
 
 Once built, the documentation is available at `./documentation/build/html/index.html`.
 
+The documentation is also available online at https://climdyn.github.io/auto-AUTO .
+
 Forthcoming developments
 ------------------------
 
