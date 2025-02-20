@@ -73,7 +73,7 @@ Then install and activate the Python3 Anaconda environment: ::
     conda activate auto2
 
 and the code is installed. You can test the Jupyter notebooks present in the
-notebooks folder: `./notebooks`.
+notebooks folder: `notebooks`.
 For instance, running ::
 
     conda activate auto2
