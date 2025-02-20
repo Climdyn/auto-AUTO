@@ -55,7 +55,12 @@ After that last step, you have AUTO properly configured and are ready to install
 Installing auto-AUTO with pip
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-TODO
+The easiest way to install and run qgs is to use `pip <https://pypi.org/>`_.
+Type in a terminal
+
+    pip install auto-AUTO
+
+and you are set!
 
 Installing auto-AUTO with Anaconda
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -72,7 +77,12 @@ Then install and activate the Python3 Anaconda environment: ::
     conda env create -f environment.yml
     conda activate auto2
 
-and the code is installed. You can test the Jupyter notebooks present in the
+and the code is installed.
+
+Testing the installation
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can test the Jupyter notebooks present in the
 notebooks folder: `notebooks`.
 For instance, running ::
 
@@ -97,8 +107,8 @@ Forthcoming developments
 
 * Regime diagrams object
 
-Contributing to qgs
--------------------
+Contributing to auto-AUTO
+-------------------------
 
 If you want to contribute actively, please contact the main authors.
 

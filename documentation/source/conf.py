@@ -19,7 +19,7 @@ sys.path.insert(0, os.path.abspath('../..'))
 project = 'auto-AUTO'
 copyright = '2025, Jonathan Demaeyer and Oisín Hamilton'
 author = 'Jonathan Demaeyer and Oisin Hamilton'
-release = 'v0.5.0'
+release = 'v0.5.1'
 version = release
 
 # -- General configuration ---------------------------------------------------
