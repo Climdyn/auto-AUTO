@@ -4,6 +4,12 @@
 # Required
 version: 2
 
+# Set the OS and Miniconda
+build:
+  os: ubuntu-22.04
+  tools:
+    python: "miniconda3-4.7"
+
 sphinx:
    configuration: documentation/source/conf.py
 
