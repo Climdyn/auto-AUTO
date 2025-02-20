@@ -2,6 +2,11 @@
 auto-AUTO (or AUTO²)
 ====================
 
+[![PyPI version](https://badge.fury.io/py/auto-auto.svg)](https://badge.fury.io/py/auto-auto)
+[![PyPI pyversions](https://img.shields.io/pypi/pyversions/auto-auto.svg)](https://pypi.org/project/auto-auto/)
+[![Documentation Status](https://readthedocs.org/projects/auto-auto/badge/?version=latest)](https://auto-auto.readthedocs.io/en/latest/?badge=latest)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 General Information
 -------------------
 
