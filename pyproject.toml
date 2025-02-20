@@ -1,0 +1,48 @@
+
+# pyproject.toml
+
+[build-system]
+requires = ["setuptools", "wheel"]
+
+[project]
+requires-python = ">=3.10"
+name = "auto-AUTO"
+version = "0.5.0"
+description = "An AUTO-07p automatic search algorithm codebase"
+readme = "README.md"
+authors = [
+    { name = "Jonathan Demaeyer", email = "jodemaey@meteo.be" },
+    { name = "Oísin Hamilton", email = "jodemaey@meteo.be" },
+]
+license = { file = "LICENSE.txt" }
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Operating System :: OS Independent",
+    "Development Status :: 5 - Production/Stable",
+    "Framework :: Jupyter",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Mathematics",
+]
+keywords = ["bifurcation", "bifurcation analysis", "AUTO", "automation"]
+dependencies = [
+    "ipython",
+    "jupyter",
+    "matplotlib>=3.4",
+    "numpy",
+]
+
+[project.urls]
+homepage = "https://github.com/Climdyn/auto-AUTO"
+documentation = "https://auto2.readthedocs.io"
+
+[tool.setuptools]
+packages = ["auto2",
+            "auto2.continuations",
+            "auto2.diagrams",
+            "auto2.parsers",
+            ]
