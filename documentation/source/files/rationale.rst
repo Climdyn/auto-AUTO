@@ -15,7 +15,7 @@ For the moment, there are two main classes of continuations:
 These two classes form the building blocks used by the classes devoted to the construction of the tree of bifurcation
 and regime diagrams. For the moment, only bifurcation diagrams are possible, with the class:
 
-* :class:`~auto2.diagrams.bifurcation.BifurcationDiagram`
+* :class:`~auto2.diagrams.bifurcations.BifurcationDiagram`
 
 Regime diagrams class development is planned in the future.
 
