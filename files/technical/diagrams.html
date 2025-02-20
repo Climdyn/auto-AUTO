@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Diagrams &mdash; auto-AUTO v0.5.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=75e38c5e"></script>
+        <script src="../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Parsers" href="parsers.html" />
+    <link rel="prev" title="Continuations" href="continuations.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            auto-AUTO
+          </a>
+              <div class="version">
+                v0.5.2
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../general_information.html">General Information</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rationale.html">Rationale behind auto-AUTO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide.html">User Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../references.html">References</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="continuations.html">Continuations</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Diagrams</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#module-auto2.diagrams.bifurcations">Bifurcation diagrams module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#bifurcation-diagram-class-definition">Bifurcation diagram class definition</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#auto2.diagrams.bifurcations.BifurcationDiagram"><code class="docutils literal notranslate"><span class="pre">BifurcationDiagram</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="parsers.html">Parsers</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">auto-AUTO</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../references.html">References</a></li>
+      <li class="breadcrumb-item active">Diagrams</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/files/technical/diagrams.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="diagrams">
+<h1>Diagrams<a class="headerlink" href="#diagrams" title="Link to this heading"></a></h1>
+<p>We describe here the modules used to group <span class="raw-html"><a href="https://github.com/auto-07p/auto-07p">AUTO</a></span> continuations into diagrams .
+Please read the <a class="reference internal" href="../user_guide.html#user-guide"><span class="std std-ref">User Guide</span></a> to learn how to use them.
+TODO: make the user guide.</p>
+<section id="module-auto2.diagrams.bifurcations">
+<span id="bifurcation-diagrams-module"></span><h2>Bifurcation diagrams module<a class="headerlink" href="#module-auto2.diagrams.bifurcations" title="Link to this heading"></a></h2>
+<section id="bifurcation-diagram-class-definition">
+<h3>Bifurcation diagram class definition<a class="headerlink" href="#bifurcation-diagram-class-definition" title="Link to this heading"></a></h3>
+<p>This module defines the bifurcation diagram object used in auto-AUTO.</p>
+</section>
+<dl class="py class">
+<dt class="sig sig-object py" id="auto2.diagrams.bifurcations.BifurcationDiagram">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">auto2.diagrams.bifurcations.</span></span><span class="sig-name descname"><span class="pre">BifurcationDiagram</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/auto2/diagrams/bifurcations.html#BifurcationDiagram"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#auto2.diagrams.bifurcations.BifurcationDiagram" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Base class for any continuation in auto-AUTO.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – The name of the model to load. Used to load the .f90 file of the provided model.</p></li>
+<li><p><strong>path_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>optional</em>) – The directory path where files are read/saved.
+If <cite>None</cite>, defaults to current working directory.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="auto2.diagrams.bifurcations.BifurcationDiagram.initial_points">
+<span class="sig-name descname"><span class="pre">initial_points</span></span><a class="headerlink" href="#auto2.diagrams.bifurcations.BifurcationDiagram.initial_points" title="Link to this definition"></a></dt>
+<dd><p>List of initial points used to start the bifurcation diagram. It has the following structure:
+Each point is an entry in the list and is specified with a dictionary with the following two keys:</p>
+<ul class="simple">
+<li><p><cite>‘parameters’</cite>: a dictionary of with the used continuation parameter and its value at which the <cite>initial_data</cite> (see below)
+is valid. I.e. its structure is <cite>{‘parameter_name’: parameter_value}</cite>.</p></li>
+<li><p><cite>‘initial_data’</cite>: a 1-D Numpy <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a> with the coordinates in phase space of the initial point, or an
+AUTOSolution object.</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)">list</a>(<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)">dict</a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="auto2.diagrams.bifurcations.BifurcationDiagram.model_name">
+<span class="sig-name descname"><span class="pre">model_name</span></span><a class="headerlink" href="#auto2.diagrams.bifurcations.BifurcationDiagram.model_name" title="Link to this definition"></a></dt>
+<dd><p>The name of the loaded model. Used to load the .f90 file of the provided model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="auto2.diagrams.bifurcations.BifurcationDiagram.config_object">
+<span class="sig-name descname"><span class="pre">config_object</span></span><a class="headerlink" href="#auto2.diagrams.bifurcations.BifurcationDiagram.config_object" title="Link to this definition"></a></dt>
+<dd><p>The ConfigParser object used during the continuations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="parsers.html#auto2.parsers.config.ConfigParser" title="auto2.parsers.config.ConfigParser"><em>ConfigParser</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="auto2.diagrams.bifurcations.BifurcationDiagram.fp_branches">
+<span class="sig-name descname"><span class="pre">fp_branches</span></span><a class="headerlink" href="#auto2.diagrams.bifurcations.BifurcationDiagram.fp_branches" title="Link to this definition"></a></dt>
+<dd><p>Dictionary holding the continuations data of the fixed points of the bifurcation diagram, each labelled by their
+branch number (i.e. dictionary keys are the branch number).
+Each entry of the dictionary is itself a dictionary characterizing te branch and with the following entries:</p>
+<ul class="simple">
+<li><p><cite>‘parameters’</cite>: A list of the parameters values used to start the continuation(s).</p></li>
+<li><p><cite>‘continuation’</cite>: A <a class="reference internal" href="continuations.html#auto2.continuations.base.Continuation" title="auto2.continuations.base.Continuation"><code class="xref py py-class docutils literal notranslate"><span class="pre">Continuation</span></code></a> object including the continuation(s) data.</p></li>
+<li><p><cite>‘continuation_kwargs’</cite>: A dictionary containing the AUTO parameters used to start the continuation(s).</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)">dict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="auto2.diagrams.bifurcations.BifurcationDiagram.po_branches">
+<span class="sig-name descname"><span class="pre">po_branches</span></span><a class="headerlink" href="#auto2.diagrams.bifurcations.BifurcationDiagram.po_branches" title="Link to this definition"></a></dt>
+<dd><p>Dictionary holding the continuations of the periodic orbits of the bifurcation diagram, each labelled by their
+branch number (i.e. dictionary keys are the branch number).
+Each entry of the dictionary is itself a dictionary characterizing te branch and with the following entries:</p>
+<ul class="simple">
+<li><p><cite>‘parameters’</cite>: A list of the parameters values used to start the continuation(s).</p></li>
+<li><p><cite>‘continuation’</cite>: A <a class="reference internal" href="continuations.html#auto2.continuations.base.Continuation" title="auto2.continuations.base.Continuation"><code class="xref py py-class docutils literal notranslate"><span class="pre">Continuation</span></code></a> object including the continuation(s) data.</p></li>
+<li><p><cite>‘continuation_kwargs’</cite>: A dictionary containing the AUTO parameters used to start the continuation(s).</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)">dict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="auto2.diagrams.bifurcations.BifurcationDiagram.fp_parent">
+<span class="sig-name descname"><span class="pre">fp_parent</span></span><a class="headerlink" href="#auto2.diagrams.bifurcations.BifurcationDiagram.fp_parent" title="Link to this definition"></a></dt>
+<dd><p>Dictionary holding the branch number of the parents of a given fixed point branch (whose branch number is the dictionary key).
+<cite>None</cite> if there is no parent branch.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)">dict</a>(<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)">int</a> or None)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="auto2.diagrams.bifurcations.BifurcationDiagram.fp_branches_with_all_bp_computed">
+<span class="sig-name descname"><span class="pre">fp_branches_with_all_bp_computed</span></span><a class="headerlink" href="#auto2.diagrams.bifurcations.BifurcationDiagram.fp_branches_with_all_bp_computed" title="Link to this definition"></a></dt>
+<dd><p>List of fixed point branch number for which all the branching points of the branch have been continued.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)">list</a>(<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)">int</a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="auto2.diagrams.bifurcations.BifurcationDiagram.fp_branches_with_all_hb_computed">
+<span class="sig-name descname"><span class="pre">fp_branches_with_all_hb_computed</span></span><a class="headerlink" href="#auto2.diagrams.bifurcations.BifurcationDiagram.fp_branches_with_all_hb_computed" title="Link to this definition"></a></dt>
+<dd><p>List of fixed point branch number for which all the Hopf bifurcations of the branch have been continued.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)">list</a>(<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)">int</a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="auto2.diagrams.bifurcations.BifurcationDiagram.computed_bp_by_fp_branch">
+<span class="sig-name descname"><span class="pre">computed_bp_by_fp_branch</span></span><a class="headerlink" href="#auto2.diagrams.bifurcations.BifurcationDiagram.computed_bp_by_fp_branch" title="Link to this definition"></a></dt>
+<dd><p>List of solution label number of branching points which have been continued for each fixed point branch
+(indexed by their branch number forming the dictionary keys).
+E.g. for a given branch, <cite>[1, 2]</cite> indicates that the branches emanating from
+the first and second branching points on the <cite>forward</cite> continuation have been computed.
+Negative label numbers indicate branching points on the <cite>backward</cite> continuation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)">dict</a>(<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)">list</a>(<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)">int</a>))</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="auto2.diagrams.bifurcations.BifurcationDiagram.computed_hb_by_fp_branch">
+<span class="sig-name descname"><span class="pre">computed_hb_by_fp_branch</span></span><a class="headerlink" href="#auto2.diagrams.bifurcations.BifurcationDiagram.computed_hb_by_fp_branch" title="Link to this definition"></a></dt>
+<dd><p>List of solution label number of Hopf bifurcations which have been continued for each fixed point branch
+(indexed by their branch number forming the dictionary keys).
+E.g. for a given branch, <cite>[1, 2]</cite> indicates that the branches emanating from
+the first and second Hopf points on the <cite>forward</cite> continuation have been computed.
+Negative label numbers indicate branching points on the <cite>backward</cite> continuation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)">dict</a>(<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)">list</a>(<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)">int</a>))</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="auto2.diagrams.bifurcations.BifurcationDiagram.po_parent">
+<span class="sig-name descname"><span class="pre">po_parent</span></span><a class="headerlink" href="#auto2.diagrams.bifurcations.BifurcationDiagram.po_parent" title="Link to this definition"></a></dt>
+<dd><p>Dictionary holding the branch number of the parents of a given periodic orbit branch (whose branch number is the dictionary key).
+<cite>None</cite> if there is no parent branch.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)">dict</a>(<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)">int</a> or None)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="auto2.diagrams.bifurcations.BifurcationDiagram.po_branches_with_all_bp_computed">
+<span class="sig-name descname"><span class="pre">po_branches_with_all_bp_computed</span></span><a class="headerlink" href="#auto2.diagrams.bifurcations.BifurcationDiagram.po_branches_with_all_bp_computed" title="Link to this definition"></a></dt>
+<dd><p>List of periodic orbit branch number for which all the branching points of the branch have been continued.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)">list</a>(<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)">int</a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="auto2.diagrams.bifurcations.BifurcationDiagram.po_branches_with_all_pd_computed">
+<span class="sig-name descname"><span class="pre">po_branches_with_all_pd_computed</span></span><a class="headerlink" href="#auto2.diagrams.bifurcations.BifurcationDiagram.po_branches_with_all_pd_computed" title="Link to this definition"></a></dt>
+<dd><p>List of periodic orbit branch number for which all the period doubling bifurcations of the branch have been continued.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)">list</a>(<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)">int</a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="auto2.diagrams.bifurcations.BifurcationDiagram.computed_bp_by_po_branch">
+<span class="sig-name descname"><span class="pre">computed_bp_by_po_branch</span></span><a class="headerlink" href="#auto2.diagrams.bifurcations.BifurcationDiagram.computed_bp_by_po_branch" title="Link to this definition"></a></dt>
+<dd><p>List of solution label number of branching points which have been continued for each periodic orbit
+(indexed by their branch number forming the dictionary keys).
+E.g. for a given branch, <cite>[1, 2]</cite> indicates that the branches emanating from
+the first and second branching points on the <cite>forward</cite> continuation have been computed.
+Negative label numbers indicate branching points on the <cite>backward</cite> continuation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)">dict</a>(<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)">list</a>(<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)">int</a>))</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="auto2.diagrams.bifurcations.BifurcationDiagram.valid_bp_by_po_branch">
+<span class="sig-name descname"><span class="pre">valid_bp_by_po_branch</span></span><a class="headerlink" href="#auto2.diagrams.bifurcations.BifurcationDiagram.valid_bp_by_po_branch" title="Link to this definition"></a></dt>
+<dd><p>List of solution label number periodic orbit branching points which have resulted in a valid continuation for each periodic orbit
+(indexed by their branch number forming the dictionary keys).
+E.g. for a given branch, <cite>[1, 2]</cite> indicates that the branches emanating from
+the first and second periodic orbit branching points on the <cite>forward</cite> continuation were valid.
+Negative label numbers indicate branching points on the <cite>backward</cite> continuation.
+<strong>A valid continuation is a continuation for which no subset is identified with another branch or another part of itself (loops).</strong></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="auto2.diagrams.bifurcations.BifurcationDiagram.computed_pd_by_po_branch">
+<span class="sig-name descname"><span class="pre">computed_pd_by_po_branch</span></span><a class="headerlink" href="#auto2.diagrams.bifurcations.BifurcationDiagram.computed_pd_by_po_branch" title="Link to this definition"></a></dt>
+<dd><p>List of solution label number of period doubling bifurcations which have been continued for each periodic orbit
+(indexed by their branch number forming the dictionary keys).
+E.g. for a given branch, <cite>[1, 2]</cite> indicates that the branches emanating from
+the first and second period doubling points on the <cite>forward</cite> continuation have been computed.
+Negative label numbers indicate branching points on the <cite>backward</cite> continuation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)">dict</a>(<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)">list</a>(<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)">int</a>))</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="auto2.diagrams.bifurcations.BifurcationDiagram.valid_pd_by_po_branch">
+<span class="sig-name descname"><span class="pre">valid_pd_by_po_branch</span></span><a class="headerlink" href="#auto2.diagrams.bifurcations.BifurcationDiagram.valid_pd_by_po_branch" title="Link to this definition"></a></dt>
+<dd><p>List of solution label number of period doubling bifurcations which have resulted in a valid continuation for each periodic orbit
+(indexed by their branch number forming the dictionary keys).
+E.g. for a given branch, <cite>[1, 2]</cite> indicates that the branches emanating from
+the first and second period doubling points on the <cite>forward</cite> continuation were valid.
+Negative label numbers indicate branching points on the <cite>backward</cite> continuation.
+<strong>A valid continuation is a continuation for which no subset is identified with another branch or another part of itself (loops).</strong></p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)">dict</a>(<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)">list</a>(<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)">int</a>))</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="auto2.diagrams.bifurcations.BifurcationDiagram.fp_computed">
+<span class="sig-name descname"><span class="pre">fp_computed</span></span><a class="headerlink" href="#auto2.diagrams.bifurcations.BifurcationDiagram.fp_computed" title="Link to this definition"></a></dt>
+<dd><p>Whether all the fixed points continuations possibilities of the bifurcation diagram have been computed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)">bool</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="auto2.diagrams.bifurcations.BifurcationDiagram.po_computed">
+<span class="sig-name descname"><span class="pre">po_computed</span></span><a class="headerlink" href="#auto2.diagrams.bifurcations.BifurcationDiagram.po_computed" title="Link to this definition"></a></dt>
+<dd><p>Whether all the periodic orbits continuations possibilities of the bifurcation diagram have been computed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)">bool</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="auto2.diagrams.bifurcations.BifurcationDiagram.add_periodic_orbit">
+<span class="sig-name descname"><span class="pre">add_periodic_orbit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">initial_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_comparison_parameters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comparison_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.02</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_number_bp_detected</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">only_forward</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">continuation_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/auto2/diagrams/bifurcations.html#BifurcationDiagram.add_periodic_orbit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#auto2.diagrams.bifurcations.BifurcationDiagram.add_periodic_orbit" title="Link to this definition"></a></dt>
+<dd><p>Continue and then add manually a given periodic orbit to the periodic orbit bifurcation diagram.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>initial_data</strong> (<em>AUTOSolution</em><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Initial data used to start the continuation(s). Should be an AUTOSolution or a string indicating the path to
+a file containing the data of the periodic orbit to start from. See the <cite>dat</cite> parameter in the AUTO parameters
+documentation for more detail about how this data file must be organized (you can also find this documented
+below).</p></li>
+<li><p><strong>extra_comparison_parameters</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>) or </em><em>None</em><em>, </em><em>optional</em>) – List of extra parameters labels or numbers to use in the various comparison to determine the validity of the continuations.
+If <cite>None</cite>, only the defaults parameters will be considered, i.e. the continuation parameter and the <cite>L2</cite> norm.
+Otherwise, the specified parameters are added to the two default ones.
+Default to <cite>None</cite>.</p></li>
+<li><p><strong>comparison_tol</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>) or </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><em>ndarray</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>)</em><em>, </em><em>optional</em>) – The numerical tolerance of the parameters comparison done to check the continuations validity.
+If a single float is provided, assume the same tolerance for each parameter.
+If a list or a 1-D array is passed, it must have the dimension <cite>2+len(extra_comparison_parameters)</cite>, each value in the
+array corresponding to a parameter.
+Default to <cite>0.02</cite>.</p></li>
+<li><p><strong>max_number_bp_detected</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – Number of branching points detected during the continuations of periodic orbits,
+before turning off the detection of branching points.
+If <cite>None</cite>, the detection of branching points is never turned off.
+Defaults to <cite>None</cite>.</p></li>
+<li><p><strong>only_forward</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>optional</em>) – If <cite>True</cite>, compute only the forward continuation (positive <cite>DS</cite> parameter).
+If <cite>False</cite>, compute in both backward and forward direction.
+Default to <cite>False</cite>.</p></li>
+<li><p><strong>continuation_kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a>) – Parameters to pass to AUTO for each continuation.
+See the <a class="reference internal" href="continuations.html#auto2.continuations.periodic_orbits.PeriodicOrbitContinuation.make_continuation" title="auto2.continuations.periodic_orbits.PeriodicOrbitContinuation.make_continuation"><code class="xref py py-meth docutils literal notranslate"><span class="pre">make_continuation()</span></code></a> method of the
+<a class="reference internal" href="continuations.html#auto2.continuations.periodic_orbits.PeriodicOrbitContinuation" title="auto2.continuations.periodic_orbits.PeriodicOrbitContinuation"><code class="xref py py-class docutils literal notranslate"><span class="pre">PeriodicOrbitContinuation</span></code></a> class for more details
+about the available AUTO parameters.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="auto2.diagrams.bifurcations.BifurcationDiagram.compute_fixed_points_diagram">
+<span class="sig-name descname"><span class="pre">compute_fixed_points_diagram</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">initial_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_comparison_parameters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comparison_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.02</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">continuation_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/auto2/diagrams/bifurcations.html#BifurcationDiagram.compute_fixed_points_diagram"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#auto2.diagrams.bifurcations.BifurcationDiagram.compute_fixed_points_diagram" title="Link to this definition"></a></dt>
+<dd><p>Method which starts the computation of a fixed points bifurcation diagrams using a set of provided initial points.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>initial_points</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a><em>) or </em><em>None</em><em>, </em><em>optional</em>) – <p>List of initial fixed points to consider for computing the diagram.
+Each entry in the list is a dictionary with the following two keys:</p>
+<ul>
+<li><p><cite>’parameters’</cite>: a dictionary of with the used continuation parameter and its value at which the <cite>initial_data</cite> (see below)
+is valid. I.e. its structure is <cite>{‘parameter_name’: parameter_value}</cite>. Can be overloaded by the values found in
+the <cite>continuation_kwargs</cite>.</p></li>
+<li><p><cite>’initial_data’</cite>: a 1-D Numpy <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a> with the coordinates in phase space of the initial point, or an
+AUTOSolution object.</p></li>
+</ul>
+<p>If <cite>None</cite>, recompute the fixed points already present in the <a class="reference internal" href="#auto2.diagrams.bifurcations.BifurcationDiagram.initial_points" title="auto2.diagrams.bifurcations.BifurcationDiagram.initial_points"><code class="xref py py-attr docutils literal notranslate"><span class="pre">initial_points</span></code></a> class attribute.
+Default to <cite>None</cite>.</p>
+</p></li>
+<li><p><strong>extra_comparison_parameters</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>) or </em><em>None</em><em>, </em><em>optional</em>) – List of extra parameters labels or numbers to use in the various comparison to determine the validity of the continuations.
+If <cite>None</cite>, only the defaults parameters will be considered, i.e. the continuation parameter and the <cite>L2</cite> norm.
+Otherwise, the specified parameters are added to the two default ones.
+Default to <cite>None</cite>.</p></li>
+<li><p><strong>comparison_tol</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>) or </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><em>ndarray</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>)</em><em>, </em><em>optional</em>) – The numerical tolerance of the parameters comparison done to check the continuations validity.
+If a single float is provided, assume the same tolerance for each parameter.
+If a list or a 1-D array is passed, it must have the dimension <cite>2+len(extra_comparison_parameters)</cite>, each value in the
+array corresponding to a parameter.
+Default to <cite>0.02</cite>.</p></li>
+<li><p><strong>continuation_kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a>) – Parameters to pass to AUTO for each continuation.
+See the <a class="reference internal" href="continuations.html#auto2.continuations.fixed_points.FixedPointContinuation.make_continuation" title="auto2.continuations.fixed_points.FixedPointContinuation.make_continuation"><code class="xref py py-meth docutils literal notranslate"><span class="pre">make_continuation()</span></code></a> method of the
+<a class="reference internal" href="continuations.html#auto2.continuations.fixed_points.FixedPointContinuation" title="auto2.continuations.fixed_points.FixedPointContinuation"><code class="xref py py-class docutils literal notranslate"><span class="pre">FixedPointContinuation</span></code></a> class for more details
+about the available AUTO parameters.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="auto2.diagrams.bifurcations.BifurcationDiagram.compute_periodic_orbits_diagram">
+<span class="sig-name descname"><span class="pre">compute_periodic_orbits_diagram</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">end_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_comparison_parameters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comparison_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.02</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_dubious_bp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_number_bp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_number_bp_detected</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backward_bp_continuation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">continuation_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/auto2/diagrams/bifurcations.html#BifurcationDiagram.compute_periodic_orbits_diagram"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#auto2.diagrams.bifurcations.BifurcationDiagram.compute_periodic_orbits_diagram" title="Link to this definition"></a></dt>
+<dd><p>Method which starts the computation of the periodic orbits of a bifurcation diagram where
+the fixed points have already been continued. It will start by continuing the Hopf bifurcations, then the resulting branching
+and period doubling points. Each computation is done level by level in the the developing tree of the bifurcation
+diagram. For instance, fixed point continuation is the level <cite>0</cite>, and the continuations of the Hopf bifurcations form
+the level <cite>1</cite>. Computation stops either if all the bifurcation points have been computed/continued, or if a specified level of the
+tree has been reached.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>end_level</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>optional</em>) – Level of the periodic orbits bifurcation diagram tree where the computation must stop.
+Defaults to <cite>10</cite>.</p></li>
+<li><p><strong>extra_comparison_parameters</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>) or </em><em>None</em><em>, </em><em>optional</em>) – List of extra parameters labels or numbers to use in the various comparison to determine the validity of the continuations.
+If <cite>None</cite>, only the defaults parameters will be considered, i.e. the continuation parameter and the <cite>L2</cite> norm.
+Otherwise, the specified parameters are added to the two default ones.
+Default to <cite>None</cite>.</p></li>
+<li><p><strong>comparison_tol</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>) or </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><em>ndarray</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>)</em><em>, </em><em>optional</em>) – The numerical tolerance of the parameters comparison done to check the continuations validity.
+If a single float is provided, assume the same tolerance for each parameter.
+If a list or a 1-D array is passed, it must have the dimension <cite>2+len(extra_comparison_parameters)</cite>, each value in the
+array corresponding to a parameter.
+Default to <cite>0.02</cite>.</p></li>
+<li><p><strong>remove_dubious_bp</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>optional</em>) – Do not compute continuation of branching points for which the stability information include HUGE numbers, indicating
+a possible problem in the parent continuation.</p></li>
+<li><p><strong>max_number_bp</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – Only continue the first <cite>max_number_bp</cite> branching points of the parent branches.
+If <cite>None</cite>, continue all the branching points of the parent branches.
+Defaults to <cite>None</cite>.</p></li>
+<li><p><strong>max_number_bp_detected</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – Number of branching points detected during the continuations of periodic orbits,
+before turning off the detection of branching points.
+If <cite>None</cite>, the detection of branching points is never turned off.
+Defaults to <cite>None</cite>.</p></li>
+<li><p><strong>backward_bp_continuation</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>optional</em>) – Compute also the <cite>backward</cite> continuation at the branching points.
+Defaults to <cite>False</cite>.</p></li>
+<li><p><strong>continuation_kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a>) – Parameters to pass to AUTO for each continuation.
+See the <a class="reference internal" href="continuations.html#auto2.continuations.periodic_orbits.PeriodicOrbitContinuation.make_continuation" title="auto2.continuations.periodic_orbits.PeriodicOrbitContinuation.make_continuation"><code class="xref py py-meth docutils literal notranslate"><span class="pre">make_continuation()</span></code></a> method of the
+<a class="reference internal" href="continuations.html#auto2.continuations.periodic_orbits.PeriodicOrbitContinuation" title="auto2.continuations.periodic_orbits.PeriodicOrbitContinuation"><code class="xref py py-class docutils literal notranslate"><span class="pre">PeriodicOrbitContinuation</span></code></a> class for more details
+about the available AUTO parameters.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="auto2.diagrams.bifurcations.BifurcationDiagram.fixed_points_solutions_list">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">fixed_points_solutions_list</span></span><a class="headerlink" href="#auto2.diagrams.bifurcations.BifurcationDiagram.fixed_points_solutions_list" title="Link to this definition"></a></dt>
+<dd><p>list of all the fixed points solutions
+of the bifurcation diagram.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)">list</a>(AUTOSolution)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="auto2.diagrams.bifurcations.BifurcationDiagram.fixed_points_variables_list">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">fixed_points_variables_list</span></span><a class="headerlink" href="#auto2.diagrams.bifurcations.BifurcationDiagram.fixed_points_variables_list" title="Link to this definition"></a></dt>
+<dd><p>Returns the list of variable names used in
+the fixed points continuations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)">list</a>(<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="auto2.diagrams.bifurcations.BifurcationDiagram.full_solutions_list">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">full_solutions_list</span></span><a class="headerlink" href="#auto2.diagrams.bifurcations.BifurcationDiagram.full_solutions_list" title="Link to this definition"></a></dt>
+<dd><p>list of all the solutions
+of the bifurcation diagram.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)">list</a>(AUTOSolution)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="auto2.diagrams.bifurcations.BifurcationDiagram.get_continuation">
+<span class="sig-name descname"><span class="pre">get_continuation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/auto2/diagrams/bifurcations.html#BifurcationDiagram.get_continuation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#auto2.diagrams.bifurcations.BifurcationDiagram.get_continuation" title="Link to this definition"></a></dt>
+<dd><p>Get the continuation dictionary of a give branch,
+indexed by his branch number.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>idx</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – The branch number of the sought branch continuation dictionary.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="auto2.diagrams.bifurcations.BifurcationDiagram.load">
+<span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_initial_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/auto2/diagrams/bifurcations.html#BifurcationDiagram.load"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#auto2.diagrams.bifurcations.BifurcationDiagram.load" title="Link to this definition"></a></dt>
+<dd><p>Load the <span class="raw-html"><a href="https://github.com/auto-07p/auto-07p">AUTO</a></span> files and the branch parameters and metadata corresponding to a whole
+bifurcation diagram.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – The filename from which to load Pickle file with the parameters and
+metadata of the bifurcation diagram.</p></li>
+<li><p><strong>load_initial_data</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>optional</em>) – Load nor not the initial data into the BifurcationDiagram object.
+Default to <cite>True</cite>.</p></li>
+<li><p><strong>kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a><em>, </em><em>optional</em>) – Keyword arguments passed to Pickle.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="auto2.diagrams.bifurcations.BifurcationDiagram.number_of_fp_branches">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">number_of_fp_branches</span></span><a class="headerlink" href="#auto2.diagrams.bifurcations.BifurcationDiagram.number_of_fp_branches" title="Link to this definition"></a></dt>
+<dd><p>Number of fixed points continuation branches
+in the bifurcation diagram.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="auto2.diagrams.bifurcations.BifurcationDiagram.number_of_po_branches">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">number_of_po_branches</span></span><a class="headerlink" href="#auto2.diagrams.bifurcations.BifurcationDiagram.number_of_po_branches" title="Link to this definition"></a></dt>
+<dd><p>Number of periodic orbits continuation branches
+in the bifurcation diagram.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="auto2.diagrams.bifurcations.BifurcationDiagram.path_name">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">path_name</span></span><a class="headerlink" href="#auto2.diagrams.bifurcations.BifurcationDiagram.path_name" title="Link to this definition"></a></dt>
+<dd><p>The path where the <span class="raw-html"><a href="https://github.com/auto-07p/auto-07p">AUTO</a></span> and AUTO² files must be or are stored.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="auto2.diagrams.bifurcations.BifurcationDiagram.periodic_orbits_solutions_list">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">periodic_orbits_solutions_list</span></span><a class="headerlink" href="#auto2.diagrams.bifurcations.BifurcationDiagram.periodic_orbits_solutions_list" title="Link to this definition"></a></dt>
+<dd><p>list of all the periodic orbits solutions
+of the bifurcation diagram.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)">list</a>(AUTOSolution)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="auto2.diagrams.bifurcations.BifurcationDiagram.periodic_orbits_variables_list">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">periodic_orbits_variables_list</span></span><a class="headerlink" href="#auto2.diagrams.bifurcations.BifurcationDiagram.periodic_orbits_variables_list" title="Link to this definition"></a></dt>
+<dd><p>Returns the list of variable names used in
+the periodic orbits continuations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)">list</a>(<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="auto2.diagrams.bifurcations.BifurcationDiagram.phase_space_variables">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">phase_space_variables</span></span><a class="headerlink" href="#auto2.diagrams.bifurcations.BifurcationDiagram.phase_space_variables" title="Link to this definition"></a></dt>
+<dd><p>Return the variables of the phase space of the configured dynamical system.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)">list</a>(<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="auto2.diagrams.bifurcations.BifurcationDiagram.plot_diagram_and_solutions">
+<span class="sig-name descname"><span class="pre">plot_diagram_and_solutions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">solutions_parameter_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">diagram_variables</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(1,)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solutions_variables</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0,</span> <span class="pre">1)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(10,</span> <span class="pre">16)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solutions_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed_points_diagram_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periodic_orbits_diagram_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solutions_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/auto2/diagrams/bifurcations.html#BifurcationDiagram.plot_diagram_and_solutions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#auto2.diagrams.bifurcations.BifurcationDiagram.plot_diagram_and_solutions" title="Link to this definition"></a></dt>
+<dd><p>Plots a bifurcation diagram including all fixed point and periodic orbit branches, along with a projection of
+the solutions at a given parameter value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>solutions_parameter_value</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>) – The parameter value for which the solutions are plot.
+The parameter that is used is governed by the continuation parameter that was used.</p></li>
+<li><p><strong>diagram_variables</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>)</em><em>, </em><em>optional</em>) – The index or label of the variables along which the bifurcation diagram is plotted.
+If labels are used, it should be labels of the available monitored variables during the continuations
+(if their labels have been defined in the AUTO configuration file) given by <a class="reference internal" href="#auto2.diagrams.bifurcations.BifurcationDiagram.fixed_points_variables_list" title="auto2.diagrams.bifurcations.BifurcationDiagram.fixed_points_variables_list"><code class="xref py py-meth docutils literal notranslate"><span class="pre">fixed_points_variables_list()</span></code></a> and
+<a class="reference internal" href="#auto2.diagrams.bifurcations.BifurcationDiagram.periodic_orbits_variables_list" title="auto2.diagrams.bifurcations.BifurcationDiagram.periodic_orbits_variables_list"><code class="xref py py-meth docutils literal notranslate"><span class="pre">periodic_orbits_variables_list()</span></code></a>.
+The first value in the tuple determines the variable plot on the y-axis.
+Defaults to <cite>(1, )</cite>, which plots the <cite>L2</cite> Norm.</p></li>
+<li><p><strong>solutions_variables</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>)</em><em>, </em><em>optional</em>) – The index or label of the variables shown in the solution plot.
+If labels are used, it should be labels of the phase space variables
+(if they have been defined in the AUTO configuration file) given by <a class="reference internal" href="#auto2.diagrams.bifurcations.BifurcationDiagram.phase_space_variables" title="auto2.diagrams.bifurcations.BifurcationDiagram.phase_space_variables"><code class="xref py py-meth docutils literal notranslate"><span class="pre">phase_space_variables()</span></code></a>.
+The first value in the tuple determines the variable plot on the x-axis, the second determines the y-axis.
+Defaults to the first two variables: <cite>(0, 1)</cite>.</p></li>
+<li><p><strong>axes</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><em>ndarray</em></a><em>(</em><a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.html#matplotlib.axes.Axes" title="(in Matplotlib v3.10.0)"><em>matplotlib.axes.Axes</em></a><em>) or </em><em>None</em><em>, </em><em>optional</em>) – An array of two <span class="raw-html"><a href="https://matplotlib.org/">Matplotlib</a></span> axis object to plot on. If <cite>None</cite>, a new figure is created.</p></li>
+<li><p><strong>figsize</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>)</em><em>, </em><em>optional</em>) – Dimension of the figure that is returned, only used if <cite>ax</cite> is not passed.
+Defaults to <cite>(10, 16)</cite>.</p></li>
+<li><p><strong>solutions_tol</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>) or </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><em>ndarray</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>)</em><em>, </em><em>optional</em>) – The numerical tolerance used when comparing solutions to display with the selected <cite>solutions_parameter_value</cite> argument.
+Default to <cite>0.01</cite>.</p></li>
+<li><p><strong>fixed_points_diagram_kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – Keyword arguments to be passed to the fixed point bifurcation diagram plotting function
+<a class="reference internal" href="#auto2.diagrams.bifurcations.BifurcationDiagram.plot_fixed_points_diagram" title="auto2.diagrams.bifurcations.BifurcationDiagram.plot_fixed_points_diagram"><code class="xref py py-meth docutils literal notranslate"><span class="pre">plot_fixed_points_diagram()</span></code></a>.</p></li>
+<li><p><strong>periodic_orbits_diagram_kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – Keyword arguments to be passed to the periodic orbit bifurcation diagram plotting function
+<a class="reference internal" href="#auto2.diagrams.bifurcations.BifurcationDiagram.plot_periodic_orbits_diagram" title="auto2.diagrams.bifurcations.BifurcationDiagram.plot_periodic_orbits_diagram"><code class="xref py py-meth docutils literal notranslate"><span class="pre">plot_periodic_orbits_diagram()</span></code></a>.</p></li>
+<li><p><strong>solutions_kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – Keyword arguments to be passed to the solution plotting function
+<a class="reference internal" href="continuations.html#auto2.continuations.base.Continuation.plot_solutions" title="auto2.continuations.base.Continuation.plot_solutions"><code class="xref py py-meth docutils literal notranslate"><span class="pre">plot_solutions()</span></code></a> of the continuation objects.</p></li>
+</ul>
+</dd>
+</dl>
+<p>The parameters below can be included in <cite>solutions_kwargs</cite> for controlling the solution plots.
+See <a class="reference internal" href="continuations.html#auto2.continuations.base.Continuation.plot_solutions" title="auto2.continuations.base.Continuation.plot_solutions"><code class="xref py py-meth docutils literal notranslate"><span class="pre">auto2.continuations.base.Continuation.plot_solutions()</span></code></a> for more details.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Keyword Arguments<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>markersize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>, </em><em>optional</em>) – Size of the text plotted to display the bifurcation points. Defaults to <cite>12</cite>.</p></li>
+<li><p><strong>marker</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>optional</em>) – The marker style used for plotting fixed points. If <cite>None</cite>, set to default marker.</p></li>
+<li><p><strong>linestyle</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>optional</em>) – The line style used for plotting the periodic orbit solutions. If <cite>None</cite>, set to default marker.</p></li>
+<li><p><strong>linewidth</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>, </em><em>optional</em>) – The width of the lines showing the periodic solutions. If <cite>None</cite>, set to the default.</p></li>
+<li><p><strong>color_solutions</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether to color each solution differently.
+If <cite>True</cite>, and <cite>parameter</cite> argument is provided and valid, then solutions are colored based on the parameter value of a given solution.
+Use the cmap provided in the <cite>plot_kwargs</cite> argument. If no cmap is provided there, use <cite>Blues</cite> cmap by default.
+If <cite>False</cite>, all solutions are colored identically, controlled using <cite>plot_kwargs</cite>.
+Default is <cite>False</cite>.</p></li>
+<li><p><strong>plot_kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – Additional keyword arguments for the plotting function. Default is <cite>None</cite>.</p></li>
+<li><p><strong>variables_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>) or </em><em>None</em><em>, </em><em>optional</em>) – The strings used to plot the axis labels. If <cite>None</cite> defaults to the AUTO labels.
+Defaults to <cite>None</cite>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An array of two <span class="raw-html"><a href="https://matplotlib.org/">Matplotlib</a></span> axis objects, showing the bifurcation diagram and the solution plot.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><em>ndarray</em></a>(<a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.html#matplotlib.axes.Axes" title="(in Matplotlib v3.10.0)">matplotlib.axes.Axes</a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="auto2.diagrams.bifurcations.BifurcationDiagram.plot_diagram_and_solutions_in_3D">
+<span class="sig-name descname"><span class="pre">plot_diagram_and_solutions_in_3D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">solutions_parameter_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">diagram_variables</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(1,)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solutions_variables</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0,</span> <span class="pre">1,</span> <span class="pre">2)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(10,</span> <span class="pre">16)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solutions_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed_points_diagram_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periodic_orbits_diagram_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solutions_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/auto2/diagrams/bifurcations.html#BifurcationDiagram.plot_diagram_and_solutions_in_3D"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#auto2.diagrams.bifurcations.BifurcationDiagram.plot_diagram_and_solutions_in_3D" title="Link to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>Plots a bifurcation diagram including all fixed point and periodic orbit branches using a 2-dimensional projection,</dt><dd><p>along with a projection of the solutions at a given parameter value that uses a 3-dimensional projection.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>solutions_parameter_value</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>) – The parameter value for which the solutions are plot.
+The parameter that is used is governed by the continuation parameter that was used.</p></li>
+<li><p><strong>diagram_variables</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>)</em><em>, </em><em>optional</em>) – The index or label of the variables along which the bifurcation diagram is plotted.
+If labels are used, it should be labels of the available monitored variables during the continuations
+(if their labels have been defined in the AUTO configuration file) given by <a class="reference internal" href="#auto2.diagrams.bifurcations.BifurcationDiagram.fixed_points_variables_list" title="auto2.diagrams.bifurcations.BifurcationDiagram.fixed_points_variables_list"><code class="xref py py-meth docutils literal notranslate"><span class="pre">fixed_points_variables_list()</span></code></a> and
+<a class="reference internal" href="#auto2.diagrams.bifurcations.BifurcationDiagram.periodic_orbits_variables_list" title="auto2.diagrams.bifurcations.BifurcationDiagram.periodic_orbits_variables_list"><code class="xref py py-meth docutils literal notranslate"><span class="pre">periodic_orbits_variables_list()</span></code></a>.
+The first value in the tuple determines the variable plot on the y-axis.
+Defaults to <cite>(1, )</cite>, which plots the <cite>L2</cite> Norm.</p></li>
+<li><p><strong>solutions_variables</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>)</em><em>, </em><em>optional</em>) – The index or label of the variables shown in the solution plot.
+If labels are used, it should be labels of the phase space variables
+(if they have been defined in the AUTO configuration file) given by <a class="reference internal" href="#auto2.diagrams.bifurcations.BifurcationDiagram.phase_space_variables" title="auto2.diagrams.bifurcations.BifurcationDiagram.phase_space_variables"><code class="xref py py-meth docutils literal notranslate"><span class="pre">phase_space_variables()</span></code></a>.
+The first value in the tuple determines the variable plot on the x-axis, the second determines the y-axis,
+and the last value determines the z-axis
+Defaults to the first two variables: <cite>(0, 1, 2)</cite>.</p></li>
+<li><p><strong>axes</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><em>ndarray</em></a><em>(</em><a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.html#matplotlib.axes.Axes" title="(in Matplotlib v3.10.0)"><em>matplotlib.axes.Axes</em></a><em>) or </em><em>None</em><em>, </em><em>optional</em>) – An array of two <span class="raw-html"><a href="https://matplotlib.org/">Matplotlib</a></span> axis object to plot on. If <cite>None</cite>, a new figure is created.</p></li>
+<li><p><strong>figsize</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>)</em><em>, </em><em>optional</em>) – Dimension of the figure that is returned, only used if <cite>ax</cite> is not passed.
+Defaults to <cite>(10, 16)</cite>.</p></li>
+<li><p><strong>solutions_tol</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>) or </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><em>ndarray</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>)</em><em>, </em><em>optional</em>) – The numerical tolerance used when comparing solutions to display with the selected <cite>solutions_parameter_value</cite> argument.
+Default to <cite>0.01</cite>.</p></li>
+<li><p><strong>fixed_points_diagram_kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – Keyword arguments to be passed to the fixed point bifurcation diagram plotting function
+<a class="reference internal" href="#auto2.diagrams.bifurcations.BifurcationDiagram.plot_fixed_points_diagram" title="auto2.diagrams.bifurcations.BifurcationDiagram.plot_fixed_points_diagram"><code class="xref py py-meth docutils literal notranslate"><span class="pre">plot_fixed_points_diagram()</span></code></a>.</p></li>
+<li><p><strong>periodic_orbits_diagram_kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – Keyword arguments to be passed to the periodic orbit bifurcation diagram plotting function
+<a class="reference internal" href="#auto2.diagrams.bifurcations.BifurcationDiagram.plot_periodic_orbits_diagram" title="auto2.diagrams.bifurcations.BifurcationDiagram.plot_periodic_orbits_diagram"><code class="xref py py-meth docutils literal notranslate"><span class="pre">plot_periodic_orbits_diagram()</span></code></a>.</p></li>
+<li><p><strong>solutions_kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – Keyword arguments to be passed to the solution plotting function
+<a class="reference internal" href="continuations.html#auto2.continuations.base.Continuation.plot_solutions_3D" title="auto2.continuations.base.Continuation.plot_solutions_3D"><code class="xref py py-meth docutils literal notranslate"><span class="pre">plot_solutions_3D()</span></code></a> of the continuation objects.</p></li>
+</ul>
+</dd>
+</dl>
+<p>The parameters below can be included in <cite>solutions_kwargs</cite> for controlling the solution plots.
+See <a class="reference internal" href="continuations.html#auto2.continuations.base.Continuation.plot_solutions_3D" title="auto2.continuations.base.Continuation.plot_solutions_3D"><code class="xref py py-meth docutils literal notranslate"><span class="pre">auto2.continuations.base.Continuation.plot_solutions_3D()</span></code></a> for more details.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Keyword Arguments<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>markersize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>, </em><em>optional</em>) – Size of the text plotted to display the bifurcation points. Defaults to <cite>12</cite>.</p></li>
+<li><p><strong>marker</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>optional</em>) – The marker style used for plotting fixed points. If <cite>None</cite>, set to default marker.</p></li>
+<li><p><strong>linestyle</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>optional</em>) – The line style used for plotting the periodic orbit solutions. If <cite>None</cite>, set to default marker.</p></li>
+<li><p><strong>linewidth</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>, </em><em>optional</em>) – The width of the lines showing the periodic solutions. If <cite>None</cite>, set to the default.</p></li>
+<li><p><strong>plot_kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – Additional keyword arguments for the plotting function. Default is <cite>None</cite>.</p></li>
+<li><p><strong>variables_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>) or </em><em>None</em><em>, </em><em>optional</em>) – The strings used to plot the axis labels. If <cite>None</cite> defaults to the AUTO labels.
+Defaults to <cite>None</cite>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An array of two <span class="raw-html"><a href="https://matplotlib.org/">Matplotlib</a></span> axis objects, showing the bifurcation diagram and the 3-dimensional solution plot.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)">numpy.ndarray</a>(<a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.html#matplotlib.axes.Axes" title="(in Matplotlib v3.10.0)">matplotlib.axes.Axes</a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="auto2.diagrams.bifurcations.BifurcationDiagram.plot_diagram_in_3D_and_solutions_in_3D">
+<span class="sig-name descname"><span class="pre">plot_diagram_in_3D_and_solutions_in_3D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">solutions_parameter_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">diagram_variables</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(1,</span> <span class="pre">2)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solutions_variables</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0,</span> <span class="pre">1,</span> <span class="pre">2)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(10,</span> <span class="pre">16)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solutions_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed_points_diagram_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periodic_orbits_diagram_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solutions_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/auto2/diagrams/bifurcations.html#BifurcationDiagram.plot_diagram_in_3D_and_solutions_in_3D"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#auto2.diagrams.bifurcations.BifurcationDiagram.plot_diagram_in_3D_and_solutions_in_3D" title="Link to this definition"></a></dt>
+<dd><p>Plots a 3-dimensional projection of the bifurcation diagram including all fixed point and periodic orbit branches,
+along with a projection of the solutions at a given parameter value, also using a 3-dimensional projection.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>solutions_parameter_value</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>) – The parameter value for which the solutions are plot.
+The parameter that is used is governed by the continuation parameter that was used.</p></li>
+<li><p><strong>diagram_variables</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>)</em><em>, </em><em>optional</em>) – The index or label of the variables along which the bifurcation diagram is plotted.
+If labels are used, it should be labels of the available monitored variables during the continuations
+(if their labels have been defined in the AUTO configuration file) given by <a class="reference internal" href="#auto2.diagrams.bifurcations.BifurcationDiagram.fixed_points_variables_list" title="auto2.diagrams.bifurcations.BifurcationDiagram.fixed_points_variables_list"><code class="xref py py-meth docutils literal notranslate"><span class="pre">fixed_points_variables_list()</span></code></a> and
+<a class="reference internal" href="#auto2.diagrams.bifurcations.BifurcationDiagram.periodic_orbits_variables_list" title="auto2.diagrams.bifurcations.BifurcationDiagram.periodic_orbits_variables_list"><code class="xref py py-meth docutils literal notranslate"><span class="pre">periodic_orbits_variables_list()</span></code></a>.
+The first value in the tuple determines the variable plot on the x-axis, the second the y-axis.
+Defaults to <cite>(1, 2)</cite>, which plots the <cite>L2</cite> Norm and the first variable of the phase space.</p></li>
+<li><p><strong>solutions_variables</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>)</em><em>, </em><em>optional</em>) – The index or label of the variables shown in the solution plot.
+If labels are used, it should be labels of the phase space variables
+(if they have been defined in the AUTO configuration file) given by <a class="reference internal" href="#auto2.diagrams.bifurcations.BifurcationDiagram.phase_space_variables" title="auto2.diagrams.bifurcations.BifurcationDiagram.phase_space_variables"><code class="xref py py-meth docutils literal notranslate"><span class="pre">phase_space_variables()</span></code></a>.
+The first value in the tuple determines the variable plot on the x-axis, the second determines the y-axis,
+and the last value determines the z-axis
+Defaults to the first two variables: <cite>(0, 1, 2)</cite>.</p></li>
+<li><p><strong>axes</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><em>ndarray</em></a><em>(</em><a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.html#matplotlib.axes.Axes" title="(in Matplotlib v3.10.0)"><em>matplotlib.axes.Axes</em></a><em>) or </em><em>None</em><em>, </em><em>optional</em>) – An array of two <span class="raw-html"><a href="https://matplotlib.org/">Matplotlib</a></span> axis object to plot on. If <cite>None</cite>, a new figure is created.</p></li>
+<li><p><strong>figsize</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>)</em><em>, </em><em>optional</em>) – Dimension of the figure that is returned, only used if <cite>ax</cite> is not passed.
+Defaults to <cite>(10, 16)</cite>.</p></li>
+<li><p><strong>solutions_tol</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>) or </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><em>ndarray</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>)</em><em>, </em><em>optional</em>) – The numerical tolerance used when comparing solutions to display with the selected <cite>solutions_parameter_value</cite> argument.
+Default to <cite>0.01</cite>.</p></li>
+<li><p><strong>fixed_points_diagram_kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – Keyword arguments to be passed to the fixed point bifurcation diagram plotting function
+<a class="reference internal" href="#auto2.diagrams.bifurcations.BifurcationDiagram.plot_fixed_points_diagram_3D" title="auto2.diagrams.bifurcations.BifurcationDiagram.plot_fixed_points_diagram_3D"><code class="xref py py-meth docutils literal notranslate"><span class="pre">plot_fixed_points_diagram_3D()</span></code></a>.</p></li>
+<li><p><strong>periodic_orbits_diagram_kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – Keyword arguments to be passed to the periodic orbit bifurcation diagram plotting function
+<a class="reference internal" href="#auto2.diagrams.bifurcations.BifurcationDiagram.plot_periodic_orbits_diagram_3D" title="auto2.diagrams.bifurcations.BifurcationDiagram.plot_periodic_orbits_diagram_3D"><code class="xref py py-meth docutils literal notranslate"><span class="pre">plot_periodic_orbits_diagram_3D()</span></code></a>.</p></li>
+<li><p><strong>solutions_kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – Keyword arguments to be passed to the solution plotting function
+<a class="reference internal" href="continuations.html#auto2.continuations.base.Continuation.plot_solutions_3D" title="auto2.continuations.base.Continuation.plot_solutions_3D"><code class="xref py py-meth docutils literal notranslate"><span class="pre">plot_solutions_3D()</span></code></a> of the continuation objects.</p></li>
+</ul>
+</dd>
+</dl>
+<p>The parameters below can be included in <cite>solutions_kwargs</cite> for controlling the solution plots.
+See <a class="reference internal" href="continuations.html#auto2.continuations.base.Continuation.plot_solutions_3D" title="auto2.continuations.base.Continuation.plot_solutions_3D"><code class="xref py py-meth docutils literal notranslate"><span class="pre">auto2.continuations.base.Continuation.plot_solutions_3D()</span></code></a> for more details.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Keyword Arguments<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>markersize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>, </em><em>optional</em>) – Size of the text plotted to display the bifurcation points. Defaults to <cite>12</cite>.</p></li>
+<li><p><strong>marker</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>optional</em>) – The marker style used for plotting fixed points. If <cite>None</cite>, set to default marker.</p></li>
+<li><p><strong>linestyle</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>optional</em>) – The line style used for plotting the periodic orbit solutions. If <cite>None</cite>, set to default marker.</p></li>
+<li><p><strong>linewidth</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>, </em><em>optional</em>) – The width of the lines showing the periodic solutions. If <cite>None</cite>, set to the default.</p></li>
+<li><p><strong>plot_kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – Additional keyword arguments for the plotting function. Default is <cite>None</cite>.</p></li>
+<li><p><strong>variables_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>) or </em><em>None</em><em>, </em><em>optional</em>) – The strings used to plot the axis labels. If <cite>None</cite> defaults to the AUTO labels.
+Defaults to <cite>None</cite>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An array of two <span class="raw-html"><a href="https://matplotlib.org/">Matplotlib</a></span> axis objects, showing the 3-dimensional bifurcation diagram and the solution plot.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><em>ndarray</em></a>(<a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.html#matplotlib.axes.Axes" title="(in Matplotlib v3.10.0)">matplotlib.axes.Axes</a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="auto2.diagrams.bifurcations.BifurcationDiagram.plot_fixed_points_diagram">
+<span class="sig-name descname"><span class="pre">plot_fixed_points_diagram</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variables</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0,</span> <span class="pre">1)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(10,</span> <span class="pre">8)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_used_colors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/auto2/diagrams/bifurcations.html#BifurcationDiagram.plot_fixed_points_diagram"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#auto2.diagrams.bifurcations.BifurcationDiagram.plot_fixed_points_diagram" title="Link to this definition"></a></dt>
+<dd><p>Plots the bifurcation diagram of all the fixed point branches.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>variables</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>)</em><em>, </em><em>optional</em>) – The index or label of the variables along which the bifurcation diagram is plotted.
+If labels are used, it should be labels of the available monitored variables during the continuations
+(if their labels have been defined in the AUTO configuration file) given by <a class="reference internal" href="#auto2.diagrams.bifurcations.BifurcationDiagram.fixed_points_variables_list" title="auto2.diagrams.bifurcations.BifurcationDiagram.fixed_points_variables_list"><code class="xref py py-meth docutils literal notranslate"><span class="pre">fixed_points_variables_list()</span></code></a>.
+The first value in the tuple determines the variable plot on the x-axis and the second the y-axis.
+Defaults to <cite>(0, 1)</cite>.</p></li>
+<li><p><strong>ax</strong> (<a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.html#matplotlib.axes.Axes" title="(in Matplotlib v3.10.0)"><em>matplotlib.axes.Axes</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – A <span class="raw-html"><a href="https://matplotlib.org/">Matplotlib</a></span> axis object to plot on. If <cite>None</cite>, a new figure is created.</p></li>
+<li><p><strong>figsize</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>)</em><em>, </em><em>optional</em>) – Dimension of the figure that is returned, only used if <cite>ax</cite> is not passed.
+Defaults to <cite>(10, 8)</cite>.</p></li>
+<li><p><strong>cmap</strong> (<a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.colors.Colormap.html#matplotlib.colors.Colormap" title="(in Matplotlib v3.10.0)"><em>matplotlib.colors.Colormap</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – A colormap that controls the color of the branches.
+The branches are colored from the colormap based on the value of the branch number.
+If <cite>None</cite>, defaults to the <span class="raw-html"><a href="https://matplotlib.org/">Matplotlib</a></span> Tableau colors list.</p></li>
+<li><p><strong>return_used_colors</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>optional</em>) – If <cite>True</cite>, the colors used in the diagram are returned. Defaults to <cite>False</cite>.</p></li>
+<li><p><strong>legend</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>optional</em>) – If <cite>True</cite>, a legend of the branches is included in the plot. Defaults to <cite>False</cite>.</p></li>
+<li><p><strong>kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a><em>, </em><em>optional</em>) – Keyword arguments to be passed to the <a class="reference internal" href="continuations.html#auto2.continuations.base.Continuation.plot_branch_parts" title="auto2.continuations.base.Continuation.plot_branch_parts"><code class="xref py py-meth docutils literal notranslate"><span class="pre">plot_branch_parts()</span></code></a> method
+of the continuation objects.
+See below for further details.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Keyword Arguments<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>markersize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>, </em><em>optional</em>) – Size of the text plotted to display the bifurcation points. Defaults to <cite>12</cite>.</p></li>
+<li><p><strong>plot_kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – Keyword arguments to pass to the plotting function, controlling the curves of the bifurcation diagram.</p></li>
+<li><p><strong>marker_kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – Keyword arguments to pass to the plotting function, controlling the styles of the bifurcation point labels.</p></li>
+<li><p><strong>excluded_labels</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>)</em><em>, </em><em>optional</em>) – A list of 2-characters strings, controlling the bifurcation point type that are not plotted.
+For example <cite>[‘BP’]</cite> will result in branching points not being plotted.
+Can be set to the string <cite>‘all’</cite>, which results in no bifurcation being plotted at all.
+Default to <cite>[‘UZ’,’EP’]</cite>.</p></li>
+<li><p><strong>plot_sol_points</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>optional</em>) – If <cite>True</cite>, a point is added to the points where a solution is stored. Defaults to False.</p></li>
+<li><p><strong>variables_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>) or </em><em>None</em><em>, </em><em>optional</em>) – The strings used to define the axis labels. If <cite>None</cite> defaults to the AUTO labels.</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A <span class="raw-html"><a href="https://matplotlib.org/">Matplotlib</a></span> axis object showing the fixed-point bifurcation diagram.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.html#matplotlib.axes.Axes" title="(in Matplotlib v3.10.0)">matplotlib.axes.Axes</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="auto2.diagrams.bifurcations.BifurcationDiagram.plot_fixed_points_diagram_3D">
+<span class="sig-name descname"><span class="pre">plot_fixed_points_diagram_3D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variables</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0,</span> <span class="pre">1,</span> <span class="pre">2)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(10,</span> <span class="pre">8)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_used_colors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/auto2/diagrams/bifurcations.html#BifurcationDiagram.plot_fixed_points_diagram_3D"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#auto2.diagrams.bifurcations.BifurcationDiagram.plot_fixed_points_diagram_3D" title="Link to this definition"></a></dt>
+<dd><p>Plots the bifurcation diagram of all the fixed point branches using a 3-dimensional projection.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>variables</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>)</em><em>, </em><em>optional</em>) – The index or label of the variables along which the bifurcation diagram is plotted.
+If labels are used, it should be labels of the available monitored variables during the continuations
+(if their labels have been defined in the AUTO configuration file) given by <a class="reference internal" href="#auto2.diagrams.bifurcations.BifurcationDiagram.fixed_points_variables_list" title="auto2.diagrams.bifurcations.BifurcationDiagram.fixed_points_variables_list"><code class="xref py py-meth docutils literal notranslate"><span class="pre">fixed_points_variables_list()</span></code></a>.
+The first value in the tuple determines the variable plot on the x-axis, the second the y-axis,
+and the last value determines the z-axis.
+Defaults to <cite>(0, 1, 2)</cite>.</p></li>
+<li><p><strong>ax</strong> (<a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.html#matplotlib.axes.Axes" title="(in Matplotlib v3.10.0)"><em>matplotlib.axes.Axes</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – A <span class="raw-html"><a href="https://matplotlib.org/">Matplotlib</a></span> axis object to plot on. If <cite>None</cite>, a new figure is created.</p></li>
+<li><p><strong>figsize</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>)</em><em>, </em><em>optional</em>) – Dimension of the figure that is returned, only used if <cite>ax</cite> is not passed.
+Defaults to <cite>(10, 8)</cite>.</p></li>
+<li><p><strong>cmap</strong> (<a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.colors.Colormap.html#matplotlib.colors.Colormap" title="(in Matplotlib v3.10.0)"><em>matplotlib.colors.Colormap</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – A colormap that controls the color of the branches.
+The branches are colored from the colormap based on the value of the branch number.
+If <cite>None</cite>, defaults to the <span class="raw-html"><a href="https://matplotlib.org/">Matplotlib</a></span> Tableau colors list.</p></li>
+<li><p><strong>return_used_colors</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>optional</em>) – If <cite>True</cite>, the colors used in the diagram are returned. Defaults to <cite>False</cite>.</p></li>
+<li><p><strong>legend</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>optional</em>) – If <cite>True</cite>, a legend of the branches is included in the plot. Defaults to <cite>False</cite>.</p></li>
+<li><p><strong>kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a><em>, </em><em>optional</em>) – Keyword arguments to be passed to the <a class="reference internal" href="continuations.html#auto2.continuations.base.Continuation.plot_branch_parts" title="auto2.continuations.base.Continuation.plot_branch_parts"><code class="xref py py-meth docutils literal notranslate"><span class="pre">plot_branch_parts()</span></code></a> method
+of the continuation objects.
+See below for further details.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Keyword Arguments<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>markersize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>, </em><em>optional</em>) – Size of the text plotted to display the bifurcation points. Defaults to <cite>12</cite>.</p></li>
+<li><p><strong>plot_kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – Keyword arguments to pass to the plotting function, controlling the curves of the bifurcation diagram.</p></li>
+<li><p><strong>marker_kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – Keyword arguments to pass to the plotting function, controlling the styles of the bifurcation point labels.</p></li>
+<li><p><strong>excluded_labels</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>)</em><em>, </em><em>optional</em>) – A list of 2-characters strings, controlling the bifurcation point type that are not plotted.
+For example <cite>[‘BP’]</cite> will result in branching points not being plotted.
+Can be set to the string <cite>‘all’</cite>, which results in no bifurcation being plotted at all.
+Default to <cite>[‘UZ’,’EP’]</cite>.</p></li>
+<li><p><strong>plot_sol_points</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>optional</em>) – If <cite>True</cite>, a point is added to the points where a solution is stored. Defaults to False.</p></li>
+<li><p><strong>variables_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>) or </em><em>None</em><em>, </em><em>optional</em>) – The strings used to define the axis labels. If <cite>None</cite> defaults to the AUTO labels.</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A <span class="raw-html"><a href="https://matplotlib.org/">Matplotlib</a></span> axis object showing the fixed-point bifurcation diagram using a 3-dimensional projection.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.html#matplotlib.axes.Axes" title="(in Matplotlib v3.10.0)">matplotlib.axes.Axes</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="auto2.diagrams.bifurcations.BifurcationDiagram.plot_periodic_orbits_diagram">
+<span class="sig-name descname"><span class="pre">plot_periodic_orbits_diagram</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variables</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0,</span> <span class="pre">1)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(10,</span> <span class="pre">8)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_used_colors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/auto2/diagrams/bifurcations.html#BifurcationDiagram.plot_periodic_orbits_diagram"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#auto2.diagrams.bifurcations.BifurcationDiagram.plot_periodic_orbits_diagram" title="Link to this definition"></a></dt>
+<dd><p>Plots the bifurcation diagram of all the periodic orbit branches.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>variables</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>)</em><em>, </em><em>optional</em>) – The index or label of the variables along which the bifurcation diagram is plotted.
+If labels are used, it should be labels of the available monitored variables during the continuations
+(if their labels have been defined in the AUTO configuration file) given by <a class="reference internal" href="#auto2.diagrams.bifurcations.BifurcationDiagram.periodic_orbits_variables_list" title="auto2.diagrams.bifurcations.BifurcationDiagram.periodic_orbits_variables_list"><code class="xref py py-meth docutils literal notranslate"><span class="pre">periodic_orbits_variables_list()</span></code></a>.
+The first value in the tuple determines the variable plot on the x-axis and the second the y-axis.
+Defaults to <cite>(0, 1)</cite>.</p></li>
+<li><p><strong>ax</strong> (<a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.html#matplotlib.axes.Axes" title="(in Matplotlib v3.10.0)"><em>matplotlib.axes.Axes</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – A <span class="raw-html"><a href="https://matplotlib.org/">Matplotlib</a></span> axis object to plot on. If <cite>None</cite>, a new figure is created.</p></li>
+<li><p><strong>figsize</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>)</em><em>, </em><em>optional</em>) – Dimension of the figure that is returned, only used if <cite>ax</cite> is not passed.
+Defaults to <cite>(10, 8)</cite>.</p></li>
+<li><p><strong>cmap</strong> (<a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.colors.Colormap.html#matplotlib.colors.Colormap" title="(in Matplotlib v3.10.0)"><em>matplotlib.colors.Colormap</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – A colormap that controls the color of the branches.
+The branches are colored from the colormap based on the value of the branch number.
+If <cite>None</cite>, defaults to the <span class="raw-html"><a href="https://matplotlib.org/">Matplotlib</a></span> Tableau colors list.</p></li>
+<li><p><strong>return_used_colors</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>optional</em>) – If <cite>True</cite>, the colors used in the diagram are returned. Defaults to <cite>False</cite>.</p></li>
+<li><p><strong>legend</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>optional</em>) – If <cite>True</cite>, a legend of the branches is included in the plot. Defaults to <cite>False</cite>.</p></li>
+<li><p><strong>kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a><em>, </em><em>optional</em>) – Keyword arguments to be passed to the <a class="reference internal" href="continuations.html#auto2.continuations.base.Continuation.plot_branch_parts" title="auto2.continuations.base.Continuation.plot_branch_parts"><code class="xref py py-meth docutils literal notranslate"><span class="pre">plot_branch_parts()</span></code></a> method
+of the continuation objects.
+See below for further details.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Keyword Arguments<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>markersize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>, </em><em>optional</em>) – Size of the text plotted to display the bifurcation points. Defaults to <cite>12</cite>.</p></li>
+<li><p><strong>plot_kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – Keyword arguments to pass to the plotting function, controlling the curves of the bifurcation diagram.</p></li>
+<li><p><strong>marker_kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – Keyword arguments to pass to the plotting function, controlling the styles of the bifurcation point labels.</p></li>
+<li><p><strong>excluded_labels</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>)</em><em>, </em><em>optional</em>) – A list of 2-characters strings, controlling the bifurcation point type that are not plotted.
+For example <cite>[‘BP’]</cite> will result in branching points not being plotted.
+Can be set to the string <cite>‘all’</cite>, which results in no bifurcation being plotted at all.
+Default to <cite>[‘UZ’,’EP’]</cite>.</p></li>
+<li><p><strong>plot_sol_points</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>optional</em>) – If <cite>True</cite>, a point is added to the points where a solution is stored. Defaults to False.</p></li>
+<li><p><strong>variables_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>) or </em><em>None</em><em>, </em><em>optional</em>) – The strings used to define the axis labels. If <cite>None</cite> defaults to the AUTO labels.</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A <span class="raw-html"><a href="https://matplotlib.org/">Matplotlib</a></span> axis object showing the periodic-orbit bifurcation diagram.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.html#matplotlib.axes.Axes" title="(in Matplotlib v3.10.0)">matplotlib.axes.Axes</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="auto2.diagrams.bifurcations.BifurcationDiagram.plot_periodic_orbits_diagram_3D">
+<span class="sig-name descname"><span class="pre">plot_periodic_orbits_diagram_3D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variables</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0,</span> <span class="pre">1,</span> <span class="pre">2)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(10,</span> <span class="pre">8)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_used_colors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/auto2/diagrams/bifurcations.html#BifurcationDiagram.plot_periodic_orbits_diagram_3D"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#auto2.diagrams.bifurcations.BifurcationDiagram.plot_periodic_orbits_diagram_3D" title="Link to this definition"></a></dt>
+<dd><p>Plots the bifurcation diagram of all the periodic orbit branches using a 3-dimensional projection.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>variables</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>)</em><em>, </em><em>optional</em>) – The index or label of the variables along which the bifurcation diagram is plotted.
+If labels are used, it should be labels of the available monitored variables during the continuations
+(if their labels have been defined in the AUTO configuration file) given by <a class="reference internal" href="#auto2.diagrams.bifurcations.BifurcationDiagram.periodic_orbits_variables_list" title="auto2.diagrams.bifurcations.BifurcationDiagram.periodic_orbits_variables_list"><code class="xref py py-meth docutils literal notranslate"><span class="pre">periodic_orbits_variables_list()</span></code></a>.
+The first value in the tuple determines the variable plot on the x-axis, the second the y-axis,
+and the last value determines the z-axis.
+Defaults to <cite>(0, 1, 2)</cite>.</p></li>
+<li><p><strong>ax</strong> (<a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.html#matplotlib.axes.Axes" title="(in Matplotlib v3.10.0)"><em>matplotlib.axes.Axes</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – A <span class="raw-html"><a href="https://matplotlib.org/">Matplotlib</a></span> axis object to plot on. If <cite>None</cite>, a new figure is created.</p></li>
+<li><p><strong>figsize</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>)</em><em>, </em><em>optional</em>) – Dimension of the figure that is returned, only used if <cite>ax</cite> is not passed.
+Defaults to <cite>(10, 8)</cite>.</p></li>
+<li><p><strong>cmap</strong> (<a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.colors.Colormap.html#matplotlib.colors.Colormap" title="(in Matplotlib v3.10.0)"><em>matplotlib.colors.Colormap</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – A colormap that controls the color of the branches.
+The branches are colored from the colormap based on the value of the branch number.
+If <cite>None</cite>, defaults to the <span class="raw-html"><a href="https://matplotlib.org/">Matplotlib</a></span> Tableau colors list.</p></li>
+<li><p><strong>return_used_colors</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>optional</em>) – If <cite>True</cite>, the colors used in the diagram are returned. Defaults to <cite>False</cite>.</p></li>
+<li><p><strong>legend</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>optional</em>) – If <cite>True</cite>, a legend of the branches is included in the plot. Defaults to <cite>False</cite>.</p></li>
+<li><p><strong>kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a><em>, </em><em>optional</em>) – Keyword arguments to be passed to the <a class="reference internal" href="continuations.html#auto2.continuations.base.Continuation.plot_branch_parts" title="auto2.continuations.base.Continuation.plot_branch_parts"><code class="xref py py-meth docutils literal notranslate"><span class="pre">plot_branch_parts()</span></code></a> method
+of the continuation objects.
+See below for further details.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Keyword Arguments<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>markersize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>, </em><em>optional</em>) – Size of the text plotted to display the bifurcation points. Defaults to <cite>12</cite>.</p></li>
+<li><p><strong>plot_kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – Keyword arguments to pass to the plotting function, controlling the curves of the bifurcation diagram.</p></li>
+<li><p><strong>marker_kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – Keyword arguments to pass to the plotting function, controlling the styles of the bifurcation point labels.</p></li>
+<li><p><strong>excluded_labels</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>)</em><em>, </em><em>optional</em>) – A list of 2-characters strings, controlling the bifurcation point type that are not plotted.
+For example <cite>[‘BP’]</cite> will result in branching points not being plotted.
+Can be set to the string <cite>‘all’</cite>, which results in no bifurcation being plotted at all.
+Default to <cite>[‘UZ’,’EP’]</cite>.</p></li>
+<li><p><strong>plot_sol_points</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>optional</em>) – If <cite>True</cite>, a point is added to the points where a solution is stored. Defaults to False.</p></li>
+<li><p><strong>variables_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>) or </em><em>None</em><em>, </em><em>optional</em>) – The strings used to define the axis labels. If <cite>None</cite> defaults to the AUTO labels.</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A <span class="raw-html"><a href="https://matplotlib.org/">Matplotlib</a></span> axis object showing the periodic-orbit bifurcation diagram using a 3-dimensional projection.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.html#matplotlib.axes.Axes" title="(in Matplotlib v3.10.0)">matplotlib.axes.Axes</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="auto2.diagrams.bifurcations.BifurcationDiagram.plot_single_po_branch_and_solutions">
+<span class="sig-name descname"><span class="pre">plot_single_po_branch_and_solutions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">branch_number</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">diagram_variables</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(1,)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solutions_variables</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0,</span> <span class="pre">1)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(10,</span> <span class="pre">16)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solutions_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">branch_diagram_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solution_diagram_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/auto2/diagrams/bifurcations.html#BifurcationDiagram.plot_single_po_branch_and_solutions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#auto2.diagrams.bifurcations.BifurcationDiagram.plot_single_po_branch_and_solutions" title="Link to this definition"></a></dt>
+<dd><p>Plots the bifurcation diagram of a single branch with the parameter values of stored solutions plotted on this branch,
+along with a plot of the projection of all solutions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>branch_number</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – The number of the branch to plot.</p></li>
+<li><p><strong>parameter</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>optional</em>) – The parameter along which to plot the diagram and solutions.</p></li>
+<li><p><strong>diagram_variables</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>)</em><em>, </em><em>optional</em>) – The index or label of the variables along which the bifurcation diagram is plotted.
+If labels are used, it should be labels of the available monitored variables during the continuations
+(if their labels have been defined in the AUTO configuration file) given by <code class="xref py py-meth docutils literal notranslate"><span class="pre">available_variables()</span></code>.
+The first value in the tuple determines the variable plot on the x-axis, and the second the y-axis
+Defaults to <cite>(1, )</cite>.</p></li>
+<li><p><strong>solutions_variables</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>)</em><em>, </em><em>optional</em>) – The index or label of the variables shown in the solution plot.
+If labels are used, it should be labels of the phase space variables
+(if they have been defined in the AUTO configuration file) given by <a class="reference internal" href="#auto2.diagrams.bifurcations.BifurcationDiagram.phase_space_variables" title="auto2.diagrams.bifurcations.BifurcationDiagram.phase_space_variables"><code class="xref py py-meth docutils literal notranslate"><span class="pre">phase_space_variables()</span></code></a>.
+The first value in the tuple determines the variable plot on the x-axis, the second determines the y-axis.
+Defaults to the first two variables: <cite>(0, 1)</cite>.</p></li>
+<li><p><strong>axes</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><em>numpy.ndarray</em></a><em>(</em><a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.html#matplotlib.axes.Axes" title="(in Matplotlib v3.10.0)"><em>matplotlib.axes.Axes</em></a><em>) or </em><em>None</em><em>, </em><em>optional</em>) – An array of two <span class="raw-html"><a href="https://matplotlib.org/">Matplotlib</a></span> axis object to plot on. If <cite>None</cite>, a new figure is created.</p></li>
+<li><p><strong>figsize</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>)</em><em>, </em><em>optional</em>) – Dimension of the figure that is returned, only used if <cite>ax</cite> is not passed.
+Defaults to <cite>(10, 16)</cite>.</p></li>
+<li><p><strong>solutions_tol</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>) or </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><em>ndarray</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>)</em><em>, </em><em>optional</em>) – The numerical tolerance used when comparing solutions to display with the selected <cite>solutions_parameter_value</cite>.
+Default to <cite>0.01</cite>.</p></li>
+<li><p><strong>cmap</strong> (<a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.colors.Colormap.html#matplotlib.colors.Colormap" title="(in Matplotlib v3.10.0)"><em>matplotlib.colors.Colormap</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – A colormap that controls the color of the branches.
+The branches are colored from the colormap based on the value of the branch number.
+If <cite>None</cite>, defaults to <cite>Reds</cite> colormaps.</p></li>
+<li><p><strong>branch_diagram_kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – Additional keyword arguments for the bifurcation diagram plotting function. Default is <cite>None</cite>.</p></li>
+<li><p><strong>solution_diagram_kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – Additional keyword arguments for the solution plotting function. Default is <cite>None</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+<p>The parameters below can be included in <cite>solutions_kwargs</cite> for controlling the solution plots.
+See <a class="reference internal" href="continuations.html#auto2.continuations.base.Continuation.plot_solutions" title="auto2.continuations.base.Continuation.plot_solutions"><code class="xref py py-meth docutils literal notranslate"><span class="pre">auto2.continuations.base.Continuation.plot_solutions()</span></code></a> for more details.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Keyword Arguments<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>markersize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>, </em><em>optional</em>) – Size of the text plotted to display the bifurcation points. Defaults to <cite>12</cite>.</p></li>
+<li><p><strong>marker</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>optional</em>) – The marker style used for plotting fixed points. If <cite>None</cite>, set to default marker.</p></li>
+<li><p><strong>linestyle</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>optional</em>) – The line style used for plotting the periodic orbit solutions. If <cite>None</cite>, set to default marker.</p></li>
+<li><p><strong>linewidth</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>, </em><em>optional</em>) – The width of the lines showing the periodic solutions. If <cite>None</cite>, set to the default.</p></li>
+<li><p><strong>color_solutions</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether to color each solution differently.
+If <cite>True</cite>, and <cite>parameter</cite> argument is provided and valid, then solutions are colored based on the parameter value of a given solution.
+Use the cmap provided in the <cite>plot_kwargs</cite> argument. If no cmap is provided there, use <cite>Blues</cite> cmap by default.
+If <cite>False</cite>, all solutions are colored identically, controlled using <cite>plot_kwargs</cite>.
+Default is <cite>False</cite>.</p></li>
+<li><p><strong>plot_kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – Additional keyword arguments for the plotting function. Default is <cite>None</cite>.</p></li>
+<li><p><strong>variables_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>) or </em><em>None</em><em>, </em><em>optional</em>) – The strings used to plot the axis labels. If <cite>None</cite> defaults to the AUTO labels.
+Defaults to <cite>None</cite>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An array of two <span class="raw-html"><a href="https://matplotlib.org/">Matplotlib</a></span> axis objects, showing the bifurcation diagram and the solution plot.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)">numpy.ndarray</a>(<a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.html#matplotlib.axes.Axes" title="(in Matplotlib v3.10.0)">matplotlib.axes.Axes</a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="auto2.diagrams.bifurcations.BifurcationDiagram.restart_periodic_orbits_diagram">
+<span class="sig-name descname"><span class="pre">restart_periodic_orbits_diagram</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">end_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_comparison_parameters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comparison_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.02</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_dubious_bp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_number_bp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_number_bp_detected</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backward_bp_continuation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">restart</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">continuation_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/auto2/diagrams/bifurcations.html#BifurcationDiagram.restart_periodic_orbits_diagram"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#auto2.diagrams.bifurcations.BifurcationDiagram.restart_periodic_orbits_diagram" title="Link to this definition"></a></dt>
+<dd><p>Method which restarts the computation of the periodic orbits of a bifurcation diagram stopped previously at a certain level
+of the developing tree of the bifurcation diagram.
+Each computation is done level by level in the the developing tree of the bifurcation diagram.
+For instance, fixed point continuation is the level <cite>0</cite>, and the continuations of the Hopf bifurcations form
+the level <cite>1</cite>. Computation stops either if all the bifurcation points have been computed/continued, or if a specified level of the
+tree has been reached.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>end_level</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>optional</em>) – Level of the periodic orbits bifurcation diagram tree where the computation must stop.
+Defaults to <cite>10</cite>.</p></li>
+<li><p><strong>extra_comparison_parameters</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>) or </em><em>None</em><em>, </em><em>optional</em>) – List of extra parameters labels or numbers to use in the various comparison to determine the validity of the continuations.
+If <cite>None</cite>, only the defaults parameters will be considered, i.e. the continuation parameter and the <cite>L2</cite> norm.
+Otherwise, the specified parameters are added to the two default ones.
+Default to <cite>None</cite>.</p></li>
+<li><p><strong>comparison_tol</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>) or </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><em>ndarray</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>)</em><em>, </em><em>optional</em>) – The numerical tolerance of the parameters comparison done to check the continuations validity.
+If a single float is provided, assume the same tolerance for each parameter.
+If a list or a 1-D array is passed, it must have the dimension <cite>2+len(extra_comparison_parameters)</cite>, each value in the
+array corresponding to a parameter.
+Default to <cite>0.02</cite>.</p></li>
+<li><p><strong>remove_dubious_bp</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>optional</em>) – Do not compute continuation of branching points for which the stability information include HUGE numbers, indicating
+a possible problem in the parent continuation.</p></li>
+<li><p><strong>max_number_bp</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – Only continue the first <cite>max_number_bp</cite> branching points of the parent branches.
+If <cite>None</cite>, continue all the branching points of the parent branches.
+Defaults to <cite>None</cite>.</p></li>
+<li><p><strong>max_number_bp_detected</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – Number of branching points detected during the continuations of periodic orbits,
+before turning off the detection of branching points.
+If <cite>None</cite>, the detection of branching points is never turned off.
+Defaults to <cite>None</cite>.</p></li>
+<li><p><strong>backward_bp_continuation</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>optional</em>) – Compute also the <cite>backward</cite> continuation at the branching points.
+Defaults to <cite>False</cite>.</p></li>
+<li><p><strong>restart</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether to restart or simply start the computation of the periodic orbits bifurcation diagram.
+Defaults to <cite>True</cite> which means restart.</p></li>
+<li><p><strong>continuation_kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a>) – Parameters to pass to AUTO for each continuation.
+See the <a class="reference internal" href="continuations.html#auto2.continuations.periodic_orbits.PeriodicOrbitContinuation.make_continuation" title="auto2.continuations.periodic_orbits.PeriodicOrbitContinuation.make_continuation"><code class="xref py py-meth docutils literal notranslate"><span class="pre">make_continuation()</span></code></a> method of the
+<a class="reference internal" href="continuations.html#auto2.continuations.periodic_orbits.PeriodicOrbitContinuation" title="auto2.continuations.periodic_orbits.PeriodicOrbitContinuation"><code class="xref py py-class docutils literal notranslate"><span class="pre">PeriodicOrbitContinuation</span></code></a> class for more details
+about the available AUTO parameters.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="auto2.diagrams.bifurcations.BifurcationDiagram.save">
+<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/auto2/diagrams/bifurcations.html#BifurcationDiagram.save"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#auto2.diagrams.bifurcations.BifurcationDiagram.save" title="Link to this definition"></a></dt>
+<dd><p>Save the <span class="raw-html"><a href="https://github.com/auto-07p/auto-07p">AUTO</a></span> files and the branch parameters and metadata for the whole
+bifurcation diagram.
+The continuation branches parameters and metadata will be stored in a Pickle file
+according to given naming convention.
+The data and metadata of the bifurcation diagram will be stored in a separate Pickle
+file with a provided file name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – The filename used to store parameters and metadata of the bifurcation diagram
+to disk in Pickle format.
+If <cite>None</cite>, will assign a default generic name.
+Default is <cite>None</cite>.</p></li>
+<li><p><strong>kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a><em>, </em><em>optional</em>) – Keyword arguments passed to Pickle.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="auto2.diagrams.bifurcations.BifurcationDiagram.set_path_name">
+<span class="sig-name descname"><span class="pre">set_path_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/auto2/diagrams/bifurcations.html#BifurcationDiagram.set_path_name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#auto2.diagrams.bifurcations.BifurcationDiagram.set_path_name" title="Link to this definition"></a></dt>
+<dd><p>Set the path where the <span class="raw-html"><a href="https://github.com/auto-07p/auto-07p">AUTO</a></span> and AUTO² files must be or are stored.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – The path.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="continuations.html" class="btn btn-neutral float-left" title="Continuations" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="parsers.html" class="btn btn-neutral float-right" title="Parsers" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Jonathan Demaeyer and Oisín Hamilton.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

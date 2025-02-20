@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>auto2.continuations.periodic_orbits &mdash; auto-AUTO v0.5.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../_static/documentation_options.js?v=75e38c5e"></script>
+        <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            auto-AUTO
+          </a>
+              <div class="version">
+                v0.5.2
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../files/general_information.html">General Information</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../files/rationale.html">Rationale behind auto-AUTO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../files/user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../files/references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">auto-AUTO</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">auto2.continuations.periodic_orbits</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for auto2.continuations.periodic_orbits</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    Periodic Orbit Continuation class definition</span>
+<span class="sd">    ============================================</span>
+
+<span class="sd">    This module implements the periodic orbit continuation methods.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">traceback</span>
+<span class="kn">import</span> <span class="nn">glob</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;logger&#39;</span><span class="p">)</span>
+
+<span class="n">auto_directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;AUTO_DIR&#39;</span><span class="p">]</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">auto_directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;AUTO_DIR&#39;</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">auto_directory</span> <span class="ow">in</span> <span class="n">path</span><span class="p">:</span>
+            <span class="k">break</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># sys.path.append(auto_directory + &#39;/python/auto&#39;)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">auto_directory</span> <span class="o">+</span> <span class="s1">&#39;/python&#39;</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Unable to find auto directory environment variable.&#39;</span><span class="p">)</span>
+
+<span class="kn">import</span> <span class="nn">auto.AUTOCommands</span> <span class="k">as</span> <span class="nn">ac</span>
+<span class="kn">import</span> <span class="nn">auto.runAUTO</span> <span class="k">as</span> <span class="nn">ra</span>
+<span class="kn">from</span> <span class="nn">auto.parseS</span> <span class="kn">import</span> <span class="n">AUTOSolution</span>
+<span class="kn">from</span> <span class="nn">auto.AUTOExceptions</span> <span class="kn">import</span> <span class="n">AUTORuntimeError</span>
+<span class="kn">from</span> <span class="nn">auto2.continuations.base</span> <span class="kn">import</span> <span class="n">Continuation</span>
+
+<span class="kn">import</span> <span class="nn">auto2.continuations.fixed_points</span> <span class="k">as</span> <span class="nn">fpc</span>
+
+
+<div class="viewcode-block" id="PeriodicOrbitContinuation">
+<a class="viewcode-back" href="../../../files/technical/continuations.html#auto2.continuations.periodic_orbits.PeriodicOrbitContinuation">[docs]</a>
+<span class="k">class</span> <span class="nc">PeriodicOrbitContinuation</span><span class="p">(</span><span class="n">Continuation</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Class for the periodic orbit continuations in auto-AUTO.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    model_name: str</span>
+<span class="sd">        The name of the model to load. Used to load the .f90 file of the provided model.</span>
+<span class="sd">    config_object: ~auto2.parsers.config.ConfigParser</span>
+<span class="sd">        A loaded ConfigParser object.</span>
+<span class="sd">    path_name: str, optional</span>
+<span class="sd">        The directory path where files are read/saved.</span>
+<span class="sd">        If `None`, defaults to current working directory.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    model_name: str</span>
+<span class="sd">        The name of the loaded model. Used to load the .f90 file of the provided model.</span>
+<span class="sd">    config_object: ~auto2.parsers.config.ConfigParser</span>
+<span class="sd">        A loaded ConfigParser object.</span>
+<span class="sd">    continuation: dict</span>
+<span class="sd">        Dictionary holding the forward and backward continuation data.</span>
+<span class="sd">    branch_number: int</span>
+<span class="sd">        The AUTO branch number attributed to the continuation(s). This number can be set manually by passing the IBR AUTO parameter when</span>
+<span class="sd">        starting the continuations (see the :meth:`make_continuation` documentation for more details).</span>
+<span class="sd">    initial_data: ~numpy.ndarray or AUTO solution object</span>
+<span class="sd">        The initial data used to start the continuation(s).</span>
+<span class="sd">    auto_filename_suffix: str</span>
+<span class="sd">        Suffix for the |AUTO| files used to save the continuation(s) data and parameters on disk.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_name</span><span class="p">,</span> <span class="n">config_object</span><span class="p">,</span> <span class="n">path_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="n">Continuation</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_name</span><span class="p">,</span> <span class="n">config_object</span><span class="p">,</span> <span class="n">path_name</span><span class="p">)</span>
+
+        <span class="c1"># plots default behaviours</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_default_marker</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_default_markersize</span> <span class="o">=</span> <span class="mf">6.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_default_linestyle</span> <span class="o">=</span> <span class="s1">&#39;-&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_default_linewidth</span> <span class="o">=</span> <span class="mf">1.2</span>
+
+<div class="viewcode-block" id="PeriodicOrbitContinuation.make_continuation">
+<a class="viewcode-back" href="../../../files/technical/continuations.html#auto2.continuations.periodic_orbits.PeriodicOrbitContinuation.make_continuation">[docs]</a>
+    <span class="k">def</span> <span class="nf">make_continuation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">initial_data</span><span class="p">,</span> <span class="n">auto_suffix</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">only_forward</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">max_bp</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">continuation_kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Make both forward and backward (if possible) continuation for fixed points.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        initial_data: AUTOSolution or str</span>
+<span class="sd">            Initial data used to start the continuation(s). Should be an AUTOSolution or a string indicating the path to</span>
+<span class="sd">            a file containing the data of the periodic orbit to start from. See the `dat` parameter in the AUTO parameters</span>
+<span class="sd">            documentation for more detail about how this data file must be organized (you can also find this documented</span>
+<span class="sd">            below).</span>
+<span class="sd">        auto_suffix: str, optional</span>
+<span class="sd">            Suffix to use for the |AUTO| and Pickle files used to save the continuation(s)</span>
+<span class="sd">            data, parameters and metadata on disk. If not provided, does not save the data on disk.</span>
+<span class="sd">        only_forward: bool, optional</span>
+<span class="sd">            If `True`, compute only the forward continuation (positive `DS` parameter).</span>
+<span class="sd">            If `False`, compute in both backward and forward direction.</span>
+<span class="sd">            Default to `False`.</span>
+<span class="sd">        max_bp: int or None</span>
+<span class="sd">            Number of branching points detected before turning off the detection of branching points.</span>
+<span class="sd">            If `None`, the detection of branching points is never turned off.</span>
+<span class="sd">            Defaults to `None`.</span>
+<span class="sd">        continuation_kwargs: dict</span>
+<span class="sd">            Keyword arguments to be passed to the |AUTO| continuation.</span>
+<span class="sd">            See below for further details.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+
+<span class="sd">        **AUTO Continuation Keyword Arguments**: See Section 10.8 in the |AUTO| documentation for further details.</span>
+<span class="sd">        We provide below the most important ones:</span>
+
+<span class="sd">        Other Parameters</span>
+<span class="sd">        ----------------</span>
+
+<span class="sd">        DS: float, optional</span>
+<span class="sd">            AUTO uses pseudo-arclength continuation for following solution families.</span>
+<span class="sd">            The pseudo-arclength stepsize is the distance between the current solution and the next solution on a family.</span>
+<span class="sd">            By default, this distance includes all state variables (or state functions) and all free parameters.</span>
+<span class="sd">            The constant `DS` defines the pseudo-arclength stepsize to be used for the first attempted step along any family.</span>
+<span class="sd">            DS may be chosen positive or negative; changing its sign reverses the direction of computation.</span>
+<span class="sd">            The relation `DSMIN` ≤ | `DS` | ≤ `DSMAX` must be satisfied. The precise choice of `DS` is problem-dependent.</span>
+<span class="sd">        DSMIN: float, optional</span>
+<span class="sd">            This is minimum allowable absolute value of the pseudo-arclength stepsize.</span>
+<span class="sd">            `DSMIN` must be positive. It is only effective if the pseudo-arclength step is adaptive, i.e., if `IADS`&gt;0.</span>
+<span class="sd">            The choice of `DSMIN` is highly problem-dependent.</span>
+<span class="sd">        DSMAX: float, optional</span>
+<span class="sd">            The maximum allowable absolute value of the pseudo-arclength stepsize.</span>
+<span class="sd">            `DSMAX` must be positive.</span>
+<span class="sd">            It is only effective if the pseudo-arclength step is adaptive, i.e., if `IADS`&gt;0.</span>
+<span class="sd">            The choice of `DSMAX` is highly problem-dependent.</span>
+<span class="sd">        NMX: int, optional</span>
+<span class="sd">            The maximum number of steps to be taken along the branch.</span>
+<span class="sd">        IBR: int, optional</span>
+<span class="sd">            This constant specifies the initial branch number BR that is used. The default `IBR=0` means that</span>
+<span class="sd">            that this number is determined automatically.</span>
+<span class="sd">        ILP: int, optional</span>
+<span class="sd">            * If `ILP=0`: No detection of folds. This is the recommended choice in the AUTO documentation.</span>
+
+<span class="sd">            * If `ILP=1`: Detection of folds. To be used if subsequent fold continuation is intended.</span>
+<span class="sd">        SP: list(str), optional</span>
+<span class="sd">            This constant controls the detection of bifurcations and adds stopping conditions.</span>
+<span class="sd">            It is specified as a list of bifurcation type strings followed by an optional number.</span>
+<span class="sd">            If this number is `0`, then the detection of this bifurcation is turned off, and if it is missing then the detection is turned on.</span>
+<span class="sd">            A number `n` greater than zero specifies that the continuation should stop as soon as the nth bifurcation of this type has been</span>
+<span class="sd">            reached.</span>
+<span class="sd">            Examples:</span>
+
+<span class="sd">            - `SP=[’LP0’]` turn off detection of folds.</span>
+
+<span class="sd">            - `SP=[’LP’,’HB3’,’BP0’,’UZ3’]` turn on the detection of folds and Hopf bifurcations, turn off detection of branch points</span>
+<span class="sd">              and stop at the third Hopf bifurcation or third user defined point, whichever comes first.</span>
+<span class="sd">        ISP: int, optional</span>
+<span class="sd">            This constant controls the detection of Hopf bifurcations, branch points, period-doubling bifurcations, and torus bifurcations:</span>
+
+<span class="sd">            * If `ISP=0` This setting disables the detection of Hopf bifurcations, branch points, period doubling bifurcations,</span>
+<span class="sd">              and torus bifurcations and the computation of Floquet multipliers.</span>
+
+<span class="sd">            * If `ISP=1` Branch points and Hopf bifurcations are detected for algebraic equations. Branch points, period-doubling</span>
+<span class="sd">              bifurcations and torus bifurcations are not detected for periodic solutions and boundary value problems.</span>
+<span class="sd">              However, Floquet multipliers are computed.</span>
+
+<span class="sd">            * If `ISP=2` This setting enables the detection of all special solutions.</span>
+<span class="sd">              For periodic solutions and rotations, the choice `ISP=2` should be used with care,</span>
+<span class="sd">              due to potential inaccuracy in the computation of the linearized Poincar ́e map and possible rapid variation of the</span>
+<span class="sd">              Floquet multipliers.</span>
+
+<span class="sd">            * If `ISP=3` Hopf bifurcations will not be detected. Branch points will be detected, and AUTO will monitor</span>
+<span class="sd">              the Floquet multipliers. Period-doubling and torus bifurcations will go undetected. This option is useful for</span>
+<span class="sd">              certain problems with non-generic Floquet behavior.</span>
+
+<span class="sd">            * If `ISP=4` Branch points and Hopf bifurcations are detected for algebraic equations. Branch points are not detected</span>
+<span class="sd">              for periodic solutions and boundary value problems.</span>
+<span class="sd">              AUTO will monitor the Floquet multipliers, and period-doubling and torus bifurcations will be detected.</span>
+<span class="sd">        ISW: int, optional</span>
+<span class="sd">            This constant controls branch switching at branch points for the case of differential equations. Note that branch switching</span>
+<span class="sd">            is automatic for algebraic equations.</span>
+
+<span class="sd">            * If `ISW=1` This is the normal value of `ISW`.</span>
+
+<span class="sd">            * If `ISW=-1` If `IRS` is the label of a branch point or a period-doubling bifurcation then branch switching will be done.</span>
+<span class="sd">              For period doubling bifurcations it is recommended that `NTST` be increased.</span>
+
+<span class="sd">            * If `ISW=2` If IRS is the label of a fold, a Hopf bifurcation point, a period-doubling, a torus bifurcation,</span>
+<span class="sd">              or, in a non-generic (symmetric) system, a branch point then a locus of such points will be computed.</span>
+
+<span class="sd">            * If `ISW=3` If `IRS` is the label of a branch point in a generic (non-symmetric) system then a locus of such points will</span>
+<span class="sd">              be computed. Two additional free parameters must be specified for such continuations</span>
+<span class="sd">        MXBF: int, optional</span>
+<span class="sd">            This constant, which is effective for algebraic problems only, sets the maximum number of bifurcations to be treated.</span>
+<span class="sd">            Additional branch points will be noted, but the corresponding bifurcating families will not be computed.</span>
+<span class="sd">        dat: str, optional</span>
+<span class="sd">            This constant, where `dat=’filename’`, sets the name of a user-supplied ASCII data file `filename.dat`,</span>
+<span class="sd">            from which the continuation is to be restarted.</span>
+<span class="sd">            The first column in the data file denotes the time, which does not need to be rescaled to the</span>
+<span class="sd">            interval `[0, 1]`, and further columns the coordinates of the solution. The parameter `IRS` must be</span>
+<span class="sd">            set to `0`.</span>
+<span class="sd">        PAR: dict, optional</span>
+<span class="sd">             Determines the parameter values for the continuation to start from.</span>
+<span class="sd">             Should be entred as `{&#39;parameter_name&#39;: parameter_value}`.</span>
+<span class="sd">        IRS: int or str, optional</span>
+<span class="sd">            This constant sets the label of the solution where the computation is to be restarted.</span>
+<span class="sd">            Setting `IRS=0` is typically used in the first run of a new problem.</span>
+<span class="sd">            To restart the computation at the `n`-th label, use `IRS=n`.</span>
+<span class="sd">            To restart the computation at a specific label (for example `HB12`), use `IRS=HB12`.</span>
+<span class="sd">        TY: str, optional</span>
+<span class="sd">            This constant modifies the type from the restart solution.</span>
+<span class="sd">            This is sometimes useful in conservative or extended systems, declaring a regular point to be</span>
+<span class="sd">            a Hopf bifurcation point `TY=’HB’` or a branch point `TY=’BP’`.</span>
+<span class="sd">        IPS: int, optional</span>
+<span class="sd">            This constant defines the problem type:</span>
+
+<span class="sd">            * If `IPS=0` algebraic bifurcation problem.</span>
+<span class="sd">            * If `IPS=1` stationary solutions of ODEs with detection of Hopf bifurcations.</span>
+<span class="sd">            * If `IPS=-1` fixed points of the discrete dynamical systems.</span>
+<span class="sd">            * If `IPS=-2` time integration using implicit Euler.</span>
+<span class="sd">            * If `IPS=2`  computation of periodic solutions.</span>
+<span class="sd">            * If `IPS=4`  boundary value problems.</span>
+<span class="sd">            * If `IPS=5`  algebraic optimization problems.</span>
+<span class="sd">            * If `IPS=7`  boundary value problem with computation of Floquet multipliers.</span>
+<span class="sd">            * If `IPS=9`  option is used in connection with the HomCont algorithms</span>
+<span class="sd">            * If `IPS=11` spatially uniform solutions of a system of parabolic PDEs, with detection of traveling wave bifurcations.</span>
+<span class="sd">            * If `IPS=12` continuation of traveling wave solutions to a system of parabolic PDEs.</span>
+<span class="sd">            * If `IPS=14` time evolution for a system of parabolic PDEs subject to periodic boundary conditions.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">make_forward_continuation</span><span class="p">(</span><span class="n">initial_data</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">max_bp</span><span class="o">=</span><span class="n">max_bp</span><span class="p">,</span> <span class="o">**</span><span class="n">continuation_kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">only_forward</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">make_backward_continuation</span><span class="p">(</span><span class="n">initial_data</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">max_bp</span><span class="o">=</span><span class="n">max_bp</span><span class="p">,</span> <span class="o">**</span><span class="n">continuation_kwargs</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">auto_suffix</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">auto_save</span><span class="p">(</span><span class="n">auto_suffix</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="PeriodicOrbitContinuation.make_forward_continuation">
+<a class="viewcode-back" href="../../../files/technical/continuations.html#auto2.continuations.periodic_orbits.PeriodicOrbitContinuation.make_forward_continuation">[docs]</a>
+    <span class="k">def</span> <span class="nf">make_forward_continuation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">initial_data</span><span class="p">,</span> <span class="n">auto_suffix</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">max_bp</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">continuation_kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Make the forward continuation of periodic orbits.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        initial_data: AUTOSolution or str</span>
+<span class="sd">            Initial data used to start the continuation(s). Should be an AUTOSolution or a string indicating the path to</span>
+<span class="sd">            a file containing the data of the periodic orbit to start from. See the `dat` parameter in the AUTO parameters</span>
+<span class="sd">            documentation for more detail about how this data file must be organized (you can also find this documented</span>
+<span class="sd">            in the :meth:`make_continuation` documentation).</span>
+<span class="sd">        auto_suffix: str, optional</span>
+<span class="sd">            Suffix to use for the |AUTO| and Pickle files used to save the continuation(s)</span>
+<span class="sd">            data, parameters and metadata on disk. If not provided, does not save the data on disk.</span>
+<span class="sd">        max_bp: int or None</span>
+<span class="sd">            Number of branching points detected before turning off the detection of branching points.</span>
+<span class="sd">            If `None`, the detection of branching points is never turned off.</span>
+<span class="sd">            Defaults to `None`.</span>
+<span class="sd">        continuation_kwargs: dict</span>
+<span class="sd">            Keyword arguments to be passed to the |AUTO| continuation.</span>
+<span class="sd">            See below for further details</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+
+<span class="sd">        **AUTO Continuation Keyword Arguments**: See Section 10.8 in the |AUTO| documentation for further details.</span>
+<span class="sd">        The most important ones are provided in the documentation of the :meth:`make_continuation` method.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">runner</span> <span class="o">=</span> <span class="n">ra</span><span class="o">.</span><span class="n">runAUTO</span><span class="p">()</span>
+        <span class="n">ac</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_name</span><span class="p">,</span> <span class="n">runner</span><span class="o">=</span><span class="n">runner</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s1">&#39;MXBF&#39;</span> <span class="ow">in</span> <span class="n">continuation_kwargs</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Disabling automatic continuation of branch points (MXBF set to 0)&#39;</span><span class="p">)</span>
+        <span class="n">continuation_kwargs</span><span class="p">[</span><span class="s1">&#39;MXBF&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="s1">&#39;IBR&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">continuation_kwargs</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">branch_number</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">continuation_kwargs</span><span class="p">[</span><span class="s1">&#39;IBR&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">branch_number</span>
+
+        <span class="k">if</span> <span class="n">max_bp</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Disabling branching points detection after &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">max_bp</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; branching points.&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s1">&#39;SP&#39;</span> <span class="ow">in</span> <span class="n">continuation_kwargs</span><span class="p">:</span>
+                <span class="n">continuation_kwargs</span><span class="p">[</span><span class="s1">&#39;SP&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;BP&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">max_bp</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">continuation_kwargs</span><span class="p">[</span><span class="s1">&#39;SP&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;BP&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">max_bp</span><span class="p">)]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">initial_data</span> <span class="o">=</span> <span class="n">initial_data</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">initial_data</span><span class="p">,</span> <span class="n">AUTOSolution</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">retry</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_retry</span><span class="p">):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">cf</span> <span class="o">=</span> <span class="n">ac</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">initial_data</span><span class="p">,</span> <span class="n">runner</span><span class="o">=</span><span class="n">runner</span><span class="p">,</span> <span class="o">**</span><span class="n">continuation_kwargs</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">max_bp</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">cf</span><span class="o">.</span><span class="n">getIndex</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)[</span><span class="s1">&#39;TY name&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;BP&#39;</span><span class="p">:</span>
+                        <span class="n">recontinuation_kwargs</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">continuation_kwargs</span><span class="p">)</span>
+                        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">sp</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">recontinuation_kwargs</span><span class="p">[</span><span class="s1">&#39;SP&#39;</span><span class="p">]):</span>
+                            <span class="k">if</span> <span class="s1">&#39;BP&#39;</span> <span class="ow">in</span> <span class="n">sp</span><span class="p">:</span>
+                                <span class="n">recontinuation_kwargs</span><span class="p">[</span><span class="s1">&#39;SP&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                        <span class="n">recontinuation_kwargs</span><span class="p">[</span><span class="s1">&#39;SP&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;BP0&#39;</span><span class="p">)</span>
+                        <span class="n">recontinuation_kwargs</span><span class="p">[</span><span class="s1">&#39;IRS&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;BP&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">max_bp</span><span class="p">)</span>
+                        <span class="n">recontinuation_kwargs</span><span class="p">[</span><span class="s1">&#39;ISW&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+                        <span class="n">recontinuation_kwargs</span><span class="p">[</span><span class="s1">&#39;LAB&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cf</span><span class="o">.</span><span class="n">getIndex</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)[</span><span class="s1">&#39;LAB&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+                        <span class="n">cf2</span> <span class="o">=</span> <span class="n">ac</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">runner</span><span class="o">=</span><span class="n">runner</span><span class="p">,</span> <span class="o">**</span><span class="n">recontinuation_kwargs</span><span class="p">)</span>
+                        <span class="n">cf</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cf2</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="k">except</span> <span class="n">AUTORuntimeError</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
+                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;AUTO continuation failed, possibly retrying.&#39;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">break</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Problem to complete the forward AUTO continuation, returning nothing.&#39;</span><span class="p">)</span>
+                <span class="n">cf</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">retry</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_retry</span><span class="p">):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="c1"># TODO: should IRS not be put automatically to 0 here ?</span>
+                    <span class="n">cf</span> <span class="o">=</span> <span class="n">ac</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_name</span><span class="p">,</span> <span class="n">dat</span><span class="o">=</span><span class="n">initial_data</span><span class="p">,</span> <span class="n">runner</span><span class="o">=</span><span class="n">runner</span><span class="p">,</span> <span class="o">**</span><span class="n">continuation_kwargs</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">max_bp</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">cf</span><span class="o">.</span><span class="n">getIndex</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)[</span><span class="s1">&#39;TY name&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;BP&#39;</span><span class="p">:</span>
+                        <span class="n">recontinuation_kwargs</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">continuation_kwargs</span><span class="p">)</span>
+                        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">sp</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">recontinuation_kwargs</span><span class="p">[</span><span class="s1">&#39;SP&#39;</span><span class="p">]):</span>
+                            <span class="k">if</span> <span class="s1">&#39;BP&#39;</span> <span class="ow">in</span> <span class="n">sp</span><span class="p">:</span>
+                                <span class="n">recontinuation_kwargs</span><span class="p">[</span><span class="s1">&#39;SP&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                        <span class="n">recontinuation_kwargs</span><span class="p">[</span><span class="s1">&#39;SP&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;BP0&#39;</span><span class="p">)</span>
+                        <span class="n">recontinuation_kwargs</span><span class="p">[</span><span class="s1">&#39;SP&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;BP0&#39;</span><span class="p">)</span>
+                        <span class="n">recontinuation_kwargs</span><span class="p">[</span><span class="s1">&#39;IRS&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;BP&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">max_bp</span><span class="p">)</span>
+                        <span class="n">recontinuation_kwargs</span><span class="p">[</span><span class="s1">&#39;ISW&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+                        <span class="n">recontinuation_kwargs</span><span class="p">[</span><span class="s1">&#39;LAB&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cf</span><span class="o">.</span><span class="n">getIndex</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)[</span><span class="s1">&#39;LAB&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+                        <span class="n">cf2</span> <span class="o">=</span> <span class="n">ac</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">runner</span><span class="o">=</span><span class="n">runner</span><span class="p">,</span> <span class="o">**</span><span class="n">recontinuation_kwargs</span><span class="p">)</span>
+                        <span class="n">cf</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cf2</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="k">except</span> <span class="n">AUTORuntimeError</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
+                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;AUTO continuation failed, possibly retrying.&#39;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">break</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Problem to complete the forward AUTO continuation, returning nothing.&#39;</span><span class="p">)</span>
+                <span class="n">cf</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">continuation</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">continuation</span><span class="p">[</span><span class="s1">&#39;backward&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">continuation</span><span class="p">[</span><span class="s1">&#39;forward&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cf</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">branch_number</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">branch_number</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">continuation</span><span class="p">[</span><span class="s1">&#39;forward&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">BR</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">auto_suffix</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">auto_save</span><span class="p">(</span><span class="n">auto_suffix</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="PeriodicOrbitContinuation.make_backward_continuation">
+<a class="viewcode-back" href="../../../files/technical/continuations.html#auto2.continuations.periodic_orbits.PeriodicOrbitContinuation.make_backward_continuation">[docs]</a>
+    <span class="k">def</span> <span class="nf">make_backward_continuation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">initial_data</span><span class="p">,</span> <span class="n">auto_suffix</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">max_bp</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">continuation_kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Make the backward continuation of periodic orbits.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        initial_data: AUTOSolution or str</span>
+<span class="sd">            Initial data used to start the continuation(s). Should be an AUTOSolution or a string indicating the path to</span>
+<span class="sd">            a file containing the data of the periodic orbit to start from. See the `dat` parameter in the AUTO parameters</span>
+<span class="sd">            documentation for more detail about how this data file must be organized (you can also find this documented</span>
+<span class="sd">            in the :meth:`make_continuation` documentation).</span>
+<span class="sd">        auto_suffix: str, optional</span>
+<span class="sd">            Suffix to use for the |AUTO| and Pickle files used to save the continuation(s)</span>
+<span class="sd">            data, parameters and metadata on disk. If not provided, does not save the data on disk.</span>
+<span class="sd">        max_bp: int or None</span>
+<span class="sd">            Number of branching points detected before turning off the detection of branching points.</span>
+<span class="sd">            If `None`, the detection of branching points is never turned off.</span>
+<span class="sd">            Defaults to `None`.</span>
+<span class="sd">        continuation_kwargs: dict</span>
+<span class="sd">            Keyword arguments to be passed to the |AUTO| continuation.</span>
+<span class="sd">            See below for further details</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+
+<span class="sd">        **AUTO Continuation Keyword Arguments**: See Section 10.8 in the |AUTO| documentation for further details.</span>
+<span class="sd">        The most important ones are provided in the documentation of the :meth:`make_continuation` method.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">runner</span> <span class="o">=</span> <span class="n">ra</span><span class="o">.</span><span class="n">runAUTO</span><span class="p">()</span>
+        <span class="n">ac</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_name</span><span class="p">,</span> <span class="n">runner</span><span class="o">=</span><span class="n">runner</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s1">&#39;MXBF&#39;</span> <span class="ow">in</span> <span class="n">continuation_kwargs</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Disabling automatic continuation of branch points (MXBF set to 0)&#39;</span><span class="p">)</span>
+        <span class="n">continuation_kwargs</span><span class="p">[</span><span class="s1">&#39;MXBF&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="s1">&#39;IBR&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">continuation_kwargs</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">branch_number</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">continuation_kwargs</span><span class="p">[</span><span class="s1">&#39;IBR&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">branch_number</span>
+
+        <span class="k">if</span> <span class="n">max_bp</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Disabling branching points detection after &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">max_bp</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; branching points.&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s1">&#39;SP&#39;</span> <span class="ow">in</span> <span class="n">continuation_kwargs</span><span class="p">:</span>
+                <span class="n">continuation_kwargs</span><span class="p">[</span><span class="s1">&#39;SP&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;BP&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">max_bp</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">continuation_kwargs</span><span class="p">[</span><span class="s1">&#39;SP&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;BP&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">max_bp</span><span class="p">)]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">initial_data</span> <span class="o">=</span> <span class="n">initial_data</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">initial_data</span><span class="p">,</span> <span class="n">AUTOSolution</span><span class="p">):</span>
+
+            <span class="k">for</span> <span class="n">retry</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_retry</span><span class="p">):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="s1">&#39;DS&#39;</span> <span class="ow">in</span> <span class="n">continuation_kwargs</span><span class="p">:</span>
+                        <span class="n">continuation_kwargs</span><span class="p">[</span><span class="s1">&#39;DS&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span> <span class="n">continuation_kwargs</span><span class="p">[</span><span class="s1">&#39;DS&#39;</span><span class="p">]</span>
+                        <span class="n">cb</span> <span class="o">=</span> <span class="n">ac</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">initial_data</span><span class="p">,</span> <span class="n">runner</span><span class="o">=</span><span class="n">runner</span><span class="p">,</span> <span class="o">**</span><span class="n">continuation_kwargs</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">cb</span> <span class="o">=</span> <span class="n">ac</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">initial_data</span><span class="p">,</span> <span class="n">DS</span><span class="o">=</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="n">runner</span><span class="o">=</span><span class="n">runner</span><span class="p">,</span> <span class="o">**</span><span class="n">continuation_kwargs</span><span class="p">)</span>
+
+                    <span class="k">if</span> <span class="n">max_bp</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">cb</span><span class="o">.</span><span class="n">getIndex</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)[</span><span class="s1">&#39;TY name&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;BP&#39;</span><span class="p">:</span>
+                        <span class="n">recontinuation_kwargs</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">continuation_kwargs</span><span class="p">)</span>
+                        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">sp</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">recontinuation_kwargs</span><span class="p">[</span><span class="s1">&#39;SP&#39;</span><span class="p">]):</span>
+                            <span class="k">if</span> <span class="s1">&#39;BP&#39;</span> <span class="ow">in</span> <span class="n">sp</span><span class="p">:</span>
+                                <span class="n">recontinuation_kwargs</span><span class="p">[</span><span class="s1">&#39;SP&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                        <span class="n">recontinuation_kwargs</span><span class="p">[</span><span class="s1">&#39;SP&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;BP0&#39;</span><span class="p">)</span>
+                        <span class="n">recontinuation_kwargs</span><span class="p">[</span><span class="s1">&#39;IRS&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;BP&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">max_bp</span><span class="p">)</span>
+                        <span class="n">recontinuation_kwargs</span><span class="p">[</span><span class="s1">&#39;ISW&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+                        <span class="n">recontinuation_kwargs</span><span class="p">[</span><span class="s1">&#39;LAB&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cb</span><span class="o">.</span><span class="n">getIndex</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)[</span><span class="s1">&#39;LAB&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+                        <span class="n">cb2</span> <span class="o">=</span> <span class="n">ac</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">runner</span><span class="o">=</span><span class="n">runner</span><span class="p">,</span> <span class="o">**</span><span class="n">recontinuation_kwargs</span><span class="p">)</span>
+                        <span class="n">cb</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cb2</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="k">except</span> <span class="n">AUTORuntimeError</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
+                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;AUTO continuation failed, possibly retrying.&#39;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">break</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Problem to complete the backward AUTO continuation, returning nothing.&#39;</span><span class="p">)</span>
+                <span class="n">cb</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">else</span><span class="p">:</span>
+
+            <span class="k">for</span> <span class="n">retry</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_retry</span><span class="p">):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="c1"># TODO: should IRS not be put automatically to 0 here ?</span>
+                    <span class="k">if</span> <span class="s1">&#39;DS&#39;</span> <span class="ow">in</span> <span class="n">continuation_kwargs</span><span class="p">:</span>
+                        <span class="n">continuation_kwargs</span><span class="p">[</span><span class="s1">&#39;DS&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span> <span class="n">continuation_kwargs</span><span class="p">[</span><span class="s1">&#39;DS&#39;</span><span class="p">]</span>
+                        <span class="n">cb</span> <span class="o">=</span> <span class="n">ac</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_name</span><span class="p">,</span> <span class="n">dat</span><span class="o">=</span><span class="n">initial_data</span><span class="p">,</span> <span class="n">runner</span><span class="o">=</span><span class="n">runner</span><span class="p">,</span> <span class="o">**</span><span class="n">continuation_kwargs</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">cb</span> <span class="o">=</span> <span class="n">ac</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_name</span><span class="p">,</span> <span class="n">DS</span><span class="o">=</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="n">dat</span><span class="o">=</span><span class="n">initial_data</span><span class="p">,</span> <span class="n">runner</span><span class="o">=</span><span class="n">runner</span><span class="p">,</span> <span class="o">**</span><span class="n">continuation_kwargs</span><span class="p">)</span>
+
+                    <span class="k">if</span> <span class="n">max_bp</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">cb</span><span class="o">.</span><span class="n">getIndex</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)[</span><span class="s1">&#39;TY name&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;BP&#39;</span><span class="p">:</span>
+                        <span class="n">recontinuation_kwargs</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">continuation_kwargs</span><span class="p">)</span>
+                        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">sp</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">recontinuation_kwargs</span><span class="p">[</span><span class="s1">&#39;SP&#39;</span><span class="p">]):</span>
+                            <span class="k">if</span> <span class="s1">&#39;BP&#39;</span> <span class="ow">in</span> <span class="n">sp</span><span class="p">:</span>
+                                <span class="n">recontinuation_kwargs</span><span class="p">[</span><span class="s1">&#39;SP&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                        <span class="n">recontinuation_kwargs</span><span class="p">[</span><span class="s1">&#39;SP&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;BP0&#39;</span><span class="p">)</span>
+                        <span class="n">recontinuation_kwargs</span><span class="p">[</span><span class="s1">&#39;IRS&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;BP&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">max_bp</span><span class="p">)</span>
+                        <span class="n">recontinuation_kwargs</span><span class="p">[</span><span class="s1">&#39;ISW&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+                        <span class="n">recontinuation_kwargs</span><span class="p">[</span><span class="s1">&#39;LAB&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cb</span><span class="o">.</span><span class="n">getIndex</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)[</span><span class="s1">&#39;LAB&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+                        <span class="n">cb2</span> <span class="o">=</span> <span class="n">ac</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">runner</span><span class="o">=</span><span class="n">runner</span><span class="p">,</span> <span class="o">**</span><span class="n">recontinuation_kwargs</span><span class="p">)</span>
+                        <span class="n">cb</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cb2</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="k">except</span> <span class="n">AUTORuntimeError</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
+                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;AUTO continuation failed, possibly retrying.&#39;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">break</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Problem to complete the backward AUTO continuation, returning only a part.&#39;</span><span class="p">)</span>
+                <span class="n">cb</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">continuation</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">continuation</span><span class="p">[</span><span class="s1">&#39;forward&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">continuation</span><span class="p">[</span><span class="s1">&#39;backward&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cb</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">branch_number</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">branch_number</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">continuation</span><span class="p">[</span><span class="s1">&#39;backward&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">BR</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">auto_suffix</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">auto_save</span><span class="p">(</span><span class="n">auto_suffix</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span> <span class="nf">orbit_stability</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">idx</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;-&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">continuation</span><span class="p">[</span><span class="s1">&#39;backward&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_solution_by_label</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+                    <span class="n">idx</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="s1">&#39;PT&#39;</span><span class="p">]</span>
+                    <span class="n">ix_map</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_index_map</span><span class="p">(</span><span class="n">direction</span><span class="o">=</span><span class="s1">&#39;backward&#39;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">idx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">continuation</span><span class="p">[</span><span class="s1">&#39;backward&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">diagnostics</span><span class="p">[</span><span class="n">ix_map</span><span class="p">[</span><span class="n">idx</span><span class="p">]][</span><span class="s1">&#39;Multipliers&#39;</span><span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;No orbit stability to show.&#39;</span><span class="p">)</span>
+                        <span class="k">return</span> <span class="kc">None</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;No backward branch to show the stability for.&#39;</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="kc">None</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">continuation</span><span class="p">[</span><span class="s1">&#39;forward&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_solution_by_label</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+                    <span class="n">idx</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="s1">&#39;PT&#39;</span><span class="p">]</span>
+                    <span class="n">ix_map</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_index_map</span><span class="p">(</span><span class="n">direction</span><span class="o">=</span><span class="s1">&#39;forward&#39;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">idx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">continuation</span><span class="p">[</span><span class="s1">&#39;forward&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">diagnostics</span><span class="p">[</span><span class="n">ix_map</span><span class="p">[</span><span class="n">idx</span><span class="p">]][</span><span class="s1">&#39;Multipliers&#39;</span><span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;No orbit stability to show.&#39;</span><span class="p">)</span>
+                        <span class="k">return</span> <span class="kc">None</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;No forward branch to show the stability for.&#39;</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="n">idx</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">continuation</span><span class="p">[</span><span class="s1">&#39;forward&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">ix_map</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_index_map</span><span class="p">(</span><span class="n">direction</span><span class="o">=</span><span class="s1">&#39;forward&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">ix_map</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">continuation</span><span class="p">[</span><span class="s1">&#39;forward&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">diagnostics</span><span class="p">[</span><span class="n">ix_map</span><span class="p">[</span><span class="n">idx</span><span class="p">]][</span><span class="s1">&#39;Multipliers&#39;</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Point index not found. No orbit stability to show.&#39;</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="kc">None</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;No forward branch to show the stability for.&#39;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">continuation</span><span class="p">[</span><span class="s1">&#39;backward&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">ix_map</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_index_map</span><span class="p">(</span><span class="n">direction</span><span class="o">=</span><span class="s1">&#39;backward&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="o">-</span><span class="n">idx</span> <span class="ow">in</span> <span class="n">ix_map</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">continuation</span><span class="p">[</span><span class="s1">&#39;backward&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">diagnostics</span><span class="p">[</span><span class="n">ix_map</span><span class="p">[</span><span class="o">-</span><span class="n">idx</span><span class="p">]][</span><span class="s1">&#39;Multipliers&#39;</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Point index not found. No orbit stability to show.&#39;</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="kc">None</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;No backward branch to show the stability for.&#39;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">_set_from_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">load_initial_data</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="c1"># store the pathname to pass to the updated class</span>
+        <span class="n">state</span><span class="p">[</span><span class="s1">&#39;_path_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_path_name</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">initial_data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="n">load_initial_data</span><span class="p">:</span>
+            <span class="n">branch_number</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">initial_data</span><span class="p">[</span><span class="s1">&#39;BR&#39;</span><span class="p">])</span>
+            <span class="n">fp_file_list</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s1">&#39;fp*.pickle&#39;</span><span class="p">)</span>
+            <span class="n">fp_branch_numbers</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">filename</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">fp_file_list</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">branch_number</span> <span class="ow">in</span> <span class="n">fp_branch_numbers</span><span class="p">:</span>
+                <span class="n">fp</span> <span class="o">=</span> <span class="n">fpc</span><span class="o">.</span><span class="n">FixedPointContinuation</span><span class="p">(</span><span class="n">model_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">model_name</span><span class="p">,</span> <span class="n">config_object</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config_object</span><span class="p">,</span> <span class="n">path_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_path_name</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">fp</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;fp_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">branch_number</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;.pickle&#39;</span><span class="p">,</span> <span class="n">load_initial_data</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+                    <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">fp</span><span class="o">.</span><span class="n">full_solutions_list</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">s</span><span class="p">[</span><span class="s1">&#39;PT&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_data</span><span class="p">[</span><span class="s1">&#39;PT&#39;</span><span class="p">]:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">initial_data</span> <span class="o">=</span> <span class="n">s</span>
+                            <span class="k">break</span>
+                <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Unable to load initial data. Parent branch was not saved.&#39;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">initial_data</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">po_file_list</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s1">&#39;po*.pickle&#39;</span><span class="p">)</span>
+                <span class="n">po_branch_numbers</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">filename</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">po_file_list</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">branch_number</span> <span class="ow">in</span> <span class="n">po_branch_numbers</span><span class="p">:</span>
+                    <span class="n">hp</span> <span class="o">=</span> <span class="n">PeriodicOrbitContinuation</span><span class="p">(</span><span class="n">model_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">model_name</span><span class="p">,</span> <span class="n">config_object</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config_object</span><span class="p">,</span> <span class="n">path_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_path_name</span><span class="p">)</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">hp</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;po_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">branch_number</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;.pickle&#39;</span><span class="p">,</span> <span class="n">load_initial_data</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+                        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">hp</span><span class="o">.</span><span class="n">full_solutions_list</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="n">s</span><span class="p">[</span><span class="s1">&#39;PT&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_data</span><span class="p">[</span><span class="s1">&#39;PT&#39;</span><span class="p">]:</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">initial_data</span> <span class="o">=</span> <span class="n">s</span>
+                                <span class="k">break</span>
+                    <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+                        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Unable to load initial data. Parent branch was not saved.&#39;</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">initial_data</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Unable to find initial data.&#39;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">initial_data</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">auto_filename_suffix</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">auto_load</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">auto_filename_suffix</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;No AUTO filename suffix specified. Unable to load data.&#39;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">isfixedpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">isperiodicorbit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Jonathan Demaeyer and Oisín Hamilton.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
