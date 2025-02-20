@@ -12,4 +12,5 @@ __pycache__
 *.pickle
 clean
 *.log
+build
 

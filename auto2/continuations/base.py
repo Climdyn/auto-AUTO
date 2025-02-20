@@ -1,3 +1,15 @@
+
+"""
+
+    Continuation base class definition
+    ==================================
+
+    This module implements the definition used by any subsequent continuation subclass
+    in auto-AUTO.
+
+
+"""
+
 import re
 from abc import ABC, abstractmethod
 import os
@@ -20,7 +32,7 @@ try:
             break
     else:
         # sys.path.append(auto_directory + '/python/auto')
-        sys.path.append(sys.path.join(auto_directory, 'python'))
+        sys.path.append(os.path.join(auto_directory, 'python'))
 except KeyError:
     logger.warning('Unable to find auto directory environment variable.')
 
@@ -32,6 +44,35 @@ from auto.AUTOExceptions import AUTORuntimeError
 
 
 class Continuation(ABC):
+    """Base class for any continuation in auto-AUTO.
+
+    Parameters
+    ----------
+    model_name: str
+        The name of the model to load. Used to load the .f90 file of the provided model.
+    config_object: ~auto2.parsers.config.ConfigParser
+        A loaded ConfigParser object.
+    path_name: str, optional
+        The directory path where files are read/saved.
+        If `None`, defaults to current working directory.
+
+    Attributes
+    ----------
+    model_name: str
+        The name of the loaded model. Used to load the .f90 file of the provided model.
+    config_object: ~auto2.parsers.config.ConfigParser
+        A loaded ConfigParser object.
+    continuation: dict
+        Dictionary holding the forward and backward continuation data.
+    branch_number: int
+        The AUTO branch number attributed to the continuation(s). This number can be set manually by passing the IBR AUTO parameter when
+        starting the continuations (see the :meth:`make_continuation` documentation for more details).
+    initial_data: ~numpy.ndarray or AUTOSolution object
+        The initial data used to start the continuation(s).
+    auto_filename_suffix: str
+        Suffix for the |AUTO| files used to save the continuation(s) data and parameters on disk.
+
+    """
 
     def __init__(self, model_name, config_object, path_name=None):
         self.config_object = config_object
@@ -41,14 +82,9 @@ class Continuation(ABC):
         self.initial_data = None
         self.auto_filename_suffix = ""
 
-        if path_name is None:
-            self._path_name = None
-        else:
-            if os.path.exists(path_name):
-                self._path_name = path_name
-            else:
-                warnings.warn("Path name given does not exist.")
-                self._path_name = None
+        self._path_name = None
+        if path_name is not None:
+            self.set_path_name(path_name)
 
         # plots default behaviours
         self._default_marker = None
@@ -61,14 +97,195 @@ class Continuation(ABC):
 
     @abstractmethod
     def make_continuation(self, initial_data, auto_suffix="", only_forward=False, **continuation_kwargs):
+        """Make both forward and backward (if possible) continuation.
+        To be implemented in subclasses.
+
+        Parameters
+        ----------
+        initial_data: ~numpy.ndarray or AUTOSolution
+            Initial data used to start the continuation(s).
+        auto_suffix: str, optional
+            Suffix to use for the |AUTO| and Pickle files used to save the continuation(s)
+            data, parameters and metadata on disk. If not provided, does not save the data on disk.
+        only_forward: bool, optional
+            If `True`, compute only the forward continuation (positive `DS` parameter).
+            If `False`, compute in both backward and forward direction.
+            Default to `False`.
+        continuation_kwargs: dict
+            Keyword arguments to be passed to the |AUTO| continuation.
+            See below for further details.
+
+        Notes
+        -----
+
+        **AUTO Continuation Keyword Arguments**: See Section 10.8 in the |AUTO| documentation for further details.
+        We provide below the most important ones:
+
+        Other Parameters
+        ----------------
+
+        DS: float, optional
+            AUTO uses pseudo-arclength continuation for following solution families.
+            The pseudo-arclength stepsize is the distance between the current solution and the next solution on a family.
+            By default, this distance includes all state variables (or state functions) and all free parameters.
+            The constant `DS` defines the pseudo-arclength stepsize to be used for the first attempted step along any family.
+            DS may be chosen positive or negative; changing its sign reverses the direction of computation.
+            The relation `DSMIN` ≤ | `DS` | ≤ `DSMAX` must be satisfied. The precise choice of `DS` is problem-dependent.
+        DSMIN: float, optional
+            This is minimum allowable absolute value of the pseudo-arclength stepsize.
+            `DSMIN` must be positive. It is only effective if the pseudo-arclength step is adaptive, i.e., if `IADS`>0.
+            The choice of `DSMIN` is highly problem-dependent.
+        DSMAX: float, optional
+            The maximum allowable absolute value of the pseudo-arclength stepsize.
+            `DSMAX` must be positive.
+            It is only effective if the pseudo-arclength step is adaptive, i.e., if `IADS`>0.
+            The choice of `DSMAX` is highly problem-dependent.
+        NMX: int, optional
+            The maximum number of steps to be taken along the branch.
+        IBR: int, optional
+            This constant specifies the initial branch number BR that is used. The default `IBR=0` means that
+            that this number is determined automatically.
+        ILP: int, optional
+            * If `ILP=0`: No detection of folds. This is the recommended choice in the AUTO documentation.
+
+            * If `ILP=1`: Detection of folds. To be used if subsequent fold continuation is intended.
+        SP: list(str), optional
+            This constant controls the detection of bifurcations and adds stopping conditions.
+            It is specified as a list of bifurcation type strings followed by an optional number.
+            If this number is `0`, then the detection of this bifurcation is turned off, and if it is missing then the detection is turned on.
+            A number `n` greater than zero specifies that the continuation should stop as soon as the nth bifurcation of this type has been
+            reached.
+            Examples:
+
+            - `SP=[’LP0’]` turn off detection of folds.
+
+            - `SP=[’LP’,’HB3’,’BP0’,’UZ3’]` turn on the detection of folds and Hopf bifurcations, turn off detection of branch points
+              and stop at the third Hopf bifurcation or third user defined point, whichever comes first.
+        ISP: int, optional
+            This constant controls the detection of Hopf bifurcations, branch points, period-doubling bifurcations, and torus bifurcations:
+
+            * If `ISP=0` This setting disables the detection of Hopf bifurcations, branch points, period doubling bifurcations,
+              and torus bifurcations and the computation of Floquet multipliers.
+
+            * If `ISP=1` Branch points and Hopf bifurcations are detected for algebraic equations. Branch points, period-doubling
+              bifurcations and torus bifurcations are not detected for periodic solutions and boundary value problems.
+              However, Floquet multipliers are computed.
+
+            * If `ISP=2` This setting enables the detection of all special solutions.
+              For periodic solutions and rotations, the choice `ISP=2` should be used with care,
+              due to potential inaccuracy in the computation of the linearized Poincar ́e map and possible rapid variation of the
+              Floquet multipliers.
+
+            * If `ISP=3` Hopf bifurcations will not be detected. Branch points will be detected, and AUTO will monitor
+              the Floquet multipliers. Period-doubling and torus bifurcations will go undetected. This option is useful for
+              certain problems with non-generic Floquet behavior.
+
+            * If `ISP=4` Branch points and Hopf bifurcations are detected for algebraic equations. Branch points are not detected
+              for periodic solutions and boundary value problems.
+              AUTO will monitor the Floquet multipliers, and period-doubling and torus bifurcations will be detected.
+        ISW: int, optional
+            This constant controls branch switching at branch points for the case of differential equations. Note that branch switching
+            is automatic for algebraic equations.
+
+            * If `ISW=1` This is the normal value of `ISW`.
+
+            * If `ISW=-1` If `IRS` is the label of a branch point or a period-doubling bifurcation then branch switching will be done.
+              For period doubling bifurcations it is recommended that `NTST` be increased.
+
+            * If `ISW=2` If IRS is the label of a fold, a Hopf bifurcation point, a period-doubling, a torus bifurcation,
+              or, in a non-generic (symmetric) system, a branch point then a locus of such points will be computed.
+
+            * If `ISW=3` If `IRS` is the label of a branch point in a generic (non-symmetric) system then a locus of such points will
+              be computed. Two additional free parameters must be specified for such continuations
+        MXBF: int, optional
+            This constant, which is effective for algebraic problems only, sets the maximum number of bifurcations to be treated.
+            Additional branch points will be noted, but the corresponding bifurcating families will not be computed.
+        dat: str, optional
+            This constant, where `dat=’filename’`, sets the name of a user-supplied ASCII data file `filename.dat`,
+            from which the continuation is to be restarted.
+            The first column in the data file denotes the time, which does not need to be rescaled to the
+            interval `[0, 1]`, and further columns the coordinates of the solution. The parameter `IRS` must be
+            set to `0`.
+        PAR: dict, optional
+             Determines the parameter values for the continuation to start from.
+             Should be entred as `{'parameter_name': parameter_value}`.
+        IRS: int or str, optional
+            This constant sets the label of the solution where the computation is to be restarted.
+            Setting `IRS=0` is typically used in the first run of a new problem.
+            To restart the computation at the `n`-th label, use `IRS=n`.
+            To restart the computation at a specific label (for example `HB12`), use `IRS=HB12`.
+        TY: str, optional
+            This constant modifies the type from the restart solution.
+            This is sometimes useful in conservative or extended systems, declaring a regular point to be
+            a Hopf bifurcation point `TY=’HB’` or a branch point `TY=’BP’`.
+        IPS: int, optional
+            This constant defines the problem type:
+
+            * If `IPS=0` algebraic bifurcation problem.
+            * If `IPS=1` stationary solutions of ODEs with detection of Hopf bifurcations.
+            * If `IPS=-1` fixed points of the discrete dynamical systems.
+            * If `IPS=-2` time integration using implicit Euler.
+            * If `IPS=2`  computation of periodic solutions.
+            * If `IPS=4`  boundary value problems.
+            * If `IPS=5`  algebraic optimization problems.
+            * If `IPS=7`  boundary value problem with computation of Floquet multipliers.
+            * If `IPS=9`  option is used in connection with the HomCont algorithms
+            * If `IPS=11` spatially uniform solutions of a system of parabolic PDEs, with detection of traveling wave bifurcations.
+            * If `IPS=12` continuation of traveling wave solutions to a system of parabolic PDEs.
+            * If `IPS=14` time evolution for a system of parabolic PDEs subject to periodic boundary conditions.
+
+        """
         pass
 
     @abstractmethod
     def make_forward_continuation(self, initial_data, auto_suffix="", **continuation_kwargs):
+        """Make the forward continuation.
+        To be implemented in subclasses.
+
+
+        Parameters
+        ----------
+        initial_data: ~numpy.ndarray or AUTOSolution
+            Initial data used to start the continuation(s).
+        auto_suffix: str, optional
+            Suffix to use for the |AUTO| and Pickle files used to save the continuation(s)
+            data, parameters and metadata on disk. If not provided, does not save the data on disk.
+        continuation_kwargs: dict
+            Keyword arguments to be passed to the |AUTO| continuation.
+            See below for further details
+
+        Notes
+        -----
+
+        **AUTO Continuation Keyword Arguments**: See Section 10.8 in the |AUTO| documentation for further details.
+        The most important ones are provided in the documentation of the :meth:`make_continuation` method.
+
+        """
         pass
 
     @abstractmethod
     def make_backward_continuation(self, initial_data, auto_suffix="", **continuation_kwargs):
+        """Make the backward continuation.
+        To be implemented in subclasses.
+
+        Parameters
+        ----------
+        initial_data: ~numpy.ndarray or AUTOSolution
+            Initial data used to start the continuation(s).
+        auto_suffix: str, optional
+            Suffix to use for the |AUTO| and Pickle files used to save the continuation(s)
+            data, parameters and metadata on disk. If not provided, does not save the data on disk.
+        continuation_kwargs: dict
+            Keyword arguments to be passed to the |AUTO| continuation.
+            See below for further details
+
+        Notes
+        -----
+
+        **AUTO Continuation Keyword Arguments**: See Section 10.8 in the |AUTO| documentation for further details.
+        The most important ones are provided in the documentation of the :meth:`make_continuation` method.
+
+        """
         pass
 
     def _get_dict(self):
@@ -84,6 +301,25 @@ class Continuation(ABC):
     @abstractmethod
     def _set_from_dict(self, state, load_initial_data=True):
         pass
+
+    @property
+    def path_name(self):
+        """str: The path where the |AUTO| and AUTO² files must be or are stored."""
+        return self._path_name
+
+    def set_path_name(self, path_name):
+        """Set the path where the |AUTO| and AUTO² files must be or are stored.
+
+        Parameters
+        ----------
+        path_name: str
+            The path.
+        """
+        if os.path.exists(path_name):
+            self._path_name = path_name
+        else:
+            warnings.warn("Path name given does not exist. Using the current working directory.")
+            self._path_name = None
 
     @contextmanager
     def temporary_chdir(self, new_dir):
@@ -101,20 +337,34 @@ class Continuation(ABC):
             os.chdir(original_dir)
     
     def auto_save(self, auto_suffix):
+        """Save the |AUTO| files for both the forward and backward continuations if they exist.
+
+        Parameters
+        ----------
+        auto_suffix: str
+            Suffix to use for the |AUTO| files used to save the continuation data on disk.
+
+        """
         if self.continuation:
             for direction in ['forward', 'backward']:
                 if self.continuation[direction] is not None:
-                    # TODO: I would rather not manually change directory like this, but I can find no option in AUTOcommands to pass a filepath
                     with self.temporary_chdir(self._path_name):
                         ac.save(self.continuation[direction], auto_suffix + '_' + direction)
         self.auto_filename_suffix = auto_suffix
 
     def auto_load(self, auto_suffix):
+        """Load the |AUTO| files for both the forward and backward continuations if they exist.
+
+        Parameters
+        ----------
+        auto_suffix: str
+            Suffix to use for the |AUTO| files used to load the continuation data from disk.
+
+        """
         self.continuation = dict()
         for direction in ['forward', 'backward']:
             try:
                 # Changing the directory
-                # TODO: I would rather not manually change directory like this, but I can find no option in AUTOcommands to pass a filepath
                 with self.temporary_chdir(self._path_name):
                     r = ac.loadbd(auto_suffix + '_' + direction)
                 self.continuation[direction] = r
@@ -127,6 +377,23 @@ class Continuation(ABC):
             self.auto_filename_suffix = auto_suffix
 
     def save(self, filename=None, auto_filename_suffix=None, **kwargs):
+        """Save the |AUTO| files and the branch parameters and metadata for both
+        the forward and backward continuations if they exist.
+        The branch parameters and metadata will be stored in a Pickle file.
+
+        Parameters
+        ----------
+        filename: str or None, optional
+            The filename used to store the continuation(s) parameters and metadata
+            to disk in Pickle format.
+            If `None`, will assign a default generic name.
+            Default is `None`.
+        auto_filename_suffix: str or None, optional
+            Suffix to use for the |AUTO| files used to save the continuation data from disk.
+            If `None`, will assign a default generic suffix.
+            Default is `None`.
+
+        """
         if auto_filename_suffix is None:
             if self.isfixedpoint:
                 self.auto_filename_suffix = "fp_"+str(self.branch_number)
@@ -149,6 +416,20 @@ class Continuation(ABC):
             pickle.dump(state, f, **kwargs)
 
     def load(self, filename, load_initial_data=True, **kwargs):
+        """Load the |AUTO| files and the branch parameters and metadata for both
+        the forward and backward continuations if they exist.
+
+        Parameters
+        ----------
+        filename: str
+            The filename used to store the continuation(s) parameters and metadata
+            to disk in Pickle format.
+        load_initial_data: bool
+            Try or not to load the initial data field.
+            Default to `True`.
+
+        """
+
         try:
             filepath = filename if self._path_name is None else os.path.join(self._path_name, filename)
             with open(filepath, 'rb') as f:
@@ -161,6 +442,7 @@ class Continuation(ABC):
 
     @property
     def isfixedpoint(self):
+        """bool: True if the current object is a fixed point continuation."""
         if self.config_object.parameters_dict[11] not in self.available_variables and 11 not in self.available_variables:
             return True
         else:
@@ -168,10 +450,12 @@ class Continuation(ABC):
 
     @property
     def isperiodicorbit(self):
+        """bool: True if the current object is a periodic orbit continuation."""
         return not self.isfixedpoint
 
     @property
     def available_variables(self):
+        """list(str): Return the available variables in the continuation data."""
         if self.continuation:
             if self.continuation['forward'] is not None:
                 return self.continuation['forward'].data[0].keys()
@@ -182,7 +466,13 @@ class Continuation(ABC):
         else:
             return None
 
+    @property
+    def phase_space_variables(self):
+        """list(str): Return the variables of the phase space of the configured dynamical system."""
+        return self.config_object.variables
+
     def diagnostics(self):
+        """str: Return the AUTO diagnostics of the continuations as a string."""
         if self.continuation:
             s = ''
             if self.continuation['forward'] is not None:
@@ -198,11 +488,35 @@ class Continuation(ABC):
             return None
 
     def print_diagnostics(self):
+        """Method which prints the full AUTO diagnostics of the continuations."""
         if self.continuation:
             s = self.diagnostics()
             print(s)
 
     def point_diagnostic(self, idx):
+        """Method which returns the diagnostic of a given point of the continuation.
+
+        Parameters
+        ----------
+        idx: str or int
+            |AUTO| index of the point to give the diagnostic from.
+            If `idx`:
+
+            * is a string, it should identify the label of the point, assuming the
+              point has a label. Backward continuation label must be preceded by
+              a `'-'` character. E.g. `'HB2'` would identify the second Hopf bifurcation
+              point of the forward continuation, while `'-UZ3'` identifies the third
+              user-defined label of the backward branch.
+            * is an integer, it corresponds to the index of the point. Positive
+              integers identify points on the forward continuation, while negative integers
+              identify points on the backward continuation. The zero index identifies the
+              initial point of the continuations.
+
+        Returns
+        -------
+        str
+            The point diagnostic.
+        """
         if self.continuation is not None:
             if isinstance(idx, str):
                 if idx[0] == '-':
@@ -257,7 +571,49 @@ class Continuation(ABC):
         else:
             return None
 
+    def print_point_diagnostic(self, idx):
+        """Method which prints the diagnostic of a given point of the continuation.
+
+        Parameters
+        ----------
+        idx: str or int
+            |AUTO| index of the point to give the diagnostic from.
+            If `idx`:
+
+            * is a string, it should identify the label of the point, assuming the
+              point has a label. Backward continuation label must be preceded by
+              a `'-'` character. E.g. `'HB2'` would identify the second Hopf bifurcation
+              point of the forward continuation, while `'-UZ3'` identifies the third
+              user-defined label of the backward branch.
+            * is an integer, it corresponds to the index of the point. Positive
+              integers identify points on the forward continuation, while negative integers
+              identify points on the backward continuation. The zero index identifies the
+              initial point of the continuations.
+
+        """
+        print(self.point_diagnostic(idx))
+
     def find_solution_index(self, label):
+        """Find the index of a given solution label.
+
+        Parameters
+        ----------
+        label: str
+            A string with the label of the point for which to return the solution object.
+            Backward continuation label must be preceded by a `'-'` character. E.g. `'HB2'`
+            identifies the second Hopf bifurcation point of the forward continuation,
+            while `'-UZ3'` identifies the third user-defined label of the backward branch.
+
+        Returns
+        -------
+        int
+            The AUTO index of the provided label.
+            Positive integers identify points on the forward
+            continuation, while negative integers identify points on the backward
+            continuation.
+            The zero index identifies the initial point of the continuations.
+
+        """
         s = self.get_solution_by_label(label)
         return s['PT']
 
@@ -381,9 +737,8 @@ class Continuation(ABC):
         return extracted_vals, pt_num
 
     def _solutions_index_map(self, direction='forward'):
-        """
-            Function creates a map between the `Point number` as found in the solution file, and the `Point number` in the diagnostic d. file.
-            It was found that when AUTO cannot converge, it still logs the point and the d. file index then does not correspond with the sol file.
+        """Function creates a map between the `Point number` as found in the solution file, and the `Point number` in the diagnostic d. file.
+        It was found that when AUTO cannot converge, it still logs the point and the d. file index then does not correspond with the sol file.
         """
         ix_map = dict()
 
@@ -405,6 +760,7 @@ class Continuation(ABC):
 
     @property
     def stability(self):
+        """dict(list): The stability information of both forward and backward continuations."""
         if self.continuation:
             s = dict()
             for direction in ['forward', 'backward']:
@@ -418,6 +774,7 @@ class Continuation(ABC):
 
     @property
     def number_of_points(self):
+        """dict(int): The number of points of both forward and backward continuations."""
         if self.continuation:
             n = dict()
             for direction in ['forward', 'backward']:
@@ -431,6 +788,7 @@ class Continuation(ABC):
 
     @property
     def continuation_parameters(self):
+        """dict(list(str)): The continuation parameters of both forward and backward continuations."""
         if self.continuation:
             if self.continuation['forward']:
                 return self.continuation['forward'].c['ICP']
@@ -443,6 +801,7 @@ class Continuation(ABC):
 
     @property
     def solutions_index(self):
+        """dict(list(int)): The indices of all the solutions of both forward and backward continuations."""
         d = self.solutions_list_by_direction
         rd = dict()
         if d is not None:
@@ -457,7 +816,6 @@ class Continuation(ABC):
             return rd
         else:
             return None
-
 
     @property
     def _solutions_python_auto_index(self):
@@ -479,6 +837,7 @@ class Continuation(ABC):
 
     @property
     def solutions_label(self):
+        """dict(list(str)): The labels of all the solutions of both forward and backward continuations."""
         indices = self._solutions_python_auto_index
         if indices is not None:
             d = dict()
@@ -504,6 +863,7 @@ class Continuation(ABC):
 
     @property
     def number_of_solutions(self):
+        """dict(int): The number of solutions of both forward and backward continuations."""
         sd = dict()
         sols = self.solutions_list_by_direction
         if self.continuation:
@@ -515,6 +875,7 @@ class Continuation(ABC):
 
     @property
     def full_solutions_list_by_label(self):
+        """list(AUTOSolution object): The full list of solutions sorted by labels of both forward and backward continuations."""
         sd = self.solutions_list_by_direction_and_by_label
         if sd['backward']:
             sl = sd['backward']
@@ -526,6 +887,8 @@ class Continuation(ABC):
 
     @property
     def full_solutions_list(self):
+        """list(AUTOSolution object): The full list of solutions of the branch ordered from the last solution of the backward
+         continuation to the last solution of the forward continuation."""
         sd = self.solutions_list_by_direction
         if sd['backward']:
             if self.solutions_label['backward'][0] == 'EP':
@@ -540,6 +903,8 @@ class Continuation(ABC):
 
     @property
     def solutions_list_by_direction_and_by_label(self):
+        """dict(list(AUTOSolution object)): The full list of solutions sorted by labels and direction for both forward
+        and backward continuations."""
         sd = dict()
         if self.solutions_label is not None:
             sd['forward'] = list()
@@ -562,6 +927,8 @@ class Continuation(ABC):
 
     @property
     def solutions_list_by_direction(self):
+        """dict(list(AUTOSolution object)): The full list of solutions sorted by direction for both
+        forward and backward continuations."""
         indices = self._solutions_python_auto_index
         labels = self.solutions_label
         sd = dict()
@@ -581,6 +948,26 @@ class Continuation(ABC):
         return sd
 
     def solutions_parameters(self, parameters, solutions_types=('HB', 'BP', 'UZ', 'PD', 'TR', 'LP'), forward=None):
+        """Return the parameters value for the solutions of the backward and forward continuations.
+
+        Parameters
+        ----------
+        parameters: list(str)
+            The parameters to be returned.
+        solutions_types: list(str), optional
+            The types of solution to consider in the search.
+            Default to `['HB', 'BP', 'UZ', 'PD', 'TR', 'LP']`.
+        forward: bool or None, optional
+            If `True`, search only in the forward continuation.
+            If `False`, search only in the backward continuation.
+            If `None`, search in both backward and forward direction.
+            Default to `None`.
+
+        Returns
+        -------
+        ~numpy.ndarray
+            The values of the requested solutions parameters.
+        """
         if not isinstance(parameters, (tuple, list)):
             parameters = [parameters]
         if isinstance(solutions_types, (tuple, list)):
@@ -607,6 +994,21 @@ class Continuation(ABC):
         return np.squeeze(np.array(list(params.values()))).reshape((len(parameters), -1))
 
     def get_solution_by_label(self, label):
+        """Get the |AUTO| solution object corresponding to a given label.
+
+        Parameters
+        ----------
+        label: str
+            A string with the label of the point for which to return the solution object.
+            Backward continuation label must be preceded by a `'-'` character. E.g. `'HB2'`
+            identifies the second Hopf bifurcation point of the forward continuation,
+            while `'-UZ3'` identifies the third user-defined label of the backward branch.
+
+        Returns
+        -------
+        AUTOSolution object
+            The sought AUTO solution object.
+        """
         if self.continuation:
             if label[0] == '-' and self.continuation['backward'] is not None:
                 label = label[1:]
@@ -619,6 +1021,21 @@ class Continuation(ABC):
             return None
 
     def get_solution_by_index(self, idx):
+        """Get the |AUTO| solution object corresponding to a index.
+
+        Parameters
+        ----------
+        idx: int
+            The index of the point. Positive integers identify points on the forward
+            continuation, while negative integers identify points on the backward
+            continuation.
+            The zero index identifies the initial point of the continuations.
+
+        Returns
+        -------
+        AUTOSolution object
+            The sought AUTO solution object.
+        """
         if self.continuation:
             sd = self.solutions_list_by_direction
             if idx >= 0:
@@ -639,6 +1056,54 @@ class Continuation(ABC):
             return None
 
     def get_filtered_solutions_list(self, labels=None, indices=None, parameters=None, values=None, forward=None, tol=0.01):
+        """Filter the full solutions list of the branch with different selection rules:
+        * Based on solution labels
+        * Based on solution indices
+        * Based matching solution parameters values with a specified list of values
+
+        Selection rules are selected by specifying a given keyword.
+        If no selection rule is provided, return the full list of solution in the selected direction(s).
+
+        Parameters
+        ----------
+        labels: str or list(str), optional
+            Label or list of labels to look for the solutions. Labels are two-characters string specifying the solutions types to return.
+            For example `'BP'` will return all the branching points of the continuations.
+            This activates the selection rule based on labels and disable the others.
+        indices: int or list(int), optional
+            Index or list of indices to look for the solutions. AUTO index of solutions can be inquired for example by calling the
+            :meth:`print_summary` method of a given :class:`Continuation` object.
+            This activates the selection rule based on indices and disable the others.
+        parameters: str or list(str) or ~numpy.ndarray(str), optional
+            Parameter or list of parameters for which to match the solutions values to one provided by the `values` argument.
+        values: float or list(float) or ~numpy.ndarray(float), optional
+            List of parameters values to match to the solutions parameters values.
+            Can be a float if only one parameter is specified in the `parameters` arguments, otherwise a list or a :class:`~numpy.ndarray` array
+            must be provided.
+            If a list is provided, assuming `n` parameters were specified in the `parameters` argument
+            and`m` values are sought, it should be a nested list with the following structure:
+            `[[param1_value1, param1_value2, ..., param1_valuem], ..., [paramn_value1, paramn_value2, ..., paramn_valuem]]`
+            If a :class:`~numpy.ndarray` array is provided, with the same assumptions, it should be a 2-D array with shape (n, m) with the
+            parameters values.
+        forward: bool or None, optional
+            If `True`, search only in the forward continuation.
+            If `False`, search only in the backward continuation.
+            If `None`, search in both backward and forward direction.
+            Default to `None`.
+        tol: float or list(float) or ~numpy.ndarray(float), optional
+            The numerical tolerance of the values comparison if the selection rule based on parameters values is activated
+            (by setting the arguments `parameters` and `values`).
+            If a single float is provided, assume the same tolerance for each parameter.
+            If a list or a 1-D array is passed, it must have the dimension of the number of parameters, each value in the
+            array corresponding to a parameter.
+            Default to `0.01`.
+
+        Returns
+        -------
+        list(AUTOSolution objects):
+            A list of the sought solutions
+
+        """
 
         if parameters is not None:
             if isinstance(parameters, (list, tuple)):
@@ -694,7 +1159,7 @@ class Continuation(ABC):
                 indices = [indices]
             new_solutions_list = list()
             for sol in solutions_list:
-                if sol['PT'] - 1 in indices:
+                if sol['PT'] in indices:
                     new_solutions_list.append(sol)
             solutions_list = new_solutions_list
         elif parameters is not None:
@@ -716,6 +1181,45 @@ class Continuation(ABC):
 
     def plot_branch_parts(self, variables=(0, 1), ax=None, figsize=(10, 8), markersize=12., plot_kwargs=None, marker_kwargs=None,
                           excluded_labels=('UZ', 'EP'), plot_sol_points=False, variables_name=None, cmap=None):
+        """Plots a bifurcation diagram  along specified variables, with branches and the bifurcation points
+        of fixed points and periodic orbits.
+
+        Parameters
+        ----------
+        variables: tuple(int or str, int or str), optional
+            The index or label of the variables along which the bifurcation diagram is plotted.
+            If labels are used, it should be labels of the available monitored variables during the continuations
+            (if their labels have been defined in the AUTO configuration file) given by :meth:`available_variables`.
+            The first value in the tuple determines the variable plot on the x-axis and the second the y-axis.
+            Defaults to `(0, 1)`.
+        ax: matplotlib.axes.Axes or None, optional
+            A |Matplotlib| axis object to plot on. If `None`, a new figure is created.
+        figsize: tuple(float, float), optional
+            Dimension of the figure that is returned, only used if `ax` is not passed.
+            Defaults to `(10, 8)`.
+        markersize: float, optional
+            Size of the text plotted to display the bifurcation points. Defaults to `12`.
+        plot_kwargs: dict or None, optional
+            Optional key word arguments to pass to the plotting function, controlling the curves of the bifurcation diagram.
+        marker_kwargs: dict or None, optional
+            Optional key word arguments to pass to the plotting function, controlling the styles of the bifurcation point labels.
+        excluded_labels: str or list(str), optional
+            A list of 2-characters strings, controlling the bifurcation point type that are not plotted.
+            For example `['BP']` will result in branching points not being plotted.
+            Can be set to the string `'all'`, which results in no bifurcation being plotted at all.
+            Default to `['UZ','EP']`.
+        plot_sol_points: bool, optional
+            If `True`, a point is added to the points where a solution is stored. Defaults to False.
+        variables_name: list(str) or None, optional
+            The strings used to define the axis labels. If `None` defaults to the AUTO labels.
+        cmap: cmap or None, optional
+            The cmap used for plotting. If `None`, defaults to 'Reds'
+
+        Returns
+        -------
+        matplotlib.axes.Axes
+            A |Matplotlib| axis object showing the bifurcation diagram using a 3-dimensional projection.
+        """
 
         if not self.continuation:
             return None
@@ -822,6 +1326,41 @@ class Continuation(ABC):
 
     def plot_branch_parts_3D(self, variables=(0, 1, 2), ax=None, figsize=(10, 8), markersize=12., plot_kwargs=None, marker_kwargs=None,
                              excluded_labels=('UZ', 'EP'), variables_name=None):
+        """Plots a bifurcation diagram on a 3-dimensional figure along specified variables, with branches and the bifurcation points
+        of fixed points and periodic orbits.
+
+        Parameters
+        ----------
+        variables: tuple(int or str, int or str, int or str), optional
+            The index or label of the variables along which the bifurcation diagram is plotted.
+            If labels are used, it should be labels of the available monitored variables during the continuations
+            (if their labels have been defined in the AUTO configuration file) given by :meth:`available_variables`.
+            The first value in the tuple determines the variable plot on the x-axis, the second the y-axis, and the third value determines the z-axis.
+            Defaults to `(0, 1, 2)`.
+        ax: matplotlib.axes.Axes or None, optional
+            A |Matplotlib| axis object to plot on. If `None`, a new figure is created.
+        figsize: tuple(float, float), optional
+            Dimension of the figure that is returned, only used if `ax` is not passed.
+            Defaults to `(10, 8)`.
+        markersize: float, optional
+            Size of the text plotted to display the bifurcation points. Defaults to `12.`.
+        plot_kwargs: dict or None, optional
+            Optional key word arguments to pass to the plotting function, controlling the curves of the bifurcation diagram.
+        marker_kwargs: dict or None, optional
+            Optional key word arguments to pass to the plotting function, controlling the styles of the bifurcation point labels.
+        excluded_labels: str or list(str), optional
+            A list of 2-characters strings, controlling the bifurcation point type that are not plotted.
+            For example `['BP']` will result in branching points not being plotted.
+            Can be set to the string `'all'`, which results in no bifurcation being plotted at all.
+            Default to `['UZ','EP']`.
+        variables_name: list(str) or None, optional
+            The strings used to define the axis labels. If `None` defaults to the AUTO labels.
+
+        Returns
+        -------
+        matplotlib.axes.Axes
+            A |Matplotlib| axis object showing the bifurcation diagram using a 3-dimensional projection.
+        """
 
         if not self.continuation:
             return None
@@ -928,6 +1467,81 @@ class Continuation(ABC):
                        linewidth=None, color_solutions=False, plot_kwargs=None, labels=None, indices=None, parameter=None, value=None,
                        variables_name=None, tol=0.01):
 
+        """
+        Plots the stored solutions for a given set of variables. Fixed points are plotted using points, periodic orbits are plot as curves.
+        Solutions that are plotted are filtered here using the selection rule-based :meth:`get_filtered_solutions_list` method.
+        However, if no selection rule is provided, it will plot all the solutions.
+
+        Parameters
+        ----------
+        variables: tuple(int or str, int or str), optional
+            The index or label of the variables shown in the plot.
+            If labels are used, it should be labels of the phase space variables
+            (if they have been defined in the AUTO configuration file) given by :meth:`phase_space_variables`.
+            The first value in the tuple determines the variable plot on the x-axis, the second determines the y-axis.
+            Defaults to the first two variables: `(0, 1)`.
+        ax: matplotlib.axes.Axes or None, optional
+            A |Matplotlib| axis object to plot on. If `None`, a new figure is created.
+        figsize: figsize: tuple(float, float), optional
+            Dimension of the figure that is returned, only used if `ax` is not passed.
+            Defaults to `(10, 8)`.
+        markersize: float, optional
+            Size of the text plotted to display the bifurcation points. Defaults to `12`.
+        marker : str, optional
+            The marker style used for plotting fixed points. If `None`, set to default marker.
+        linestyle : str, optional
+            The line style used for plotting the periodic orbit solutions. If `None`, set to default marker.
+        linewidth : float, optional
+            The width of the lines showing the periodic solutions. If `None`, set to the default.
+        color_solutions : bool, optional
+            Whether to color each solution differently.
+            If `True`, and `parameter` argument is provided and valid, then solutions are colored based on the parameter value of a given solution.
+            Use the cmap provided in the `plot_kwargs` argument. If no cmap is provided there, use `Blues` cmap by default.
+            If `False`, all solutions are colored identically, controlled using `plot_kwargs`.
+            Default is `False`.
+        plot_kwargs: dict or None, optional
+            Additional keyword arguments for the plotting function. Default is `None`.
+        labels: str or list(str), optional
+            **Selection rule to select particular solutions (see** :meth:`get_filtered_solutions_list` **for more details.).**
+            Label or list of labels to look for the solutions. Labels are two-characters string specifying the solutions types to return.
+            For example `'BP'` will return all the branching points of the continuations.
+            This activates the selection rule based on labels and disable the others.
+        indices: int or list(int), optional
+            **Selection rule to select particular solutions (see** :meth:`get_filtered_solutions_list` **for more details.).**
+            Index or list of indices to look for the solutions. AUTO index of solutions can be inquired for example by calling the
+            :meth:`print_summary` method of a given :class:`Continuation` object.
+            This activates the selection rule based on indices and disable the others.
+        parameter: str or list(str) or ~numpy.ndarray(str), optional
+            **Selection rule to select particular solutions (see** :meth:`get_filtered_solutions_list` **for more details.).**
+            Parameter or list of parameters for which to match the solutions values to one provided by the `values` argument.
+        value: float or list(float) or ~numpy.ndarray(float), optional
+            **Selection rule to select particular solutions (see** :meth:`get_filtered_solutions_list` **for more details.).**
+            List of parameters values to match to the solutions parameters values.
+            Can be a float if only one parameter is specified in the `parameters` arguments, otherwise a list or a :class:`~numpy.ndarray` array
+            must be provided.
+            If a list is provided, assuming `n` parameters were specified in the `parameters` argument
+            and`m` values are sought, it should be a nested list with the following structure:
+            `[[param1_value1, param1_value2, ..., param1_valuem], ..., [paramn_value1, paramn_value2, ..., paramn_valuem]]`
+            If a :class:`~numpy.ndarray` array is provided, with the same assumptions, it should be a 2-D array with shape (n, m) with the
+            parameters values.
+        variables_name: list(str) or None, optional
+            The strings used to plot the axis labels. If `None` defaults to the AUTO labels.
+            Defaults to `None`.
+        tol: float or list(float) or ~numpy. ndarray(float), optional
+            The numerical tolerance of the values comparison if the selection rule based on parameters values is activated
+            (by setting the arguments `parameters` and `values`).
+            If a single float is provided, assume the same tolerance for each parameter.
+            If a list or a 1-D array is passed, it must have the dimension of the number of parameters, each value in the
+            array corresponding to a parameter.
+            Default to `0.01`.
+
+        Returns
+        -------
+        matplotlib.axes.Axes
+            A |Matplotlib| axis object with the plot of the solutions.
+
+        """
+
         if markersize is None:
             markersize = self._default_markersize
         if marker is None:
@@ -1005,6 +1619,76 @@ class Continuation(ABC):
     def plot_solutions_3D(self, variables=(0, 1, 2), ax=None, figsize=(10, 8), markersize=None, marker=None, linestyle=None,
                        linewidth=None, plot_kwargs=None, labels=None, indices=None, parameter=None, value=None,
                        variables_name=None, tol=0.01):
+        """
+        Plots the stored solutions for a given set of variables, using a 3-dimensional projection.
+        Fixed points are plotted using points, periodic orbits are plotted as curves.
+        Solutions that are plotted are filtered here using the selection rule-based :meth:`get_filtered_solutions_list` method.
+        However, if no selection rule is provided, it will plot all the solutions.
+
+        Parameters
+        ----------
+        variables: tuple(int or str, int or str, int or str), optional
+            The index or label of the variables shown in the plot.
+            If labels are used, it should be labels of the phase space variables
+            (if they have been defined in the AUTO configuration file) given by :meth:`phase_space_variables`.
+            The first value in the tuple determines the variable plot on the x-axis, the second determines the y-axis,
+            and the last value determines the z-axis.
+            Defaults to the first three variables: `(0, 1, 2)`.
+        ax: matplotlib.axes.Axes or None, optional
+            A |Matplotlib| axis object to plot on. If `None`, a new figure is created.
+        figsize: tuple(float, float), optional
+            Dimension of the figure that is returned, only used if `ax` is not passed.
+            Defaults to `(10, 8)`.
+        markersize: float, optional
+            Size of the text plotted to display the bifurcation points. Defaults to `12`.
+        marker : str, optional
+            The marker style used for plotting fixed points. If `None`, set to default marker.
+        linestyle : str, optional
+            The line style used for plotting the periodic orbit solutions. If `None`, set to default marker.
+        linewidth : float, optional
+            The width of the lines showing the periodic solutions. If `None`, set to the default.
+        plot_kwargs: dict or None, optional
+            Additional keyword arguments for the plotting function. Default is `None`.
+        labels: str or list(str), optional
+            **Selection rule to select particular solutions (see** :meth:`get_filtered_solutions_list` **for more details.).**
+            Label or list of labels to look for the solutions. Labels are two-characters string specifying the solutions types to return.
+            For example `'BP'` will return all the branching points of the continuations.
+            This activates the selection rule based on labels and disable the others.
+        indices: int or list(int), optional
+            **Selection rule to select particular solutions (see** :meth:`get_filtered_solutions_list` **for more details.).**
+            Index or list of indices to look for the solutions. AUTO index of solutions can be inquired for example by calling the
+            :meth:`print_summary` method of a given :class:`Continuation` object.
+            This activates the selection rule based on indices and disable the others.
+        parameter: str or list(str) or ~numpy.ndarray(str), optional
+            **Selection rule to select particular solutions (see** :meth:`get_filtered_solutions_list` **for more details.).**
+            Parameter or list of parameters for which to match the solutions values to one provided by the `values` argument.
+        value: float or list(float) or ~numpy.ndarray(float), optional
+            **Selection rule to select particular solutions (see** :meth:`get_filtered_solutions_list` **for more details.).**
+            List of parameters values to match to the solutions parameters values.
+            Can be a float if only one parameter is specified in the `parameters` arguments, otherwise a list or a :class:`~numpy.ndarray` array
+            must be provided.
+            If a list is provided, assuming `n` parameters were specified in the `parameters` argument
+            and`m` values are sought, it should be a nested list with the following structure:
+            `[[param1_value1, param1_value2, ..., param1_valuem], ..., [paramn_value1, paramn_value2, ..., paramn_valuem]]`
+            If a :class:`~numpy.ndarray` array is provided, with the same assumptions, it should be a 2-D array with shape (n, m) with the
+            parameters values.
+        variables_name: list(str) or None, optional
+            The strings used to plot the axis labels. If `None` defaults to the AUTO labels.
+            Defaults to `None`.
+        tol: float or list(float) or ~numpy. ndarray(float), optional
+            The numerical tolerance of the values comparison if the selection rule based on parameters values is activated
+            (by setting the arguments `parameters` and `values`).
+            If a single float is provided, assume the same tolerance for each parameter.
+            If a list or a 1-D array is passed, it must have the dimension of the number of parameters, each value in the
+            array corresponding to a parameter.
+            Default to `0.01`.
+
+        Returns
+        -------
+        matplotlib.axes.Axes
+            A |Matplotlib| axis object with the 3-dimensional plot of the solutions.
+
+        """
 
         if markersize is None:
             markersize = self._default_markersize
@@ -1075,6 +1759,29 @@ class Continuation(ABC):
         return ax
 
     def same_solutions_as(self, other, parameters, solutions_types=('HB', 'BP', 'UZ', 'PD', 'TR', 'LP'), tol=2.e-2):
+        """Check if the continuation has exactly the same solutions as another Continuation object.
+
+        Parameters
+        ----------
+        other: Continuation
+            The other continuation object to check the solutions.
+        parameters: list(str)
+            The parameters to be considered to check if the solutions are the same.
+        solutions_types: list(str)
+            The types of solution to consider in the search.
+            Default to `['HB', 'BP', 'UZ', 'PD', 'TR', 'LP']`.
+        tol: float or list(float) or ~numpy.ndarray(float)
+            The numerical tolerance of the comparison to determine if two solutions are equal.
+            If a single float is provided, assume the same tolerance for each parameter.
+            If a list or a 1-D array is passed, it must have the dimension of the number of parameters, each value in the
+            array corresponding to a parameter.
+
+        Returns
+        -------
+        bool:
+            `True` if both continuations have exactly the same solutions according to the specified parameters.
+
+        """
 
         ssol = self.solutions_parameters(parameters, solutions_types)
         osol = other.solutions_parameters(parameters, solutions_types)
@@ -1096,6 +1803,38 @@ class Continuation(ABC):
             return np.all(np.abs(diff).T < tol)
 
     def solutions_in(self, other, parameters, solutions_types=('HB', 'BP', 'UZ', 'PD', 'TR', 'LP'), tol=2.e-2, return_parameters=False, return_solutions=False):
+        """Check if the continuation solutions are all included in the solutions of another Continuation object.
+
+        Parameters
+        ----------
+        other: Continuation
+            The other continuation object to check the solutions.
+        parameters: list(str)
+            The parameters to be considered to check if the solutions are the same.
+        solutions_types: list(str)
+            The types of solution to consider in the search.
+            Default to `['HB', 'BP', 'UZ', 'PD', 'TR', 'LP']`.
+        tol: float or list(float) or ~numpy.ndarray(float)
+            The numerical tolerance of the comparison to determine if two solutions are equal.
+            If a single float is provided, assume the same tolerance for each parameter.
+            If a list or a 1-D array is passed, it must have the dimension of the number of parameters, each value in the
+            array corresponding to a parameter.
+        return_parameters: bool
+            If `True`, return an additional array with the values of the parameters for which the solutions of the two
+            Continuation objects match.
+
+        Returns
+        -------
+        solutions_in: bool
+            `True` if the solutions are all contained in the other continuations according to the specified parameters.
+        solutions_in_values: ~numpy.ndarray:
+            If `return_parameters` is `True`, an array with the values of the parameters for which the solutions of the two
+            continuations match.
+
+        """
+        # problem in the docstring above: no sphinx highlight of types due to https://github.com/sphinx-doc/sphinx/issues/9394
+        # letting the problem unsolved because a patch might come later
+
         res, params, sol = self.solutions_part_of(other, parameters, solutions_types, tol, True, True, None)
         if res:
             res = [params.shape[1] == self.number_of_solutions]
@@ -1112,6 +1851,44 @@ class Continuation(ABC):
             return res
 
     def solutions_part_of(self, other, parameters, solutions_types=('HB', 'BP', 'UZ', 'PD', 'TR', 'LP'), tol=2.e-2, return_parameters=False, return_solutions=False, forward=None):
+        """Check if a subset of the continuation solutions are included in the solutions of another Continuation object.
+
+        Parameters
+        ----------
+        other: Continuation
+            The other continuation object to check the solutions.
+        parameters: list(str)
+            The parameters to be considered to check if the solutions are the same.
+        solutions_types: list(str)
+            The types of solution to consider in the search.
+            Default to `['HB', 'BP', 'UZ', 'PD', 'TR', 'LP']`.
+        tol: float or list(float) or ~numpy.ndarray(float)
+            The numerical tolerance of the comparison to determine if two solutions are equal.
+            If a single float is provided, assume the same tolerance for each parameter.
+            If a list or a 1-D array is passed, it must have the dimension of the number of parameters, each value in the
+            array corresponding to a parameter.
+        return_parameters: bool
+            If `True`, return an additional array with the values of the parameters for which the solutions of the two
+            Continuation objects match.
+        return_solutions: bool
+            If `True`, return an additional list with the AUTO solution objects.
+        forward: bool or None, optional
+            If `True`, search only in the forward continuation.
+            If `False`, search only in the backward continuation.
+            If `None`, search in both backward and forward direction.
+            Default to `None`.
+
+        Returns
+        -------
+        part_of: bool
+            `True` if the solutions are all contained in the other continuations according to the specified parameters.
+        solutions_part_of_values: ~numpy.ndarray:
+            If `return_parameters` is `True`, an array with the values of the parameters for which the solutions of the two
+            continuations match.
+        solutions_part_of: list(AUTOSolution object):
+            If `return_solutions` is `True`, a list of the solutions which are included in the other Continuation object.
+
+        """
 
         if isinstance(tol, (list, tuple)):
             tol = np.array(tol)
@@ -1152,6 +1929,48 @@ class Continuation(ABC):
             return res
 
     def branch_possibly_cross(self, other, parameters, solutions_types=('HB', 'BP', 'UZ', 'PD', 'TR', 'LP'), tol=2.e-2, return_parameters=False, return_solutions=False, forward=None):
+        """Check if the continuations of two Continuation objects are possibly crossing at a given bifurcation point.
+
+        Warnings
+        --------
+        As indicated by the `possibly`, this test is weak and can be wrong.
+
+        Parameters
+        ----------
+        other: Continuation
+            The other continuation object to check the solutions.
+        parameters: list(str)
+            The parameters to be considered to check if the solutions are the same.
+        solutions_types: list(str)
+            The types of solution to consider in the search.
+            Default to `['HB', 'BP', 'UZ', 'PD', 'TR', 'LP']`.
+        tol: float or list(float) or ~numpy.ndarray(float)
+            The numerical tolerance of the comparison to determine if two solutions are equal.
+            If a single float is provided, assume the same tolerance for each parameter.
+            If a list or a 1-D array is passed, it must have the dimension of the number of parameters, each value in the
+            array corresponding to a parameter.
+        return_parameters: bool
+            If `True`, return an additional array with the values of the parameters for which the solutions of the two
+            Continuation objects match.
+        return_solutions: bool
+            If `True`, return an additional list with the AUTO solution objects.
+        forward: bool or None, optional
+            If `True`, search only in the forward continuation.
+            If `False`, search only in the backward continuation.
+            If `None`, search in both backward and forward direction.
+            Default to `None`.
+
+        Returns
+        -------
+        crossing: bool
+            `True` if the solutions are all contained in the other continuations according to the specified parameters.
+        crossing_values: ~numpy.ndarray
+            If `return_parameters` is `True`, an array with the values of the parameters for which the solutions of the two
+            continuations match.
+        solutions_list: list(AUTOSolution object)
+            If `return_solutions` is `True`, a list of the solutions which are included in the other Continuation object.
+
+        """
 
         if isinstance(tol, (list, tuple)):
             tol = np.array(tol)
@@ -1192,6 +2011,13 @@ class Continuation(ABC):
             return res
 
     def summary(self):
+        """Return the summary of the |AUTO| continuations.
+
+        Returns
+        -------
+        str
+            The summary.
+        """
 
         summary_str = ""
         if self.continuation['forward'] is not None:
@@ -1207,6 +2033,7 @@ class Continuation(ABC):
         return summary_str
 
     def print_summary(self):
+        """Print the summary of the |AUTO| continuations."""
 
         if self.continuation:
             s = self.summary()
@@ -1214,6 +2041,45 @@ class Continuation(ABC):
 
     def check_for_repetitions(self, parameters, tol=2.e-2, return_parameters=False, return_non_repeating_solutions=False,
                               return_repeating_solutions=False, forward=None):
+        """Check in solutions in the Continuation object are repeating, possibly indicating that the continuation is looping
+        on itself.
+
+        Parameters
+        ----------
+        parameters: list(str)
+            The parameters to be considered to check if the solutions are the same.
+        tol: float or list(float) or ~numpy.ndarray(float)
+            The numerical tolerance of the comparison to determine if two solutions are equal.
+            If a single float is provided, assume the same tolerance for each parameter.
+            If a list or a 1-D array is passed, it must have the dimension of the number of parameters, each value in the
+            array corresponding to a parameter.
+        return_parameters: bool
+            If `True`, return an additional array with the values of the parameters for which the solutions are repeating.
+        return_repeating_solutions: bool
+            If `True`, return an additional list with the AUTO solution objects which repeat.
+        return_non_repeating_solutions: bool
+            If `True`, return an additional list with the AUTO solution objects which do nott repeat.
+        forward: bool or None, optional
+            If `True`, search only in the forward continuation.
+            If `False`, search only in the backward continuation.
+            If `None`, search in both backward and forward direction.
+            Default to `None`.
+
+        Returns
+        -------
+        repeating: dict(list(bool))
+            A dictionary with a list of boolean for each direction, indicating for each solution if it is repeating or not.
+        repeating_values: dict(~numpy.ndarray)
+            If `return_parameters` is `True`, a dictionary with for each direction an array with the values of the parameters for the solutions
+            are repeating.
+        non_repeating_solutions_list: dict(list(AUTOSolution object))
+            If `return_non_repeating_solutions` is `True`, a dictionary with for each direction a list of the solutions which are
+            included which do not repeat.
+        repeating_solutions_list: dict(list(AUTOSolution object))
+            If `return_repeating_solutions` is `True`, a dictionary with for each direction a list of the solutions which are
+            included which do repeat.
+
+        """
 
         if isinstance(tol, (list, tuple)):
             tol = np.array(tol)

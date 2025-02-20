@@ -1,3 +1,13 @@
+
+"""
+
+Bifurcation diagram class definition
+====================================
+
+This module defines the bifurcation diagram object used in auto-AUTO.
+
+"""
+
 import os
 import sys
 import warnings
@@ -24,29 +34,124 @@ try:
             break
     else:
         # sys.path.append(auto_directory + '/python/auto')
-        sys.path.append(sys.path.join(auto_directory, 'python'))
+        sys.path.append(os.path.join(auto_directory, 'python'))
 except KeyError:
     logger.warning('Unable to find auto directory environment variable.')
 
-from auto2.continuation.fixed_points import FixedPointContinuation
-from auto2.continuation.periodic_orbits import PeriodicOrbitContinuation
+from auto2.continuations.fixed_points import FixedPointContinuation
+from auto2.continuations.periodic_orbits import PeriodicOrbitContinuation
 from auto.parseS import AUTOSolution
 
 
 class BifurcationDiagram(object):
+    """Base class for any continuation in auto-AUTO.
+
+    Parameters
+    ----------
+    model_name: str
+        The name of the model to load. Used to load the .f90 file of the provided model.
+    path_name: str, optional
+        The directory path where files are read/saved.
+        If `None`, defaults to current working directory.
+
+    Attributes
+    ----------
+    initial_points: list(dict)
+        List of initial points used to start the bifurcation diagram. It has the following structure:
+        Each point is an entry in the list and is specified with a dictionary with the following two keys:
+
+        * `'parameters'`: a dictionary of with the used continuation parameter and its value at which the `initial_data` (see below)
+          is valid. I.e. its structure is `{'parameter_name': parameter_value}`.
+        * `'initial_data'`: a 1-D Numpy :class:`~numpy.ndarray` with the coordinates in phase space of the initial point, or an
+          AUTOSolution object.
+
+    model_name: str
+        The name of the loaded model. Used to load the .f90 file of the provided model.
+    config_object: ~auto2.parsers.config.ConfigParser
+        The ConfigParser object used during the continuations.
+    fp_branches: dict
+        Dictionary holding the continuations data of the fixed points of the bifurcation diagram, each labelled by their
+        branch number (i.e. dictionary keys are the branch number).
+        Each entry of the dictionary is itself a dictionary characterizing te branch and with the following entries:
+
+        * `'parameters'`: A list of the parameters values used to start the continuation(s).
+        * `'continuation'`: A :class:`~auto2.continuations.base.Continuation` object including the continuation(s) data.
+        * `'continuation_kwargs'`: A dictionary containing the AUTO parameters used to start the continuation(s).
+    po_branches: dict
+        Dictionary holding the continuations of the periodic orbits of the bifurcation diagram, each labelled by their
+        branch number (i.e. dictionary keys are the branch number).
+        Each entry of the dictionary is itself a dictionary characterizing te branch and with the following entries:
+
+        * `'parameters'`: A list of the parameters values used to start the continuation(s).
+        * `'continuation'`: A :class:`~auto2.continuations.base.Continuation` object including the continuation(s) data.
+        * `'continuation_kwargs'`: A dictionary containing the AUTO parameters used to start the continuation(s).
+    fp_parent: dict(int or None)
+        Dictionary holding the branch number of the parents of a given fixed point branch (whose branch number is the dictionary key).
+        `None` if there is no parent branch.
+    fp_branches_with_all_bp_computed: list(int)
+        List of fixed point branch number for which all the branching points of the branch have been continued.
+    fp_branches_with_all_hb_computed: list(int)
+        List of fixed point branch number for which all the Hopf bifurcations of the branch have been continued.
+    computed_bp_by_fp_branch: dict(list(int))
+        List of solution label number of branching points which have been continued for each fixed point branch
+        (indexed by their branch number forming the dictionary keys).
+        E.g. for a given branch, `[1, 2]` indicates that the branches emanating from
+        the first and second branching points on the `forward` continuation have been computed.
+        Negative label numbers indicate branching points on the `backward` continuation.
+    computed_hb_by_fp_branch: dict(list(int))
+        List of solution label number of Hopf bifurcations which have been continued for each fixed point branch
+        (indexed by their branch number forming the dictionary keys).
+        E.g. for a given branch, `[1, 2]` indicates that the branches emanating from
+        the first and second Hopf points on the `forward` continuation have been computed.
+        Negative label numbers indicate branching points on the `backward` continuation.
+    po_parent: dict(int or None)
+        Dictionary holding the branch number of the parents of a given periodic orbit branch (whose branch number is the dictionary key).
+        `None` if there is no parent branch.
+    po_branches_with_all_bp_computed: list(int)
+        List of periodic orbit branch number for which all the branching points of the branch have been continued.
+    po_branches_with_all_pd_computed: list(int)
+        List of periodic orbit branch number for which all the period doubling bifurcations of the branch have been continued.
+    computed_bp_by_po_branch: dict(list(int))
+        List of solution label number of branching points which have been continued for each periodic orbit
+        (indexed by their branch number forming the dictionary keys).
+        E.g. for a given branch, `[1, 2]` indicates that the branches emanating from
+        the first and second branching points on the `forward` continuation have been computed.
+        Negative label numbers indicate branching points on the `backward` continuation.
+    valid_bp_by_po_branch:
+        List of solution label number periodic orbit branching points which have resulted in a valid continuation for each periodic orbit
+        (indexed by their branch number forming the dictionary keys).
+        E.g. for a given branch, `[1, 2]` indicates that the branches emanating from
+        the first and second periodic orbit branching points on the `forward` continuation were valid.
+        Negative label numbers indicate branching points on the `backward` continuation.
+        **A valid continuation is a continuation for which no subset is identified with another branch or another part of itself (loops).**
+    computed_pd_by_po_branch: dict(list(int))
+        List of solution label number of period doubling bifurcations which have been continued for each periodic orbit
+        (indexed by their branch number forming the dictionary keys).
+        E.g. for a given branch, `[1, 2]` indicates that the branches emanating from
+        the first and second period doubling points on the `forward` continuation have been computed.
+        Negative label numbers indicate branching points on the `backward` continuation.
+    valid_pd_by_po_branch: dict(list(int))
+        List of solution label number of period doubling bifurcations which have resulted in a valid continuation for each periodic orbit
+        (indexed by their branch number forming the dictionary keys).
+        E.g. for a given branch, `[1, 2]` indicates that the branches emanating from
+        the first and second period doubling points on the `forward` continuation were valid.
+        Negative label numbers indicate branching points on the `backward` continuation.
+        **A valid continuation is a continuation for which no subset is identified with another branch or another part of itself (loops).**
+    fp_computed: bool
+        Whether all the fixed points continuations possibilities of the bifurcation diagram have been computed.
+    po_computed: bool
+        Whether all the periodic orbits continuations possibilities of the bifurcation diagram have been computed.
+
+    """
 
     def __init__(self, model_name=None, path_name=None):
 
         self.initial_points = None
         self.model_name = model_name
-        if path_name is None:
-            self._path_name = None
-        else:
-            if os.path.exists(path_name):
-                self._path_name = path_name
-            else:
-                warnings.warn("Path name given does not exist.")
-                self._path_name = None
+
+        self._path_name = None
+        if path_name is not None:
+            self.set_path_name(path_name)
 
         if model_name is not None:
             filepath = 'c.'+model_name if self._path_name is None else os.path.join(self._path_name, 'c.'+model_name)
@@ -79,7 +184,60 @@ class BifurcationDiagram(object):
         self._figure_legend_handles = list()
         self._figure_3d_legend_handles = list()
 
+    @property
+    def path_name(self):
+        """str: The path where the |AUTO| and AUTO² files must be or are stored."""
+        return self._path_name
+
+    def set_path_name(self, path_name):
+        """Set the path where the |AUTO| and AUTO² files must be or are stored.
+
+        Parameters
+        ----------
+        path_name: str
+            The path.
+        """
+        if os.path.exists(path_name):
+            self._path_name = path_name
+        else:
+            warnings.warn("Path name given does not exist. Using the current working directory.")
+            self._path_name = None
+
     def compute_fixed_points_diagram(self, initial_points=None, extra_comparison_parameters=None, comparison_tol=2.e-2, **continuation_kwargs):
+        """Method which starts the computation of a fixed points bifurcation diagrams using a set of provided initial points.
+
+        Parameters
+        ----------
+        initial_points: list(dict) or None, optional
+            List of initial fixed points to consider for computing the diagram.
+            Each entry in the list is a dictionary with the following two keys:
+
+            * `'parameters'`: a dictionary of with the used continuation parameter and its value at which the `initial_data` (see below)
+              is valid. I.e. its structure is `{'parameter_name': parameter_value}`. Can be overloaded by the values found in
+              the `continuation_kwargs`.
+            * `'initial_data'`: a 1-D Numpy :class:`~numpy.ndarray` with the coordinates in phase space of the initial point, or an
+              AUTOSolution object.
+
+            If `None`, recompute the fixed points already present in the :attr:`initial_points` class attribute.
+            Default to `None`.
+        extra_comparison_parameters: list(str or int) or None, optional
+            List of extra parameters labels or numbers to use in the various comparison to determine the validity of the continuations.
+            If `None`, only the defaults parameters will be considered, i.e. the continuation parameter and the `L2` norm.
+            Otherwise, the specified parameters are added to the two default ones.
+            Default to `None`.
+        comparison_tol: float or list(float) or ~numpy.ndarray(float), optional
+            The numerical tolerance of the parameters comparison done to check the continuations validity.
+            If a single float is provided, assume the same tolerance for each parameter.
+            If a list or a 1-D array is passed, it must have the dimension `2+len(extra_comparison_parameters)`, each value in the
+            array corresponding to a parameter.
+            Default to `0.02`.
+        continuation_kwargs: dict
+            Parameters to pass to AUTO for each continuation.
+            See the :meth:`~auto2.continuations.fixed_points.FixedPointContinuation.make_continuation` method of the
+            :class:`~auto2.continuations.fixed_points.FixedPointContinuation` class for more details
+            about the available AUTO parameters.
+
+        """
 
         logger.info('Starting the computation of the fixed points bifurcation diagram with model '+str(self.model_name))
 
@@ -218,7 +376,53 @@ class BifurcationDiagram(object):
         self.fp_computed = True
 
     def compute_periodic_orbits_diagram(self, end_level=10, extra_comparison_parameters=None, comparison_tol=2.e-2,
-                                        remove_dubious_bp=True, max_number_bp=None, max_number_bp_detected=None, backward_bp_continuation=False, **continuation_kwargs):
+                                        remove_dubious_bp=True, max_number_bp=None, max_number_bp_detected=None,
+                                        backward_bp_continuation=False, **continuation_kwargs):
+        """Method which starts the computation of the periodic orbits of a bifurcation diagram where
+        the fixed points have already been continued. It will start by continuing the Hopf bifurcations, then the resulting branching
+        and period doubling points. Each computation is done level by level in the the developing tree of the bifurcation
+        diagram. For instance, fixed point continuation is the level `0`, and the continuations of the Hopf bifurcations form
+        the level `1`. Computation stops either if all the bifurcation points have been computed/continued, or if a specified level of the
+        tree has been reached.
+
+        Parameters
+        ----------
+        end_level: int, optional
+            Level of the periodic orbits bifurcation diagram tree where the computation must stop.
+            Defaults to `10`.
+        extra_comparison_parameters: list(str or int) or None, optional
+            List of extra parameters labels or numbers to use in the various comparison to determine the validity of the continuations.
+            If `None`, only the defaults parameters will be considered, i.e. the continuation parameter and the `L2` norm.
+            Otherwise, the specified parameters are added to the two default ones.
+            Default to `None`.
+        comparison_tol: float or list(float) or ~numpy.ndarray(float), optional
+            The numerical tolerance of the parameters comparison done to check the continuations validity.
+            If a single float is provided, assume the same tolerance for each parameter.
+            If a list or a 1-D array is passed, it must have the dimension `2+len(extra_comparison_parameters)`, each value in the
+            array corresponding to a parameter.
+            Default to `0.02`.
+        remove_dubious_bp: bool, optional
+            Do not compute continuation of branching points for which the stability information include HUGE numbers, indicating
+            a possible problem in the parent continuation.
+        max_number_bp: int or None, optional
+            Only continue the first `max_number_bp` branching points of the parent branches.
+            If `None`, continue all the branching points of the parent branches.
+            Defaults to `None`.
+        max_number_bp_detected: int or None, optional
+            Number of branching points detected during the continuations of periodic orbits,
+            before turning off the detection of branching points.
+            If `None`, the detection of branching points is never turned off.
+            Defaults to `None`.
+        backward_bp_continuation: bool, optional
+            Compute also the `backward` continuation at the branching points.
+            Defaults to `False`.
+        continuation_kwargs: dict
+            Parameters to pass to AUTO for each continuation.
+            See the :meth:`~auto2.continuations.periodic_orbits.PeriodicOrbitContinuation.make_continuation` method of the
+            :class:`~auto2.continuations.periodic_orbits.PeriodicOrbitContinuation` class for more details
+            about the available AUTO parameters.
+
+        """
 
         logger.info('Starting the computation of the periodic orbits bifurcation diagram with model '+str(self.model_name))
         logger.info('Computing periodic orbits up to level '+str(end_level))
@@ -314,6 +518,54 @@ class BifurcationDiagram(object):
     def restart_periodic_orbits_diagram(self, end_level=10, extra_comparison_parameters=None, comparison_tol=2.e-2,
                                         remove_dubious_bp=True, max_number_bp=None, max_number_bp_detected=None,
                                         backward_bp_continuation=False, restart=True, **continuation_kwargs):
+        """Method which restarts the computation of the periodic orbits of a bifurcation diagram stopped previously at a certain level
+        of the developing tree of the bifurcation diagram.
+        Each computation is done level by level in the the developing tree of the bifurcation diagram.
+        For instance, fixed point continuation is the level `0`, and the continuations of the Hopf bifurcations form
+        the level `1`. Computation stops either if all the bifurcation points have been computed/continued, or if a specified level of the
+        tree has been reached.
+
+        Parameters
+        ----------
+        end_level: int, optional
+            Level of the periodic orbits bifurcation diagram tree where the computation must stop.
+            Defaults to `10`.
+        extra_comparison_parameters: list(str or int) or None, optional
+            List of extra parameters labels or numbers to use in the various comparison to determine the validity of the continuations.
+            If `None`, only the defaults parameters will be considered, i.e. the continuation parameter and the `L2` norm.
+            Otherwise, the specified parameters are added to the two default ones.
+            Default to `None`.
+        comparison_tol: float or list(float) or ~numpy.ndarray(float), optional
+            The numerical tolerance of the parameters comparison done to check the continuations validity.
+            If a single float is provided, assume the same tolerance for each parameter.
+            If a list or a 1-D array is passed, it must have the dimension `2+len(extra_comparison_parameters)`, each value in the
+            array corresponding to a parameter.
+            Default to `0.02`.
+        remove_dubious_bp: bool, optional
+            Do not compute continuation of branching points for which the stability information include HUGE numbers, indicating
+            a possible problem in the parent continuation.
+        max_number_bp: int or None, optional
+            Only continue the first `max_number_bp` branching points of the parent branches.
+            If `None`, continue all the branching points of the parent branches.
+            Defaults to `None`.
+        max_number_bp_detected: int or None, optional
+            Number of branching points detected during the continuations of periodic orbits,
+            before turning off the detection of branching points.
+            If `None`, the detection of branching points is never turned off.
+            Defaults to `None`.
+        backward_bp_continuation: bool, optional
+            Compute also the `backward` continuation at the branching points.
+            Defaults to `False`.
+        restart: bool, optional
+            Whether to restart or simply start the computation of the periodic orbits bifurcation diagram.
+            Defaults to `True` which means restart.
+        continuation_kwargs: dict
+            Parameters to pass to AUTO for each continuation.
+            See the :meth:`~auto2.continuations.periodic_orbits.PeriodicOrbitContinuation.make_continuation` method of the
+            :class:`~auto2.continuations.periodic_orbits.PeriodicOrbitContinuation` class for more details
+            about the available AUTO parameters.
+
+        """
 
         if self.po_computed:
             logger.info('Computation up to level ' + str(end_level) + ' was asked but bifurcation diagram is complete.')
@@ -570,8 +822,43 @@ class BifurcationDiagram(object):
                 self.po_computed = True
                 logger.info('All possible periodic orbit branches have been computed.')
 
-    def add_periodic_orbit(self, initial_data, extra_comparison_parameters=None, comparison_tol=2.e-2, max_number_bp_detected=None, only_forward=False,
-                           **continuation_kwargs):
+    def add_periodic_orbit(self, initial_data, extra_comparison_parameters=None, comparison_tol=2.e-2,
+                           max_number_bp_detected=None, only_forward=False, **continuation_kwargs):
+        """Continue and then add manually a given periodic orbit to the periodic orbit bifurcation diagram.
+
+        Parameters
+        ----------
+        initial_data: AUTOSolution or str
+            Initial data used to start the continuation(s). Should be an AUTOSolution or a string indicating the path to
+            a file containing the data of the periodic orbit to start from. See the `dat` parameter in the AUTO parameters
+            documentation for more detail about how this data file must be organized (you can also find this documented
+            below).
+        extra_comparison_parameters: list(str or int) or None, optional
+            List of extra parameters labels or numbers to use in the various comparison to determine the validity of the continuations.
+            If `None`, only the defaults parameters will be considered, i.e. the continuation parameter and the `L2` norm.
+            Otherwise, the specified parameters are added to the two default ones.
+            Default to `None`.
+        comparison_tol: float or list(float) or ~numpy.ndarray(float), optional
+            The numerical tolerance of the parameters comparison done to check the continuations validity.
+            If a single float is provided, assume the same tolerance for each parameter.
+            If a list or a 1-D array is passed, it must have the dimension `2+len(extra_comparison_parameters)`, each value in the
+            array corresponding to a parameter.
+            Default to `0.02`.
+        max_number_bp_detected: int or None, optional
+            Number of branching points detected during the continuations of periodic orbits,
+            before turning off the detection of branching points.
+            If `None`, the detection of branching points is never turned off.
+            Defaults to `None`.
+        only_forward: bool, optional
+            If `True`, compute only the forward continuation (positive `DS` parameter).
+            If `False`, compute in both backward and forward direction.
+            Default to `False`.
+        continuation_kwargs: dict
+            Parameters to pass to AUTO for each continuation.
+            See the :meth:`~auto2.continuations.periodic_orbits.PeriodicOrbitContinuation.make_continuation` method of the
+            :class:`~auto2.continuations.periodic_orbits.PeriodicOrbitContinuation` class for more details
+            about the available AUTO parameters.
+        """
 
         logger.info('Continuing manually PO provided by user')
 
@@ -730,6 +1017,25 @@ class BifurcationDiagram(object):
             self.po_branches[branch_number]['continuation'].save()
 
     def save(self, filename=None, **kwargs):
+        """Save the |AUTO| files and the branch parameters and metadata for the whole
+        bifurcation diagram.
+        The continuation branches parameters and metadata will be stored in a Pickle file
+        according to given naming convention.
+        The data and metadata of the bifurcation diagram will be stored in a separate Pickle
+        file with a provided file name.
+
+
+        Parameters
+        ----------
+        filename: str or None, optional
+            The filename used to store parameters and metadata of the bifurcation diagram
+            to disk in Pickle format.
+            If `None`, will assign a default generic name.
+            Default is `None`.
+        kwargs: dict, optional
+            Keyword arguments passed to Pickle.
+
+        """
         self._save_fp_branches()
         self._save_po_branches()
         if filename is None:
@@ -741,6 +1047,21 @@ class BifurcationDiagram(object):
             pickle.dump(state, f, **kwargs)
 
     def load(self, filename, load_initial_data=True, **kwargs):
+        """Load the |AUTO| files and the branch parameters and metadata corresponding to a whole
+        bifurcation diagram.
+
+        Parameters
+        ----------
+        filename: str
+            The filename from which to load Pickle file with the parameters and
+            metadata of the bifurcation diagram.
+        load_initial_data: bool, optional
+            Load nor not the initial data into the BifurcationDiagram object.
+            Default to `True`.
+        kwargs: dict, optional
+            Keyword arguments passed to Pickle.
+
+        """
         try:
             filepath = filename if self._path_name is None else os.path.join(self._path_name, filename)
             with open(filepath, 'rb') as f:
@@ -1110,6 +1431,58 @@ class BifurcationDiagram(object):
 
     def plot_fixed_points_diagram(self, variables=(0, 1), ax=None, figsize=(10, 8), cmap=None, return_used_colors=False,
                                   legend=True, **kwargs):
+        """Plots the bifurcation diagram of all the fixed point branches.
+
+        Parameters
+        ----------
+        variables: tuple(int or str, int or str), optional
+            The index or label of the variables along which the bifurcation diagram is plotted.
+            If labels are used, it should be labels of the available monitored variables during the continuations
+            (if their labels have been defined in the AUTO configuration file) given by :meth:`fixed_points_variables_list`.
+            The first value in the tuple determines the variable plot on the x-axis and the second the y-axis.
+            Defaults to `(0, 1)`.
+        ax: matplotlib.axes.Axes or None, optional
+            A |Matplotlib| axis object to plot on. If `None`, a new figure is created.
+        figsize: tuple(float, float), optional
+            Dimension of the figure that is returned, only used if `ax` is not passed.
+            Defaults to `(10, 8)`.
+        cmap: matplotlib.colors.Colormap or str or None, optional
+            A colormap that controls the color of the branches.
+            The branches are colored from the colormap based on the value of the branch number.
+            If `None`, defaults to the |Matplotlib| Tableau colors list.
+        return_used_colors: bool, optional
+            If `True`, the colors used in the diagram are returned. Defaults to `False`.
+        legend: bool, optional
+            If `True`, a legend of the branches is included in the plot. Defaults to `False`.
+        kwargs: dict, optional
+            Keyword arguments to be passed to the :meth:`~auto2.continuations.base.Continuation.plot_branch_parts` method
+            of the continuation objects.
+            See below for further details.
+
+        Keyword arguments
+        -----------------
+        markersize: float, optional
+            Size of the text plotted to display the bifurcation points. Defaults to `12`.
+        plot_kwargs: dict or None, optional
+            Keyword arguments to pass to the plotting function, controlling the curves of the bifurcation diagram.
+        marker_kwargs: dict or None, optional
+            Keyword arguments to pass to the plotting function, controlling the styles of the bifurcation point labels.
+        excluded_labels: str or list(str), optional
+            A list of 2-characters strings, controlling the bifurcation point type that are not plotted.
+            For example `['BP']` will result in branching points not being plotted.
+            Can be set to the string `'all'`, which results in no bifurcation being plotted at all.
+            Default to `['UZ','EP']`.
+        plot_sol_points: bool, optional
+            If `True`, a point is added to the points where a solution is stored. Defaults to False.
+        variables_name: list(str) or None, optional
+            The strings used to define the axis labels. If `None` defaults to the AUTO labels.
+
+
+        Returns
+        -------
+        matplotlib.axes.Axes
+            A |Matplotlib| axis object showing the fixed-point bifurcation diagram.
+        """
 
         if 'plot_kwargs' not in kwargs:
             kwargs['plot_kwargs'] = dict()
@@ -1160,6 +1533,58 @@ class BifurcationDiagram(object):
 
     def plot_fixed_points_diagram_3D(self, variables=(0, 1, 2), ax=None, figsize=(10, 8), cmap=None, return_used_colors=False,
                                      legend=True, **kwargs):
+        """Plots the bifurcation diagram of all the fixed point branches using a 3-dimensional projection.
+
+        Parameters
+        ----------
+        variables: tuple(int or str, int or str, int or str), optional
+            The index or label of the variables along which the bifurcation diagram is plotted.
+            If labels are used, it should be labels of the available monitored variables during the continuations
+            (if their labels have been defined in the AUTO configuration file) given by :meth:`fixed_points_variables_list`.
+            The first value in the tuple determines the variable plot on the x-axis, the second the y-axis,
+            and the last value determines the z-axis.
+            Defaults to `(0, 1, 2)`.
+        ax: matplotlib.axes.Axes or None, optional
+            A |Matplotlib| axis object to plot on. If `None`, a new figure is created.
+        figsize: tuple(float, float), optional
+            Dimension of the figure that is returned, only used if `ax` is not passed.
+            Defaults to `(10, 8)`.
+        cmap: matplotlib.colors.Colormap or str or None, optional
+            A colormap that controls the color of the branches.
+            The branches are colored from the colormap based on the value of the branch number.
+            If `None`, defaults to the |Matplotlib| Tableau colors list.
+        return_used_colors: bool, optional
+            If `True`, the colors used in the diagram are returned. Defaults to `False`.
+        legend: bool, optional
+            If `True`, a legend of the branches is included in the plot. Defaults to `False`.
+        kwargs: dict, optional
+            Keyword arguments to be passed to the :meth:`~auto2.continuations.base.Continuation.plot_branch_parts` method
+            of the continuation objects.
+            See below for further details.
+
+        Keyword arguments
+        -----------------
+        markersize: float, optional
+            Size of the text plotted to display the bifurcation points. Defaults to `12`.
+        plot_kwargs: dict or None, optional
+            Keyword arguments to pass to the plotting function, controlling the curves of the bifurcation diagram.
+        marker_kwargs: dict or None, optional
+            Keyword arguments to pass to the plotting function, controlling the styles of the bifurcation point labels.
+        excluded_labels: str or list(str), optional
+            A list of 2-characters strings, controlling the bifurcation point type that are not plotted.
+            For example `['BP']` will result in branching points not being plotted.
+            Can be set to the string `'all'`, which results in no bifurcation being plotted at all.
+            Default to `['UZ','EP']`.
+        plot_sol_points: bool, optional
+            If `True`, a point is added to the points where a solution is stored. Defaults to False.
+        variables_name: list(str) or None, optional
+            The strings used to define the axis labels. If `None` defaults to the AUTO labels.
+
+        Returns
+        -------
+        matplotlib.axes.Axes
+            A |Matplotlib| axis object showing the fixed-point bifurcation diagram using a 3-dimensional projection.
+        """
 
         if 'plot_kwargs' not in kwargs:
             kwargs['plot_kwargs'] = dict()
@@ -1210,6 +1635,59 @@ class BifurcationDiagram(object):
 
     def plot_periodic_orbits_diagram(self, variables=(0, 1), ax=None, figsize=(10, 8), cmap=None, return_used_colors=False,
                                      legend=True, **kwargs):
+        """Plots the bifurcation diagram of all the periodic orbit branches.
+
+        Parameters
+        ----------
+        variables: tuple(int or str, int or str), optional
+            The index or label of the variables along which the bifurcation diagram is plotted.
+            If labels are used, it should be labels of the available monitored variables during the continuations
+            (if their labels have been defined in the AUTO configuration file) given by :meth:`periodic_orbits_variables_list`.
+            The first value in the tuple determines the variable plot on the x-axis and the second the y-axis.
+            Defaults to `(0, 1)`.
+        ax: matplotlib.axes.Axes or None, optional
+            A |Matplotlib| axis object to plot on. If `None`, a new figure is created.
+        figsize: tuple(float, float), optional
+            Dimension of the figure that is returned, only used if `ax` is not passed.
+            Defaults to `(10, 8)`.
+        cmap: matplotlib.colors.Colormap or str or None, optional
+            A colormap that controls the color of the branches.
+            The branches are colored from the colormap based on the value of the branch number.
+            If `None`, defaults to the |Matplotlib| Tableau colors list.
+        return_used_colors: bool, optional
+            If `True`, the colors used in the diagram are returned. Defaults to `False`.
+        legend: bool, optional
+            If `True`, a legend of the branches is included in the plot. Defaults to `False`.
+        kwargs: dict, optional
+            Keyword arguments to be passed to the :meth:`~auto2.continuations.base.Continuation.plot_branch_parts` method
+            of the continuation objects.
+            See below for further details.
+
+
+        Keyword arguments
+        -----------------
+        markersize: float, optional
+            Size of the text plotted to display the bifurcation points. Defaults to `12`.
+        plot_kwargs: dict or None, optional
+            Keyword arguments to pass to the plotting function, controlling the curves of the bifurcation diagram.
+        marker_kwargs: dict or None, optional
+            Keyword arguments to pass to the plotting function, controlling the styles of the bifurcation point labels.
+        excluded_labels: str or list(str), optional
+            A list of 2-characters strings, controlling the bifurcation point type that are not plotted.
+            For example `['BP']` will result in branching points not being plotted.
+            Can be set to the string `'all'`, which results in no bifurcation being plotted at all.
+            Default to `['UZ','EP']`.
+        plot_sol_points: bool, optional
+            If `True`, a point is added to the points where a solution is stored. Defaults to False.
+        variables_name: list(str) or None, optional
+            The strings used to define the axis labels. If `None` defaults to the AUTO labels.
+
+
+        Returns
+        -------
+        matplotlib.axes.Axes
+            A |Matplotlib| axis object showing the periodic-orbit bifurcation diagram.
+        """
 
         if 'plot_kwargs' not in kwargs:
             kwargs['plot_kwargs'] = dict()
@@ -1260,6 +1738,59 @@ class BifurcationDiagram(object):
 
     def plot_periodic_orbits_diagram_3D(self, variables=(0, 1, 2), ax=None, figsize=(10, 8), cmap=None, return_used_colors=False,
                                         legend=True, **kwargs):
+        """Plots the bifurcation diagram of all the periodic orbit branches using a 3-dimensional projection.
+
+        Parameters
+        ----------
+        variables: tuple(int or str, int or str, int or str), optional
+            The index or label of the variables along which the bifurcation diagram is plotted.
+            If labels are used, it should be labels of the available monitored variables during the continuations
+            (if their labels have been defined in the AUTO configuration file) given by :meth:`periodic_orbits_variables_list`.
+            The first value in the tuple determines the variable plot on the x-axis, the second the y-axis,
+            and the last value determines the z-axis.
+            Defaults to `(0, 1, 2)`.
+        ax: matplotlib.axes.Axes or None, optional
+            A |Matplotlib| axis object to plot on. If `None`, a new figure is created.
+        figsize: tuple(float, float), optional
+            Dimension of the figure that is returned, only used if `ax` is not passed.
+            Defaults to `(10, 8)`.
+        cmap: matplotlib.colors.Colormap or str or None, optional
+            A colormap that controls the color of the branches.
+            The branches are colored from the colormap based on the value of the branch number.
+            If `None`, defaults to the |Matplotlib| Tableau colors list.
+        return_used_colors: bool, optional
+            If `True`, the colors used in the diagram are returned. Defaults to `False`.
+        legend: bool, optional
+            If `True`, a legend of the branches is included in the plot. Defaults to `False`.
+        kwargs: dict, optional
+            Keyword arguments to be passed to the :meth:`~auto2.continuations.base.Continuation.plot_branch_parts` method
+            of the continuation objects.
+            See below for further details.
+
+        Keyword arguments
+        -----------------
+        markersize: float, optional
+            Size of the text plotted to display the bifurcation points. Defaults to `12`.
+        plot_kwargs: dict or None, optional
+            Keyword arguments to pass to the plotting function, controlling the curves of the bifurcation diagram.
+        marker_kwargs: dict or None, optional
+            Keyword arguments to pass to the plotting function, controlling the styles of the bifurcation point labels.
+        excluded_labels: str or list(str), optional
+            A list of 2-characters strings, controlling the bifurcation point type that are not plotted.
+            For example `['BP']` will result in branching points not being plotted.
+            Can be set to the string `'all'`, which results in no bifurcation being plotted at all.
+            Default to `['UZ','EP']`.
+        plot_sol_points: bool, optional
+            If `True`, a point is added to the points where a solution is stored. Defaults to False.
+        variables_name: list(str) or None, optional
+            The strings used to define the axis labels. If `None` defaults to the AUTO labels.
+
+
+        Returns
+        -------
+        matplotlib.axes.Axes
+            A |Matplotlib| axis object showing the periodic-orbit bifurcation diagram using a 3-dimensional projection.
+        """
 
         if 'plot_kwargs' not in kwargs:
             kwargs['plot_kwargs'] = dict()
@@ -1311,6 +1842,76 @@ class BifurcationDiagram(object):
     def plot_diagram_and_solutions(self, solutions_parameter_value, diagram_variables=(1,), solutions_variables=(0, 1),
                                    axes=None, figsize=(10, 16), solutions_tol=0.01, fixed_points_diagram_kwargs=None, periodic_orbits_diagram_kwargs=None,
                                    solutions_kwargs=None):
+        """Plots a bifurcation diagram including all fixed point and periodic orbit branches, along with a projection of
+        the solutions at a given parameter value.
+
+        Parameters
+        ----------
+        solutions_parameter_value: float
+            The parameter value for which the solutions are plot.
+            The parameter that is used is governed by the continuation parameter that was used.
+        diagram_variables: tuple(int or str, int or str), optional
+            The index or label of the variables along which the bifurcation diagram is plotted.
+            If labels are used, it should be labels of the available monitored variables during the continuations
+            (if their labels have been defined in the AUTO configuration file) given by :meth:`fixed_points_variables_list` and
+            :meth:`periodic_orbits_variables_list`.
+            The first value in the tuple determines the variable plot on the y-axis.
+            Defaults to `(1, )`, which plots the `L2` Norm.
+        solutions_variables: tuple(int or str, int or str), optional
+            The index or label of the variables shown in the solution plot.
+            If labels are used, it should be labels of the phase space variables
+            (if they have been defined in the AUTO configuration file) given by :meth:`phase_space_variables`.
+            The first value in the tuple determines the variable plot on the x-axis, the second determines the y-axis.
+            Defaults to the first two variables: `(0, 1)`.
+        axes: ~numpy.ndarray(matplotlib.axes.Axes) or None, optional
+            An array of two |Matplotlib| axis object to plot on. If `None`, a new figure is created.
+        figsize: tuple(float, float), optional
+            Dimension of the figure that is returned, only used if `ax` is not passed.
+            Defaults to `(10, 16)`.
+        solutions_tol: float or list(float) or ~numpy.ndarray(float), optional
+            The numerical tolerance used when comparing solutions to display with the selected `solutions_parameter_value` argument.
+            Default to `0.01`.
+        fixed_points_diagram_kwargs: dict or None, optional
+            Keyword arguments to be passed to the fixed point bifurcation diagram plotting function
+            :meth:`plot_fixed_points_diagram`.
+        periodic_orbits_diagram_kwargs: dict or None, optional
+            Keyword arguments to be passed to the periodic orbit bifurcation diagram plotting function
+            :meth:`plot_periodic_orbits_diagram`.
+        solutions_kwargs: dict or None, optional
+            Keyword arguments to be passed to the solution plotting function
+            :meth:`~auto2.continuations.base.Continuation.plot_solutions` of the continuation objects.
+
+
+        The parameters below can be included in `solutions_kwargs` for controlling the solution plots.
+        See :meth:`auto2.continuations.base.Continuation.plot_solutions` for more details.
+
+        Keyword Arguments
+        -----------------
+        markersize: float, optional
+            Size of the text plotted to display the bifurcation points. Defaults to `12`.
+        marker : str, optional
+            The marker style used for plotting fixed points. If `None`, set to default marker.
+        linestyle : str, optional
+            The line style used for plotting the periodic orbit solutions. If `None`, set to default marker.
+        linewidth : float, optional
+            The width of the lines showing the periodic solutions. If `None`, set to the default.
+        color_solutions : bool, optional
+            Whether to color each solution differently.
+            If `True`, and `parameter` argument is provided and valid, then solutions are colored based on the parameter value of a given solution.
+            Use the cmap provided in the `plot_kwargs` argument. If no cmap is provided there, use `Blues` cmap by default.
+            If `False`, all solutions are colored identically, controlled using `plot_kwargs`.
+            Default is `False`.
+        plot_kwargs: dict or None, optional
+            Additional keyword arguments for the plotting function. Default is `None`.
+        variables_name: list(str) or None, optional
+            The strings used to plot the axis labels. If `None` defaults to the AUTO labels.
+            Defaults to `None`.
+
+        Returns
+        -------
+        ~numpy.ndarray(matplotlib.axes.Axes)
+            An array of two |Matplotlib| axis objects, showing the bifurcation diagram and the solution plot.
+        """
 
         if axes is None:
             fig, axes = plt.subplots(2, 1, figsize=figsize)
@@ -1368,6 +1969,71 @@ class BifurcationDiagram(object):
     def plot_diagram_in_3D_and_solutions_in_3D(self, solutions_parameter_value, diagram_variables=(1, 2), solutions_variables=(0, 1, 2),
                                                axes=None, figsize=(10, 16), solutions_tol=0.01, fixed_points_diagram_kwargs=None,
                                                periodic_orbits_diagram_kwargs=None, solutions_kwargs=None):
+        """Plots a 3-dimensional projection of the bifurcation diagram including all fixed point and periodic orbit branches,
+        along with a projection of the solutions at a given parameter value, also using a 3-dimensional projection.
+
+        Parameters
+        ----------
+        solutions_parameter_value: float
+            The parameter value for which the solutions are plot.
+            The parameter that is used is governed by the continuation parameter that was used.
+        diagram_variables: tuple(int or str, int or str), optional
+            The index or label of the variables along which the bifurcation diagram is plotted.
+            If labels are used, it should be labels of the available monitored variables during the continuations
+            (if their labels have been defined in the AUTO configuration file) given by :meth:`fixed_points_variables_list` and
+            :meth:`periodic_orbits_variables_list`.
+            The first value in the tuple determines the variable plot on the x-axis, the second the y-axis.
+            Defaults to `(1, 2)`, which plots the `L2` Norm and the first variable of the phase space.
+        solutions_variables: tuple(int or str, int or str, int or str), optional
+            The index or label of the variables shown in the solution plot.
+            If labels are used, it should be labels of the phase space variables
+            (if they have been defined in the AUTO configuration file) given by :meth:`phase_space_variables`.
+            The first value in the tuple determines the variable plot on the x-axis, the second determines the y-axis,
+            and the last value determines the z-axis
+            Defaults to the first two variables: `(0, 1, 2)`.
+        axes: ~numpy.ndarray(matplotlib.axes.Axes) or None, optional
+            An array of two |Matplotlib| axis object to plot on. If `None`, a new figure is created.
+        figsize: tuple(float, float), optional
+            Dimension of the figure that is returned, only used if `ax` is not passed.
+            Defaults to `(10, 16)`.
+        solutions_tol: float or list(float) or ~numpy.ndarray(float), optional
+            The numerical tolerance used when comparing solutions to display with the selected `solutions_parameter_value` argument.
+            Default to `0.01`.
+        fixed_points_diagram_kwargs: dict or None, optional
+            Keyword arguments to be passed to the fixed point bifurcation diagram plotting function
+            :meth:`plot_fixed_points_diagram_3D`.
+        periodic_orbits_diagram_kwargs: dict or None, optional
+            Keyword arguments to be passed to the periodic orbit bifurcation diagram plotting function
+            :meth:`plot_periodic_orbits_diagram_3D`.
+        solutions_kwargs: dict or None, optional
+            Keyword arguments to be passed to the solution plotting function
+            :meth:`~auto2.continuations.base.Continuation.plot_solutions_3D` of the continuation objects.
+
+
+        The parameters below can be included in `solutions_kwargs` for controlling the solution plots.
+        See :meth:`auto2.continuations.base.Continuation.plot_solutions_3D` for more details.
+
+        Keyword Arguments
+        -----------------
+        markersize: float, optional
+            Size of the text plotted to display the bifurcation points. Defaults to `12`.
+        marker : str, optional
+            The marker style used for plotting fixed points. If `None`, set to default marker.
+        linestyle : str, optional
+            The line style used for plotting the periodic orbit solutions. If `None`, set to default marker.
+        linewidth : float, optional
+            The width of the lines showing the periodic solutions. If `None`, set to the default.
+        plot_kwargs: dict or None, optional
+            Additional keyword arguments for the plotting function. Default is `None`.
+        variables_name: list(str) or None, optional
+            The strings used to plot the axis labels. If `None` defaults to the AUTO labels.
+            Defaults to `None`.
+
+        Returns
+        -------
+        ~numpy.ndarray(matplotlib.axes.Axes)
+            An array of two |Matplotlib| axis objects, showing the 3-dimensional bifurcation diagram and the solution plot.
+        """
 
         if axes is None:
             fig, axes = plt.subplots(2, 1, figsize=figsize, subplot_kw={'projection': '3d'})
@@ -1425,6 +2091,71 @@ class BifurcationDiagram(object):
     def plot_diagram_and_solutions_in_3D(self, solutions_parameter_value, diagram_variables=(1,), solutions_variables=(0, 1, 2),
                                          axes=None, figsize=(10, 16), solutions_tol=0.01, fixed_points_diagram_kwargs=None,
                                          periodic_orbits_diagram_kwargs=None, solutions_kwargs=None):
+        """Plots a bifurcation diagram including all fixed point and periodic orbit branches using a 2-dimensional projection,
+         along with a projection of the solutions at a given parameter value that uses a 3-dimensional projection.
+
+        Parameters
+        ----------
+        solutions_parameter_value: float
+            The parameter value for which the solutions are plot.
+            The parameter that is used is governed by the continuation parameter that was used.
+        diagram_variables: tuple(int or str, int or str), optional
+            The index or label of the variables along which the bifurcation diagram is plotted.
+            If labels are used, it should be labels of the available monitored variables during the continuations
+            (if their labels have been defined in the AUTO configuration file) given by :meth:`fixed_points_variables_list` and
+            :meth:`periodic_orbits_variables_list`.
+            The first value in the tuple determines the variable plot on the y-axis.
+            Defaults to `(1, )`, which plots the `L2` Norm.
+        solutions_variables: tuple(int or str, int or str, int or str), optional
+            The index or label of the variables shown in the solution plot.
+            If labels are used, it should be labels of the phase space variables
+            (if they have been defined in the AUTO configuration file) given by :meth:`phase_space_variables`.
+            The first value in the tuple determines the variable plot on the x-axis, the second determines the y-axis,
+            and the last value determines the z-axis
+            Defaults to the first two variables: `(0, 1, 2)`.
+        axes: ~numpy.ndarray(matplotlib.axes.Axes) or None, optional
+            An array of two |Matplotlib| axis object to plot on. If `None`, a new figure is created.
+        figsize: tuple(float, float), optional
+            Dimension of the figure that is returned, only used if `ax` is not passed.
+            Defaults to `(10, 16)`.
+        solutions_tol: float or list(float) or ~numpy.ndarray(float), optional
+            The numerical tolerance used when comparing solutions to display with the selected `solutions_parameter_value` argument.
+            Default to `0.01`.
+        fixed_points_diagram_kwargs: dict or None, optional
+            Keyword arguments to be passed to the fixed point bifurcation diagram plotting function
+            :meth:`plot_fixed_points_diagram`.
+        periodic_orbits_diagram_kwargs: dict or None, optional
+            Keyword arguments to be passed to the periodic orbit bifurcation diagram plotting function
+            :meth:`plot_periodic_orbits_diagram`.
+        solutions_kwargs: dict or None, optional
+            Keyword arguments to be passed to the solution plotting function
+            :meth:`~auto2.continuations.base.Continuation.plot_solutions_3D` of the continuation objects.
+
+
+        The parameters below can be included in `solutions_kwargs` for controlling the solution plots.
+        See :meth:`auto2.continuations.base.Continuation.plot_solutions_3D` for more details.
+
+        Keyword Arguments
+        -----------------
+        markersize: float, optional
+            Size of the text plotted to display the bifurcation points. Defaults to `12`.
+        marker : str, optional
+            The marker style used for plotting fixed points. If `None`, set to default marker.
+        linestyle : str, optional
+            The line style used for plotting the periodic orbit solutions. If `None`, set to default marker.
+        linewidth : float, optional
+            The width of the lines showing the periodic solutions. If `None`, set to the default.
+        plot_kwargs: dict or None, optional
+            Additional keyword arguments for the plotting function. Default is `None`.
+        variables_name: list(str) or None, optional
+            The strings used to plot the axis labels. If `None` defaults to the AUTO labels.
+            Defaults to `None`.
+
+        Returns
+        -------
+        numpy.ndarray(matplotlib.axes.Axes)
+            An array of two |Matplotlib| axis objects, showing the bifurcation diagram and the 3-dimensional solution plot.
+        """
 
         if axes is None:
             axes = list()
@@ -1484,22 +2215,79 @@ class BifurcationDiagram(object):
 
         return axes
 
-    def plot_single_po_branch_and_solutions(
-            self,
-            branch_number,
-            parameter=None,
-            diagram_variables=(1,),
-            solutions_variables=(0, 1),
-            axes=None,
-            figsize=(10, 16),
-            solutions_tol=0.01,
-            cmap=None,
-            branch_diagram_kwargs=None,
-            solution_diagram_kwargs=None,
-            ):
-        '''
-            Plots a single branch, and all of the stored solutions on a single plot
-        '''
+    def plot_single_po_branch_and_solutions(self, branch_number, parameter=None, diagram_variables=(1,), solutions_variables=(0, 1),
+                                            axes=None, figsize=(10, 16), solutions_tol=0.01, cmap=None, branch_diagram_kwargs=None,
+                                            solution_diagram_kwargs=None):
+        """Plots the bifurcation diagram of a single branch with the parameter values of stored solutions plotted on this branch,
+        along with a plot of the projection of all solutions.
+
+        Parameters
+        ----------
+        branch_number: int
+            The number of the branch to plot.
+        parameter: str, optional
+            The parameter along which to plot the diagram and solutions.
+        diagram_variables: tuple(int or str, int or str), optional
+            The index or label of the variables along which the bifurcation diagram is plotted.
+            If labels are used, it should be labels of the available monitored variables during the continuations
+            (if their labels have been defined in the AUTO configuration file) given by :meth:`available_variables`.
+            The first value in the tuple determines the variable plot on the x-axis, and the second the y-axis
+            Defaults to `(1, )`.
+        solutions_variables: tuple(int or str, int or str), optional
+            The index or label of the variables shown in the solution plot.
+            If labels are used, it should be labels of the phase space variables
+            (if they have been defined in the AUTO configuration file) given by :meth:`phase_space_variables`.
+            The first value in the tuple determines the variable plot on the x-axis, the second determines the y-axis.
+            Defaults to the first two variables: `(0, 1)`.
+        axes: numpy.ndarray(matplotlib.axes.Axes) or None, optional
+            An array of two |Matplotlib| axis object to plot on. If `None`, a new figure is created.
+        figsize: tuple(float, float), optional
+            Dimension of the figure that is returned, only used if `ax` is not passed.
+            Defaults to `(10, 16)`.
+        solutions_tol:  float or list(float) or ~numpy.ndarray(float), optional
+            The numerical tolerance used when comparing solutions to display with the selected `solutions_parameter_value`.
+            Default to `0.01`.
+        cmap: matplotlib.colors.Colormap or str or None, optional
+            A colormap that controls the color of the branches.
+            The branches are colored from the colormap based on the value of the branch number.
+            If `None`, defaults to `Reds` colormaps.
+        branch_diagram_kwargs: dict or None, optional
+            Additional keyword arguments for the bifurcation diagram plotting function. Default is `None`.
+        solution_diagram_kwargs: dict or None, optional
+            Additional keyword arguments for the solution plotting function. Default is `None`.
+
+
+        The parameters below can be included in `solutions_kwargs` for controlling the solution plots.
+        See :meth:`auto2.continuations.base.Continuation.plot_solutions` for more details.
+
+        Keyword Arguments
+        -----------------
+        markersize: float, optional
+            Size of the text plotted to display the bifurcation points. Defaults to `12`.
+        marker : str, optional
+            The marker style used for plotting fixed points. If `None`, set to default marker.
+        linestyle : str, optional
+            The line style used for plotting the periodic orbit solutions. If `None`, set to default marker.
+        linewidth : float, optional
+            The width of the lines showing the periodic solutions. If `None`, set to the default.
+        color_solutions : bool, optional
+            Whether to color each solution differently.
+            If `True`, and `parameter` argument is provided and valid, then solutions are colored based on the parameter value of a given solution.
+            Use the cmap provided in the `plot_kwargs` argument. If no cmap is provided there, use `Blues` cmap by default.
+            If `False`, all solutions are colored identically, controlled using `plot_kwargs`.
+            Default is `False`.
+        plot_kwargs: dict or None, optional
+            Additional keyword arguments for the plotting function. Default is `None`.
+        variables_name: list(str) or None, optional
+            The strings used to plot the axis labels. If `None` defaults to the AUTO labels.
+            Defaults to `None`.
+
+
+        Returns
+        -------
+        numpy.ndarray(matplotlib.axes.Axes)
+            An array of two |Matplotlib| axis objects, showing the bifurcation diagram and the solution plot.
+        """
 
         if isinstance(cmap, str):
             cmap = plt.get_cmap(cmap)
@@ -1554,13 +2342,26 @@ class BifurcationDiagram(object):
 
     @property
     def number_of_fp_branches(self):
+        """int: Number of fixed points continuation branches
+        in the bifurcation diagram."""
         return len(self.fp_branches.keys())
 
     @property
     def number_of_po_branches(self):
+        """int: Number of periodic orbits continuation branches
+        in the bifurcation diagram."""
         return len(self.po_branches.keys())
 
     def get_continuation(self, idx):
+        """Get the continuation dictionary of a give branch,
+        indexed by his branch number.
+
+        Parameters
+        ----------
+        idx: int
+            The branch number of the sought branch continuation dictionary.
+
+        """
         if idx in self.fp_branches:
             return self.fp_branches[idx]['continuation']
         elif idx in self.po_branches:
@@ -1570,6 +2371,8 @@ class BifurcationDiagram(object):
 
     @property
     def periodic_orbits_variables_list(self):
+        """list(str): Returns the list of variable names used in
+        the periodic orbits continuations."""
         for branch_number in self.po_branches:
             branch = self.get_continuation(branch_number)
             sl = branch.available_variables
@@ -1579,6 +2382,8 @@ class BifurcationDiagram(object):
 
     @property
     def fixed_points_variables_list(self):
+        """list(str): Returns the list of variable names used in
+        the fixed points continuations."""
         for branch_number in self.fp_branches:
             branch = self.get_continuation(branch_number)
             sl = branch.available_variables
@@ -1588,6 +2393,8 @@ class BifurcationDiagram(object):
 
     @property
     def fixed_points_solutions_list(self):
+        """list(AUTOSolution): list of all the fixed points solutions
+        of the bifurcation diagram."""
         sl = list()
         for branch_number in self.fp_branches:
             branch = self.get_continuation(branch_number)
@@ -1596,6 +2403,8 @@ class BifurcationDiagram(object):
 
     @property
     def periodic_orbits_solutions_list(self):
+        """list(AUTOSolution): list of all the periodic orbits solutions
+        of the bifurcation diagram."""
         sl = list()
         for branch_number in self.po_branches:
             branch = self.get_continuation(branch_number)
@@ -1604,6 +2413,13 @@ class BifurcationDiagram(object):
 
     @property
     def full_solutions_list(self):
+        """list(AUTOSolution): list of all the solutions
+        of the bifurcation diagram."""
         sl = self.fixed_points_solutions_list
         sl.extend(self.periodic_orbits_solutions_list)
         return sl
+
+    @property
+    def phase_space_variables(self):
+        """list(str): Return the variables of the phase space of the configured dynamical system."""
+        return self.config_object.variables
