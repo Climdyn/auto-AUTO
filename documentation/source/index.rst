@@ -16,6 +16,7 @@ to enhance the original AUTO-07p Python interface with a top layer.
 
    files/general_information
    files/rationale
+   files/user_guide
    files/references
 
 Indices and tables

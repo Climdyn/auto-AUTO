@@ -19,7 +19,7 @@ Installing AUTO
 
 .. note::
 
-    To use auto-AUTO, you need the [bleeding edge version of AUTO](https://github.com/auto-07p/auto-07p) available
+    To use auto-AUTO, you need the `bleeding edge version of AUTO <https://github.com/auto-07p/auto-07p>`_ available
     on Github for this codebase to work properly !
 
 Here how to install AUTO from GitHub:
