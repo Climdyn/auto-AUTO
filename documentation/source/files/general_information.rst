@@ -56,7 +56,7 @@ Installing auto-AUTO with pip
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The easiest way to install and run qgs is to use `pip <https://pypi.org/>`_.
-Type in a terminal
+Type in a terminal ::
 
     pip install auto-AUTO
 
