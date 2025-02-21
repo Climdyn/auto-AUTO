@@ -36,7 +36,8 @@ defined.
 
 In addition, auto-AUTO provides a comprehensive and documented Python API to investigate properties of the computed 
 continuations and solutions. auto-AUTO can be run in Jupyter 
-notebooks [@Kluyver2016jupyter] and the results can be plotted with Matplotlib [@Hunter2007] using predefined plotting methods.
+notebooks [@Kluyver2016jupyter] and the results can be plotted with Matplotlib [@Hunter2007] using predefined 
+plotting methods (see Figure \ref{fig1}).
 This facilitates the integration of the results from AUTO with other Python workflows. 
 
 
@@ -62,7 +63,7 @@ For this reason, robust but easy to use continuation software is of great import
 [^1]: Although conceptual models, with a relatively low number of degrees of freedom, are still used extensively in increasing our 
 knowledge about tipping points [@wunderling2021]. 
 
-
+![Example of plots with auto-AUTO functionalities (from the `lrz` AUTO demo notebook) \label{fig1}](bif1.png)
 
 # Existing Alternatives
 
