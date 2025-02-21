@@ -63,7 +63,7 @@ For this reason, robust but easy to use continuation software is of great import
 [^1]: Although conceptual models, with a relatively low number of degrees of freedom, are still used extensively in increasing our 
 knowledge about tipping points [@wunderling2021]. 
 
-![Example of plots with auto-AUTO functionalities (from the `lrz` AUTO demo notebook) \label{fig1}](bif1.png)
+![Example of plots using auto-AUTO functionalities (from the `lrz` AUTO demo notebook) \label{fig1}](bif1.png)
 
 # Existing Alternatives
 
