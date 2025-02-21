@@ -15,7 +15,7 @@ authors:
 affiliations:
   - name: Meteorological and Climatological Information Service, Royal Meteorological Institute of Belgium, Brussels, Belgium
     index: 1
-  - name: Université catholique de Louvain
+  - name: UCLouvain --- Earth and Life Institute
     index: 2
 data: 20 February 2025
 bibliography: auto2.bib
@@ -25,7 +25,7 @@ bibliography: auto2.bib
 
 # Summary
 
-auto-AUTO (or AUTO$^2$) is a python package that acts as an intermediate layer between the user and AUTO-07p continuation 
+auto-AUTO (or AUTO$^2$) is a Python package that acts as an intermediate layer between the user and AUTO-07p continuation 
 software [@doedel2007] (AUTO from here on). auto-AUTO automates the running of AUTO by monitoring the continuation, 
 while also keeping track of bifurcation points. 
 The package can automatically continue along these branching points, and continue branching along further bifurcation points 
@@ -53,16 +53,20 @@ the user must engage in a long and tedious analysis, restarting the computations
 computation and missing key elements in the process.
 This package aims to solve this problem, by automating the running of AUTO, and by systematizing the investigation of branching points.
 
-Tipping points have recently received increased attention, in part due to the concern about possible tipping points being crossed in the climate system, due to climate change [@lenton2008, @wunderling2021, @armstrongmckay2022]. Bifurcation tipping (B-tipping) [@ashwin2012] is one possible mechanism for tipping. Conceptual models, with a relatively low number of degrees of freedom, are still used extensively in increasing our knowledge about tipping points [@wunderling2021]. For this reason, robust but easy to use continuation software is of great importance in this analysis.
+auto-AUTO is currently used by the authors to investigate the bifurcations and stability of a coupled land-atmosphere model [@hamilton2025] 
+using the `qgs` model [@demaeyer2020]. This is part of a wider research project on the concept of 
+climate tipping points [@lenton2008; @ashwin2012; @wunderling2021; @armstrongmckay2022], and which typically 
+involves bifurcation analysis in high-dimensional dynamical systems[^1].
+For this reason, robust but easy to use continuation software is of great importance in this analysis.
 
-
-
+[^1]: Although conceptual models, with a relatively low number of degrees of freedom, are still used extensively in increasing our 
+knowledge about tipping points [@wunderling2021]. 
 
 
 
 # Existing Alternatives
 
-* BifrucationKit.jl [@veltz2020]
+* BifurcationKit.jl [@veltz2020]
 * PyDSTool [@clewley2007]
 * Other useful tools can be found at [https://dsweb.siam.org/Software](https://dsweb.siam.org/Software)
 
