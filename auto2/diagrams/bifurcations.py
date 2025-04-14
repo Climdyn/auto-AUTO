@@ -377,7 +377,7 @@ class BifurcationDiagram(object):
 
     def compute_periodic_orbits_diagram(self, end_level=10, extra_comparison_parameters=None, comparison_tol=2.e-2,
                                         remove_dubious_bp=True, max_number_bp=None, max_number_bp_detected=None,
-                                        backward_bp_continuation=False, **continuation_kwargs):
+                                        backward_bp_continuation=False, maximum_period=None, **continuation_kwargs):
         """Method which starts the computation of the periodic orbits of a bifurcation diagram where
         the fixed points have already been continued. It will start by continuing the Hopf bifurcations, then the resulting branching
         and period doubling points. Each computation is done level by level in the the developing tree of the bifurcation
@@ -416,6 +416,10 @@ class BifurcationDiagram(object):
         backward_bp_continuation: bool, optional
             Compute also the `backward` continuation at the branching points.
             Defaults to `False`.
+        maximum_period: float or None, optional
+            Define a maximum period for the continuation of periodic orbits.
+            If this maximum period is reached for a given solution, the continuations will stop at the previous solution.
+            Disabled if `None`. Default to `None`.
         continuation_kwargs: dict
             Parameters to pass to AUTO for each continuation.
             See the :meth:`~auto2.continuations.periodic_orbits.PeriodicOrbitContinuation.make_continuation` method of the
@@ -483,7 +487,7 @@ class BifurcationDiagram(object):
                     hp.make_continuation(hb, max_bp=max_number_bp_detected, **used_continuation_kwargs)
 
                     logger.debug('Continuation done. Checking now against previous continuation...')
-                    self._check_po_continuation_against_itself(hp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol, max_number_bp_detected)
+                    self._check_po_continuation_against_itself(hp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol, max_number_bp_detected, maximum_period)
 
                     self._check_po_continuation_against_other_fp_branches(hp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol, max_number_bp_detected)
                     valid_branch = self._check_po_continuation_against_other_po_branches(hp, used_continuation_kwargs, extra_comparison_parameters, comparison_tol, max_number_bp_detected)
@@ -517,7 +521,7 @@ class BifurcationDiagram(object):
 
     def restart_periodic_orbits_diagram(self, end_level=10, extra_comparison_parameters=None, comparison_tol=2.e-2,
                                         remove_dubious_bp=True, max_number_bp=None, max_number_bp_detected=None,
-                                        backward_bp_continuation=False, restart=True, **continuation_kwargs):
+                                        backward_bp_continuation=False, maximum_period=None, restart=True, **continuation_kwargs):
         """Method which restarts the computation of the periodic orbits of a bifurcation diagram stopped previously at a certain level
         of the developing tree of the bifurcation diagram.
         Each computation is done level by level in the the developing tree of the bifurcation diagram.
@@ -556,6 +560,10 @@ class BifurcationDiagram(object):
         backward_bp_continuation: bool, optional
             Compute also the `backward` continuation at the branching points.
             Defaults to `False`.
+        maximum_period: float or None, optional
+            Define a maximum period for the continuation of periodic orbits.
+            If this maximum period is reached for a given solution, the continuations will stop at the previous solution.
+            Disabled if `None`. Default to `None`.
         restart: bool, optional
             Whether to restart or simply start the computation of the periodic orbits bifurcation diagram.
             Defaults to `True` which means restart.
@@ -685,7 +693,7 @@ class BifurcationDiagram(object):
                                         hp.make_continuation(bp, only_forward=not backward_bp_continuation, max_bp=max_number_bp_detected, **used_continuation_kwargs)
                                         logger.debug('Continuation done. Checking now against previous continuation...')
                                         self._check_po_continuation_against_itself(hp, used_continuation_kwargs, extra_comparison_parameters,
-                                                                                   comparison_tol, max_number_bp_detected)
+                                                                                   comparison_tol, max_number_bp_detected, maximum_period)
 
                                         self._check_po_continuation_against_other_fp_branches(hp, used_continuation_kwargs, extra_comparison_parameters,
                                                                                               comparison_tol, max_number_bp_detected)
@@ -769,7 +777,7 @@ class BifurcationDiagram(object):
                                     hp.make_continuation(pd, max_bp=max_number_bp_detected, **used_continuation_kwargs)
                                     logger.debug('Continuation done. Checking now against previous continuation...')
                                     self._check_po_continuation_against_itself(hp, used_continuation_kwargs, extra_comparison_parameters,
-                                                                               comparison_tol, max_number_bp_detected)
+                                                                               comparison_tol, max_number_bp_detected, maximum_period)
 
                                     self._check_po_continuation_against_other_fp_branches(hp, used_continuation_kwargs, extra_comparison_parameters,
                                                                                           comparison_tol, max_number_bp_detected)
@@ -823,7 +831,7 @@ class BifurcationDiagram(object):
                 logger.info('All possible periodic orbit branches have been computed.')
 
     def add_periodic_orbit(self, initial_data, extra_comparison_parameters=None, comparison_tol=2.e-2,
-                           max_number_bp_detected=None, only_forward=False, **continuation_kwargs):
+                           max_number_bp_detected=None, only_forward=False, maximum_period=None, **continuation_kwargs):
         """Continue and then add manually a given periodic orbit to the periodic orbit bifurcation diagram.
 
         Parameters
@@ -853,6 +861,10 @@ class BifurcationDiagram(object):
             If `True`, compute only the forward continuation (positive `DS` parameter).
             If `False`, compute in both backward and forward direction.
             Default to `False`.
+        maximum_period: float or None, optional
+            Define a maximum period for the continuation of periodic orbits.
+            If this maximum period is reached for a given solution, the continuations will stop at the previous solution.
+            Disabled if `None`. Default to `None`.
         continuation_kwargs: dict
             Parameters to pass to AUTO for each continuation.
             See the :meth:`~auto2.continuations.periodic_orbits.PeriodicOrbitContinuation.make_continuation` method of the
@@ -944,7 +956,7 @@ class BifurcationDiagram(object):
             hp.make_continuation(initial_data, only_forward=only_forward, max_bp=max_number_bp_detected, **used_continuation_kwargs)
             logger.debug('Continuation done. Checking now against previous continuation...')
             self._check_po_continuation_against_itself(hp, used_continuation_kwargs, extra_comparison_parameters,
-                                                       comparison_tol, max_number_bp_detected)
+                                                       comparison_tol, max_number_bp_detected, maximum_period)
 
             self._check_po_continuation_against_other_fp_branches(hp, used_continuation_kwargs, extra_comparison_parameters,
                                                                   comparison_tol, max_number_bp_detected)
@@ -1282,7 +1294,7 @@ class BifurcationDiagram(object):
                 continuation_kwargs['NMX'] = nmx
                 hp.make_backward_continuation(initial_data, max_bp=max_bp, **continuation_kwargs)
 
-    def _check_po_continuation_against_itself(self, continuation, continuation_kwargs, extra_comparison_parameters, tol, max_bp):
+    def _check_po_continuation_against_itself(self, continuation, continuation_kwargs, extra_comparison_parameters, tol, max_bp, max_per):
 
         hp = continuation
         initial_data = hp.initial_data
@@ -1304,6 +1316,42 @@ class BifurcationDiagram(object):
             cpar_list.extend(extra_comparison_parameters)
         else:
             cpar_list = [cpar]
+
+        if max_per is not None and hp.continuation['forward'] is not None:
+            solutions_list = hp.solutions_list_by_direction['forward']
+            periods = list(map(lambda s: s['T'], solutions_list))
+            recompute = False
+            for i, per in enumerate(periods):
+                if per > max_per and i > 0:
+                    recompute = True
+                    sol = solutions_list[i-1]
+                    nmx = sol['PT'] + 1
+                    break
+
+            if recompute:
+                logger.info('Not storing full results of PO point at ' + ini_msg + ' because its periods is greater than ' + str(max_per) + ' after'
+                            '\nsolution at point ' + str(nmx-1) + ' (forward).'
+                            '\nSaving only the relevant part. NMX set to ' + str(nmx))
+                continuation_kwargs['NMX'] = nmx
+                hp.make_forward_continuation(initial_data, max_bp=max_bp, **continuation_kwargs)
+
+        if max_per is not None and hp.continuation['backward'] is not None:
+            solutions_list = hp.solutions_list_by_direction['backward']
+            periods = list(map(lambda s: s['T'], solutions_list))
+            recompute = False
+            for i, per in enumerate(periods):
+                if per > max_per and i > 0:
+                    recompute = True
+                    sol = solutions_list[i-1]
+                    nmx = sol['PT'] + 1
+                    break
+
+            if recompute:
+                logger.info('Not storing full results of PO point at ' + ini_msg + ' because its periods is greater than ' + str(max_per) + ' after'
+                            '\nsolution at point ' + str(nmx-1) + ' (backward).'
+                            '\nSaving only the relevant part. NMX set to ' + str(nmx))
+                continuation_kwargs['NMX'] = nmx
+                hp.make_forward_continuation(initial_data, max_bp=max_bp, **continuation_kwargs)
 
         if hp.continuation['forward'] is not None:
 
@@ -2321,7 +2369,7 @@ class BifurcationDiagram(object):
             else:
                 cmap = plt.get_cmap('Reds')
                 solution_diagram_kwargs['plot_kwargs']['cmap'] = cmap
-            branch_diagram_kwargs['plot_kwargs']['color'] = cmap[0.5]
+            branch_diagram_kwargs['plot_kwargs']['color'] = cmap(0.5)
         else:
             branch_diagram_kwargs['plot_kwargs']['color'] = cmap(0.5)
             solution_diagram_kwargs['plot_kwargs']['cmap'] = cmap
