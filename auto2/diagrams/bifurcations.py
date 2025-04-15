@@ -1351,7 +1351,7 @@ class BifurcationDiagram(object):
                             '\nsolution at point ' + str(nmx-1) + ' (backward).'
                             '\nSaving only the relevant part. NMX set to ' + str(nmx))
                 continuation_kwargs['NMX'] = nmx
-                hp.make_forward_continuation(initial_data, max_bp=max_bp, **continuation_kwargs)
+                hp.make_backward_continuation(initial_data, max_bp=max_bp, **continuation_kwargs)
 
         if hp.continuation['forward'] is not None:
 
