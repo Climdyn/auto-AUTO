@@ -1319,7 +1319,7 @@ class BifurcationDiagram(object):
 
         if max_per is not None and hp.continuation['forward'] is not None:
             solutions_list = hp.solutions_list_by_direction['forward']
-            periods = list(map(lambda s: s['T'], solutions_list))
+            periods = list(map(lambda s: s[self.config_object.parameters_dict[11]], solutions_list))
             recompute = False
             for i, per in enumerate(periods):
                 if per > max_per and i > 0:
@@ -1337,7 +1337,7 @@ class BifurcationDiagram(object):
 
         if max_per is not None and hp.continuation['backward'] is not None:
             solutions_list = hp.solutions_list_by_direction['backward']
-            periods = list(map(lambda s: s['T'], solutions_list))
+            periods = list(map(lambda s: s[self.config_object.parameters_dict[11]], solutions_list))
             recompute = False
             for i, per in enumerate(periods):
                 if per > max_per and i > 0:
