@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>auto2.continuations.base &mdash; auto-AUTO v0.5.2 documentation</title>
+  <title>auto2.continuations.base &mdash; auto-AUTO v0.5.3 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
 
@@ -14,7 +14,7 @@
   
         <script src="../../../_static/jquery.js?v=5d32c60e"></script>
         <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../../../_static/documentation_options.js?v=75e38c5e"></script>
+        <script src="../../../_static/documentation_options.js?v=d19b0847"></script>
         <script src="../../../_static/doctools.js?v=9a2dae69"></script>
         <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/js/theme.js"></script>
@@ -34,7 +34,7 @@
             auto-AUTO
           </a>
               <div class="version">
-                v0.5.2
+                v0.5.3
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
@@ -1317,7 +1317,8 @@
 <div class="viewcode-block" id="Continuation.plot_branch_parts">
 <a class="viewcode-back" href="../../../files/technical/continuations.html#auto2.continuations.base.Continuation.plot_branch_parts">[docs]</a>
     <span class="k">def</span> <span class="nf">plot_branch_parts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variables</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span> <span class="n">markersize</span><span class="o">=</span><span class="mf">12.</span><span class="p">,</span> <span class="n">plot_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">marker_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                          <span class="n">excluded_labels</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;UZ&#39;</span><span class="p">,</span> <span class="s1">&#39;EP&#39;</span><span class="p">),</span> <span class="n">plot_sol_points</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">variables_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+                          <span class="n">excluded_labels</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;UZ&#39;</span><span class="p">,</span> <span class="s1">&#39;EP&#39;</span><span class="p">),</span> <span class="n">plot_sol_points</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">variables_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                          <span class="n">solutions_types</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;HB&#39;</span><span class="p">,</span> <span class="s1">&#39;BP&#39;</span><span class="p">,</span> <span class="s1">&#39;UZ&#39;</span><span class="p">,</span> <span class="s1">&#39;PD&#39;</span><span class="p">,</span> <span class="s1">&#39;TR&#39;</span><span class="p">,</span> <span class="s1">&#39;LP&#39;</span><span class="p">)):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Plots a bifurcation diagram  along specified variables, with branches and the bifurcation points</span>
 <span class="sd">        of fixed points and periodic orbits.</span>
 
@@ -1350,7 +1351,10 @@
 <span class="sd">        variables_name: list(str) or None, optional</span>
 <span class="sd">            The strings used to define the axis labels. If `None` defaults to the AUTO labels.</span>
 <span class="sd">        cmap: cmap or None, optional</span>
-<span class="sd">            The cmap used for plotting. If `None`, defaults to &#39;Reds&#39;</span>
+<span class="sd">            The cmap used for plotting in case `plot_sol_points` is `True`. If `None`, defaults to &#39;Reds&#39;</span>
+<span class="sd">        solutions_types: list(str), optional</span>
+<span class="sd">            The types of solution to plot if `plot_sol_points` is `True`.</span>
+<span class="sd">            Default to `[&#39;HB&#39;, &#39;BP&#39;, &#39;UZ&#39;, &#39;PD&#39;, &#39;TR&#39;, &#39;LP&#39;]`.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1425,19 +1429,6 @@
                         <span class="n">ls</span> <span class="o">=</span> <span class="s1">&#39;--&#39;</span>
                     <span class="n">plot_kwargs</span><span class="p">[</span><span class="s1">&#39;linestyle&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ls</span>
                     <span class="n">lines_list</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">continuation</span><span class="p">[</span><span class="n">direction</span><span class="p">][</span><span class="n">var1</span><span class="p">][</span><span class="n">pidx</span><span class="p">:</span><span class="nb">abs</span><span class="p">(</span><span class="n">idx</span><span class="p">)],</span> <span class="bp">self</span><span class="o">.</span><span class="n">continuation</span><span class="p">[</span><span class="n">direction</span><span class="p">][</span><span class="n">var2</span><span class="p">][</span><span class="n">pidx</span><span class="p">:</span><span class="nb">abs</span><span class="p">(</span><span class="n">idx</span><span class="p">)],</span> <span class="o">**</span><span class="n">plot_kwargs</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="n">plot_sol_points</span><span class="p">:</span>
-                        <span class="c1"># generate points and colours for plotting</span>
-                        <span class="n">x_vals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">solutions_parameters</span><span class="p">(</span><span class="n">parameters</span><span class="o">=</span><span class="n">var1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-                        <span class="n">p_min</span><span class="p">,</span> <span class="n">p_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">x_vals</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">x_vals</span><span class="p">)</span>
-                        <span class="n">y_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty_like</span><span class="p">(</span><span class="n">x_vals</span><span class="p">)</span>
-                        <span class="n">point_color</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
-                        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">x_vals</span><span class="p">):</span>
-                            <span class="n">ix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">continuation</span><span class="p">[</span><span class="n">direction</span><span class="p">][</span><span class="n">var1</span><span class="p">][</span><span class="n">pidx</span><span class="p">:</span><span class="nb">abs</span><span class="p">(</span><span class="n">idx</span><span class="p">)]</span> <span class="o">-</span> <span class="n">x</span><span class="p">))</span>
-                            <span class="n">y_vals</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">continuation</span><span class="p">[</span><span class="n">direction</span><span class="p">][</span><span class="n">var2</span><span class="p">][</span><span class="n">pidx</span><span class="p">:</span><span class="nb">abs</span><span class="p">(</span><span class="n">idx</span><span class="p">)][</span><span class="n">ix</span><span class="p">])</span>
-                            <span class="n">point_color</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cmap</span><span class="p">((</span><span class="n">x</span> <span class="o">-</span> <span class="n">p_min</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">p_max</span> <span class="o">-</span> <span class="n">p_min</span><span class="p">)))</span>
-
-                        <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x_vals</span><span class="p">,</span> <span class="n">y_vals</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">point_color</span><span class="p">)</span>
-
                     <span class="n">c</span> <span class="o">=</span> <span class="n">lines_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get_color</span><span class="p">()</span>
                     <span class="n">plot_kwargs</span><span class="p">[</span><span class="s1">&#39;color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">c</span>
                     <span class="n">pidx</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
@@ -1448,6 +1439,18 @@
                         <span class="k">if</span> <span class="n">lab</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">excluded_labels</span><span class="p">:</span>
                             <span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">coords</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="sa">r</span><span class="s1">&#39;${\bf &#39;</span> <span class="o">+</span> <span class="n">lab</span> <span class="o">+</span> <span class="sa">r</span><span class="s1">&#39;}$&#39;</span><span class="p">,</span> <span class="n">fontdict</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;family&#39;</span><span class="p">:</span> <span class="s1">&#39;sans-serif&#39;</span><span class="p">,</span> <span class="s1">&#39;size&#39;</span><span class="p">:</span> <span class="n">markersize</span><span class="p">},</span> <span class="n">va</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">marker_kwargs</span><span class="p">,</span>
                                     <span class="n">clip_on</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">plot_sol_points</span><span class="p">:</span>
+            <span class="c1"># generate points and colours for plotting</span>
+            <span class="n">p_vals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">solutions_parameters</span><span class="p">(</span><span class="n">parameters</span><span class="o">=</span><span class="p">(</span><span class="n">var1</span><span class="p">,</span> <span class="n">var2</span><span class="p">),</span> <span class="n">solutions_types</span><span class="o">=</span><span class="n">solutions_types</span><span class="p">)</span>
+            <span class="n">x_vals</span> <span class="o">=</span> <span class="n">p_vals</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">y_vals</span> <span class="o">=</span> <span class="n">p_vals</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">x_vals</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">p_min</span><span class="p">,</span> <span class="n">p_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">x_vals</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">x_vals</span><span class="p">)</span>
+                <span class="n">point_color</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">cmap</span><span class="p">((</span><span class="n">x</span> <span class="o">-</span> <span class="n">p_min</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">p_max</span> <span class="o">-</span> <span class="n">p_min</span><span class="p">)),</span> <span class="n">x_vals</span><span class="p">))</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x_vals</span><span class="p">,</span> <span class="n">y_vals</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">point_color</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;No solution found to plot as points.&#39;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">variables_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="n">var1</span><span class="p">)</span>
@@ -1637,7 +1640,7 @@
 <span class="sd">        linewidth : float, optional</span>
 <span class="sd">            The width of the lines showing the periodic solutions. If `None`, set to the default.</span>
 <span class="sd">        color_solutions : bool, optional</span>
-<span class="sd">            Whether to color each solution differently.</span>
+<span class="sd">            Whether to color each solution differently. In this case, a valid `parameter` argument must be provided.</span>
 <span class="sd">            If `True`, and `parameter` argument is provided and valid, then solutions are colored based on the parameter value of a given solution.</span>
 <span class="sd">            Use the cmap provided in the `plot_kwargs` argument. If no cmap is provided there, use `Blues` cmap by default.</span>
 <span class="sd">            If `False`, all solutions are colored identically, controlled using `plot_kwargs`.</span>
@@ -1709,12 +1712,19 @@
             <span class="n">plot_kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;cmap&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">cmap</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="s1">&#39;Blues&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">color_solutions</span> <span class="ow">and</span> <span class="p">(</span><span class="n">parameter</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
-            <span class="n">p_vals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">solutions_parameters</span><span class="p">(</span><span class="n">parameters</span><span class="o">=</span><span class="n">parameter</span><span class="p">)</span>
-            <span class="n">p_min</span><span class="p">,</span> <span class="n">p_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">p_vals</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">p_vals</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">color_solutions</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">parameter</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">labels</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">solutions_types</span> <span class="o">=</span> <span class="s1">&#39;all&#39;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">solutions_types</span> <span class="o">=</span> <span class="n">labels</span>
+                <span class="n">p_vals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">solutions_parameters</span><span class="p">(</span><span class="n">parameters</span><span class="o">=</span><span class="n">parameter</span><span class="p">,</span> <span class="n">solutions_types</span><span class="o">=</span><span class="n">solutions_types</span><span class="p">)</span>
+                <span class="n">p_min</span><span class="p">,</span> <span class="n">p_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">p_vals</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">p_vals</span><span class="p">)</span>
 
-            <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">value</span> <span class="o">=</span> <span class="n">p_vals</span>
+                <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="n">p_vals</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;If `color_solutions` argument is set to true, you must provide the `parameter` argument as well.&#39;</span><span class="p">)</span>
 
         <span class="n">solutions_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_filtered_solutions_list</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">parameter</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">tol</span><span class="p">)</span>
 

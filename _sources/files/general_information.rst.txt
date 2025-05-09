@@ -56,7 +56,7 @@ Installing auto-AUTO with pip
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The easiest way to install and run qgs is to use `pip <https://pypi.org/>`_.
-Type in a terminal
+Type in a terminal ::
 
     pip install auto-AUTO
 
@@ -101,6 +101,8 @@ To build the documentation, please run (with the conda environment activated): :
     make html
 
 Once built, the documentation is available at `./documentation/build/html/index.html`.
+
+The documentation is also available online at https://climdyn.github.io/auto-AUTO .
 
 Forthcoming developments
 ------------------------
