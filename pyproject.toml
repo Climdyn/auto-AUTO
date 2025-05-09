@@ -41,7 +41,7 @@ dependencies = [
 
 [project.urls]
 homepage = "https://github.com/Climdyn/auto-AUTO"
-documentation = "https://auto-auto.readthedocs.io"
+documentation = "https://climdyn.github.io/auto-AUTO/"
 
 [tool.setuptools]
 packages = ["auto2",
