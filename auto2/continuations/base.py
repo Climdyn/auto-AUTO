@@ -1314,7 +1314,6 @@ class Continuation(ABC):
                 ax.scatter(x_vals, y_vals, c=point_color)
             else:
                 warnings.warn('No solution found to plot as points.')
-# Fixed a bug in the plot branch routine
 
         if variables_name is None:
             ax.set_xlabel(var1)
