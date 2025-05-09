@@ -1180,7 +1180,8 @@ class Continuation(ABC):
         return solutions_list
 
     def plot_branch_parts(self, variables=(0, 1), ax=None, figsize=(10, 8), markersize=12., plot_kwargs=None, marker_kwargs=None,
-                          excluded_labels=('UZ', 'EP'), plot_sol_points=False, variables_name=None, cmap=None):
+                          excluded_labels=('UZ', 'EP'), plot_sol_points=False, variables_name=None, cmap=None,
+                          solutions_types=('HB', 'BP', 'UZ', 'PD', 'TR', 'LP')):
         """Plots a bifurcation diagram  along specified variables, with branches and the bifurcation points
         of fixed points and periodic orbits.
 
@@ -1213,7 +1214,10 @@ class Continuation(ABC):
         variables_name: list(str) or None, optional
             The strings used to define the axis labels. If `None` defaults to the AUTO labels.
         cmap: cmap or None, optional
-            The cmap used for plotting. If `None`, defaults to 'Reds'
+            The cmap used for plotting in case `plot_sol_points` is `True`. If `None`, defaults to 'Reds'
+        solutions_types: list(str), optional
+            The types of solution to plot if `plot_sol_points` is `True`.
+            Default to `['HB', 'BP', 'UZ', 'PD', 'TR', 'LP']`.
 
         Returns
         -------
@@ -1288,19 +1292,6 @@ class Continuation(ABC):
                         ls = '--'
                     plot_kwargs['linestyle'] = ls
                     lines_list = ax.plot(self.continuation[direction][var1][pidx:abs(idx)], self.continuation[direction][var2][pidx:abs(idx)], **plot_kwargs)
-                    if plot_sol_points:
-                        # generate points and colours for plotting
-                        x_vals = self.solutions_parameters(parameters=var1)[0]
-                        p_min, p_max = np.min(x_vals), np.max(x_vals)
-                        y_vals = np.empty_like(x_vals)
-                        point_color = list()
-                        for i, x in enumerate(x_vals):
-                            ix = np.argmin(np.abs(self.continuation[direction][var1][pidx:abs(idx)] - x))
-                            y_vals[i] = (self.continuation[direction][var2][pidx:abs(idx)][ix])
-                            point_color.append(cmap((x - p_min) / (p_max - p_min)))
-
-                        ax.scatter(x_vals, y_vals, c=point_color)
-
                     c = lines_list[0].get_color()
                     plot_kwargs['color'] = c
                     pidx = abs(idx)
@@ -1311,6 +1302,19 @@ class Continuation(ABC):
                         if lab not in excluded_labels:
                             ax.text(coords[0], coords[1], r'${\bf ' + lab + r'}$', fontdict={'family': 'sans-serif', 'size': markersize}, va='center', ha='center', **marker_kwargs,
                                     clip_on=True)
+
+        if plot_sol_points:
+            # generate points and colours for plotting
+            p_vals = self.solutions_parameters(parameters=(var1, var2), solutions_types=solutions_types)
+            x_vals = p_vals[0]
+            y_vals = p_vals[1]
+            if len(x_vals) > 0:
+                p_min, p_max = np.min(x_vals), np.max(x_vals)
+                point_color = list(map(lambda x: cmap((x - p_min) / (p_max - p_min)), x_vals))
+                ax.scatter(x_vals, y_vals, c=point_color)
+            else:
+                warnings.warn('No solution found to plot as points.')
+# Fixed a bug in the plot branch routine
 
         if variables_name is None:
             ax.set_xlabel(var1)
@@ -1494,7 +1498,7 @@ class Continuation(ABC):
         linewidth : float, optional
             The width of the lines showing the periodic solutions. If `None`, set to the default.
         color_solutions : bool, optional
-            Whether to color each solution differently.
+            Whether to color each solution differently. In this case, a valid `parameter` argument must be provided.
             If `True`, and `parameter` argument is provided and valid, then solutions are colored based on the parameter value of a given solution.
             Use the cmap provided in the `plot_kwargs` argument. If no cmap is provided there, use `Blues` cmap by default.
             If `False`, all solutions are colored identically, controlled using `plot_kwargs`.
@@ -1566,12 +1570,19 @@ class Continuation(ABC):
             plot_kwargs.pop('cmap')
         else:
             cmap = plt.get_cmap('Blues')
-        if color_solutions and (parameter is not None):
-            p_vals = self.solutions_parameters(parameters=parameter)
-            p_min, p_max = np.min(p_vals), np.max(p_vals)
+        if color_solutions:
+            if parameter is not None:
+                if labels is None:
+                    solutions_types = 'all'
+                else:
+                    solutions_types = labels
+                p_vals = self.solutions_parameters(parameters=parameter, solutions_types=solutions_types)
+                p_min, p_max = np.min(p_vals), np.max(p_vals)
 
-            if value is None:
-                value = p_vals
+                if value is None:
+                    value = p_vals
+            else:
+                raise ValueError('If `color_solutions` argument is set to true, you must provide the `parameter` argument as well.')
 
         solutions_list = self.get_filtered_solutions_list(labels, indices, parameter, value, None, tol)
 

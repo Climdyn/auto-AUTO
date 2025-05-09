@@ -2265,7 +2265,7 @@ class BifurcationDiagram(object):
 
     def plot_single_po_branch_and_solutions(self, branch_number, parameter=None, diagram_variables=(1,), solutions_variables=(0, 1),
                                             axes=None, figsize=(10, 16), solutions_tol=0.01, cmap=None, branch_diagram_kwargs=None,
-                                            solution_diagram_kwargs=None):
+                                            solution_diagram_kwargs=None, point_solutions_types=('HB', 'BP', 'UZ', 'PD', 'TR', 'LP')):
         """Plots the bifurcation diagram of a single branch with the parameter values of stored solutions plotted on this branch,
         along with a plot of the projection of all solutions.
 
@@ -2303,6 +2303,9 @@ class BifurcationDiagram(object):
             Additional keyword arguments for the bifurcation diagram plotting function. Default is `None`.
         solution_diagram_kwargs: dict or None, optional
             Additional keyword arguments for the solution plotting function. Default is `None`.
+        point_solutions_types: list(str), optional
+            The types of solution to plot as point if `plot_sol_points` is `True`.
+            Default to `['HB', 'BP', 'UZ', 'PD', 'TR', 'LP']`.
 
 
         The parameters below can be included in `solutions_kwargs` for controlling the solution plots.
@@ -2374,7 +2377,10 @@ class BifurcationDiagram(object):
             branch_diagram_kwargs['plot_kwargs']['color'] = cmap(0.5)
             solution_diagram_kwargs['plot_kwargs']['cmap'] = cmap
             
-        self.po_branches[branch_number]['continuation'].plot_branch_parts(variables=(parameter, diagram_variables[0]), ax=axes[0], plot_sol_points=True, cmap=cmap, **branch_diagram_kwargs)
+        self.po_branches[branch_number]['continuation'].plot_branch_parts(variables=(parameter, diagram_variables[0]),
+                                                                          ax=axes[0],
+                                                                          plot_sol_points=True,
+                                                                          cmap=cmap, **branch_diagram_kwargs)
 
         # Plot scatter on branch of parameter values
         
@@ -2382,7 +2388,8 @@ class BifurcationDiagram(object):
 
         # Plot solution
         hp = self.po_branches[branch_number]['continuation']
-        hp.plot_solutions(solutions_variables, ax=axes[1], parameter=parameter, value=None, color_solutions=True, tol=solutions_tol, **solution_diagram_kwargs)
+        hp.plot_solutions(solutions_variables, ax=axes[1], parameter=parameter, value=None, labels=point_solutions_types,
+                          color_solutions=True, tol=solutions_tol, **solution_diagram_kwargs)
 
         axes[1].set_title('Solution in phase space')
 
