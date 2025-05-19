@@ -477,7 +477,7 @@ class BifurcationDiagram(object):
                             used_continuation_kwargs['ICP'] = [self.config_object.continuation_parameters[0], 11]
                     else:
                         if 11 in self.config_object.parameters_dict.keys():
-                            if self.config_object.parameters_dict[11] not in used_continuation_kwargs['ICP'] or 11 not in used_continuation_kwargs['ICP']:
+                            if self.config_object.parameters_dict[11] not in used_continuation_kwargs['ICP'] and 11 not in used_continuation_kwargs['ICP']:
                                 used_continuation_kwargs['ICP'].append(self.config_object.parameters_dict[11])
                         else:
                             if 11 not in used_continuation_kwargs['ICP']:
@@ -688,6 +688,19 @@ class BifurcationDiagram(object):
                                         if 'PAR' not in continuation_kwargs and 'PAR' in used_continuation_kwargs:
                                             _ = used_continuation_kwargs.pop('PAR')
 
+                                        if 'ICP' not in used_continuation_kwargs:
+                                            if 11 in self.config_object.parameters_dict.keys():
+                                                used_continuation_kwargs['ICP'] = [self.config_object.continuation_parameters[0], self.config_object.parameters_dict[11]]
+                                            else:
+                                                used_continuation_kwargs['ICP'] = [self.config_object.continuation_parameters[0], 11]
+                                        else:
+                                            if 11 in self.config_object.parameters_dict.keys():
+                                                if self.config_object.parameters_dict[11] not in used_continuation_kwargs['ICP'] and 11 not in used_continuation_kwargs['ICP']:
+                                                    used_continuation_kwargs['ICP'].append(self.config_object.parameters_dict[11])
+                                            else:
+                                                if 11 not in used_continuation_kwargs['ICP']:
+                                                    used_continuation_kwargs['ICP'].append(11)
+
                                         used_continuation_kwargs['IBR'] = br_num
                                         hp = PeriodicOrbitContinuation(model_name=self.model_name, config_object=self.config_object, path_name=self._path_name)
                                         hp.make_continuation(bp, only_forward=not backward_bp_continuation, max_bp=max_number_bp_detected, **used_continuation_kwargs)
@@ -771,6 +784,19 @@ class BifurcationDiagram(object):
 
                                     if 'PAR' not in continuation_kwargs and 'PAR' in used_continuation_kwargs:
                                         _ = used_continuation_kwargs.pop('PAR')
+
+                                    if 'ICP' not in used_continuation_kwargs:
+                                        if 11 in self.config_object.parameters_dict.keys():
+                                            used_continuation_kwargs['ICP'] = [self.config_object.continuation_parameters[0], self.config_object.parameters_dict[11]]
+                                        else:
+                                            used_continuation_kwargs['ICP'] = [self.config_object.continuation_parameters[0], 11]
+                                    else:
+                                        if 11 in self.config_object.parameters_dict.keys():
+                                            if self.config_object.parameters_dict[11] not in used_continuation_kwargs['ICP'] and 11 not in used_continuation_kwargs['ICP']:
+                                                used_continuation_kwargs['ICP'].append(self.config_object.parameters_dict[11])
+                                        else:
+                                            if 11 not in used_continuation_kwargs['ICP']:
+                                                used_continuation_kwargs['ICP'].append(11)
 
                                     used_continuation_kwargs['IBR'] = br_num
                                     hp = PeriodicOrbitContinuation(model_name=self.model_name, config_object=self.config_object, path_name=self._path_name)
@@ -950,6 +976,19 @@ class BifurcationDiagram(object):
         if not found_solution:
             logger.debug('Point is acceptable for continuation. Launching AUTO...')
             used_continuation_kwargs = deepcopy(continuation_kwargs)
+
+            if 'ICP' not in used_continuation_kwargs:
+                if 11 in self.config_object.parameters_dict.keys():
+                    used_continuation_kwargs['ICP'] = [self.config_object.continuation_parameters[0], self.config_object.parameters_dict[11]]
+                else:
+                    used_continuation_kwargs['ICP'] = [self.config_object.continuation_parameters[0], 11]
+            else:
+                if 11 in self.config_object.parameters_dict.keys():
+                    if self.config_object.parameters_dict[11] not in used_continuation_kwargs['ICP'] and 11 not in used_continuation_kwargs['ICP']:
+                        used_continuation_kwargs['ICP'].append(self.config_object.parameters_dict[11])
+                else:
+                    if 11 not in used_continuation_kwargs['ICP']:
+                        used_continuation_kwargs['ICP'].append(11)
             used_continuation_kwargs['IBR'] = br_num
             used_continuation_kwargs['IPS'] = 2
             hp = PeriodicOrbitContinuation(model_name=self.model_name, config_object=self.config_object, path_name=self._path_name)
