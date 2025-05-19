@@ -477,7 +477,7 @@ class BifurcationDiagram(object):
                             used_continuation_kwargs['ICP'] = [self.config_object.continuation_parameters[0], 11]
                     else:
                         if 11 in self.config_object.parameters_dict.keys():
-                            if self.config_object.parameters_dict[11] not in used_continuation_kwargs['ICP'] or 11 not in used_continuation_kwargs['ICP']:
+                            if self.config_object.parameters_dict[11] not in used_continuation_kwargs['ICP'] and 11 not in used_continuation_kwargs['ICP']:
                                 used_continuation_kwargs['ICP'].append(self.config_object.parameters_dict[11])
                         else:
                             if 11 not in used_continuation_kwargs['ICP']:
@@ -695,7 +695,7 @@ class BifurcationDiagram(object):
                                                 used_continuation_kwargs['ICP'] = [self.config_object.continuation_parameters[0], 11]
                                         else:
                                             if 11 in self.config_object.parameters_dict.keys():
-                                                if self.config_object.parameters_dict[11] not in used_continuation_kwargs['ICP'] or 11 not in used_continuation_kwargs['ICP']:
+                                                if self.config_object.parameters_dict[11] not in used_continuation_kwargs['ICP'] and 11 not in used_continuation_kwargs['ICP']:
                                                     used_continuation_kwargs['ICP'].append(self.config_object.parameters_dict[11])
                                             else:
                                                 if 11 not in used_continuation_kwargs['ICP']:
@@ -792,7 +792,7 @@ class BifurcationDiagram(object):
                                             used_continuation_kwargs['ICP'] = [self.config_object.continuation_parameters[0], 11]
                                     else:
                                         if 11 in self.config_object.parameters_dict.keys():
-                                            if self.config_object.parameters_dict[11] not in used_continuation_kwargs['ICP'] or 11 not in used_continuation_kwargs['ICP']:
+                                            if self.config_object.parameters_dict[11] not in used_continuation_kwargs['ICP'] and 11 not in used_continuation_kwargs['ICP']:
                                                 used_continuation_kwargs['ICP'].append(self.config_object.parameters_dict[11])
                                         else:
                                             if 11 not in used_continuation_kwargs['ICP']:
@@ -984,7 +984,7 @@ class BifurcationDiagram(object):
                     used_continuation_kwargs['ICP'] = [self.config_object.continuation_parameters[0], 11]
             else:
                 if 11 in self.config_object.parameters_dict.keys():
-                    if self.config_object.parameters_dict[11] not in used_continuation_kwargs['ICP'] or 11 not in used_continuation_kwargs['ICP']:
+                    if self.config_object.parameters_dict[11] not in used_continuation_kwargs['ICP'] and 11 not in used_continuation_kwargs['ICP']:
                         used_continuation_kwargs['ICP'].append(self.config_object.parameters_dict[11])
                 else:
                     if 11 not in used_continuation_kwargs['ICP']:
