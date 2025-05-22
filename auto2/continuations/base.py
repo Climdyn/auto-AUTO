@@ -993,6 +993,24 @@ class Continuation(ABC):
             params[param] = par_list
         return np.squeeze(np.array(list(params.values()))).reshape((len(parameters), -1))
 
+    def points_parameters(self, parameter):
+        """Return the value of a parameter for all the continuation points of the backward and forward continuations.
+
+        Parameters
+        ----------
+        parameter: str
+            The parameters to be returned.
+
+        Returns
+        -------
+        dict(~numpy.ndarray)
+            The parameter values of the all the continuation points.
+        """
+        params = dict()
+        for direction in ['backward', 'forward']:
+            params[direction] = self.continuation[direction].data[0][parameter]
+        return params
+
     def get_solution_by_label(self, label):
         """Get the |AUTO| solution object corresponding to a given label.
 
