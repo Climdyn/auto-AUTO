@@ -144,6 +144,7 @@ class BifurcationDiagram(object):
 
     """
 
+
     def __init__(self, model_name=None, path_name=None):
 
         self.initial_points = None
@@ -183,6 +184,8 @@ class BifurcationDiagram(object):
         self._comparison_solutions_types = ('HB', 'BP', 'UZ', 'PD', 'EP', 'TR', 'LP')
         self._figure_legend_handles = list()
         self._figure_3d_legend_handles = list()
+
+        self._default_cmap = 'viridis'
 
     @property
     def path_name(self):
@@ -1545,8 +1548,9 @@ class BifurcationDiagram(object):
         used_colors = dict()
         colors_list = list(TABLEAU_COLORS.keys())
         if self.number_of_fp_branches > len(colors_list):
-            raise ValueError('The number of fixed point branches is too big to plot without a cmap.'
-                             'Please provide a cmap argument.')
+            warnings.warn('The number of fixed point branches is too big to plot without a cmap.'
+                          'Switching to the default cmap.')
+            cmap = plt.get_cmap(self._default_cmap)
         new_handles = list()
         for i, b in enumerate(self.fp_branches):
             if cmap is None:
@@ -1650,8 +1654,9 @@ class BifurcationDiagram(object):
         used_colors = dict()
         colors_list = list(TABLEAU_COLORS.keys())
         if self.number_of_fp_branches > len(colors_list):
-            raise ValueError('The number of fixed point branches is too big to plot without a cmap.'
-                             'Please provide a cmap argument.')
+            warnings.warn('The number of fixed point branches is too big to plot without a cmap.'
+                          'Switching to the default cmap.')
+            cmap = plt.get_cmap(self._default_cmap)
         new_handles = list()
         for i, b in enumerate(self.fp_branches):
             if cmap is None:
@@ -1756,8 +1761,9 @@ class BifurcationDiagram(object):
         used_colors = dict()
         colors_list = list(TABLEAU_COLORS.keys())
         if self.number_of_po_branches > len(colors_list):
-            raise ValueError('The number of periodic orbit branches is too big to plot without a cmap.'
-                             'Please provide a cmap argument.')
+            warnings.warn('The number of periodic orbit branches is too big to plot without a cmap.'
+                          'Switching to the default cmap.')
+            cmap = plt.get_cmap(self._default_cmap)
         new_handles = list()
         for i, b in enumerate(self.po_branches):
             if cmap is None:
@@ -1862,8 +1868,9 @@ class BifurcationDiagram(object):
         used_colors = dict()
         colors_list = list(TABLEAU_COLORS.keys())
         if self.number_of_po_branches > len(colors_list):
-            raise ValueError('The number of periodic orbit branches is too big to plot without a cmap.'
-                             'Please provide a cmap argument.')
+            warnings.warn('The number of periodic orbit branches is too big to plot without a cmap.'
+                          'Switching to the default cmap.')
+            cmap = plt.get_cmap(self._default_cmap)
         new_handles = list()
         for i, b in enumerate(self.po_branches):
             if cmap is None:
