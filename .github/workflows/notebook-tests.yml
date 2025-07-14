@@ -54,7 +54,7 @@ jobs:
 
     - shell: bash -el {0} 
       run: |
-        ./test/install_auto.sh ../
+        ./.github/install_auto.sh ../
 
     - shell: bash -el {0}
       run: |
