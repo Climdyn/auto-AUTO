@@ -144,7 +144,6 @@ class BifurcationDiagram(object):
 
     """
 
-
     def __init__(self, model_name=None, path_name=None):
 
         self.initial_points = None
@@ -185,7 +184,7 @@ class BifurcationDiagram(object):
         self._figure_legend_handles = list()
         self._figure_3d_legend_handles = list()
 
-        self._default_cmap = 'viridis'
+        self._default_cmap = 'viridis'  # Should be put in some general config file somewhere later
 
     @property
     def path_name(self):
