@@ -2,7 +2,6 @@ name: auto2
 channels:
   - conda-forge
   - numba
-  - defaults
 dependencies:
   - python>=3.10
   - ipython
