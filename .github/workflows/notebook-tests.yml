@@ -44,7 +44,7 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
         miniforge-version: latest
-        channel: conda-forge
+        channels: conda-forge
         conda-remove-defaults: "true"
         use-mamba: true
         activate-environment: auto2
@@ -59,6 +59,7 @@ jobs:
 
     - shell: bash -el {0}
       run: |
+        echo $AUTO_DIR
         conda info
         conda list
         conda config --show-sources
