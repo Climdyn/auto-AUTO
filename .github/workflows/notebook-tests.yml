@@ -54,12 +54,10 @@ jobs:
 
     - shell: bash -el {0} 
       run: |
-        pwd
-        ./test/install_auto.sh
+        ./test/install_auto.sh ../
 
     - shell: bash -el {0}
       run: |
-        echo $AUTO_DIR
         conda info
         conda list
         conda config --show-sources
@@ -69,5 +67,8 @@ jobs:
     - name: Test with pytest
       shell: bash -el {0}
       run: |
+        cd ../auto-07p/cmds
+        source auto.env.sh
+        cd ../auto-AUTO
         python -m pytest --nbmake "./notebooks"
 
