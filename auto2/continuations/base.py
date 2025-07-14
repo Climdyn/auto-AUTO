@@ -1510,11 +1510,11 @@ class Continuation(ABC):
             Size of the text plotted to display the bifurcation points. Defaults to `12`.
         marker : str, optional
             The marker style used for plotting fixed points. If `None`, set to default marker.
-        linestyle : str, optional
+        linestyle: str, optional
             The line style used for plotting the periodic orbit solutions. If `None`, set to default marker.
-        linewidth : float, optional
+        linewidth: float, optional
             The width of the lines showing the periodic solutions. If `None`, set to the default.
-        color_solutions : bool, optional
+        color_solutions: bool, optional
             Whether to color each solution differently. In this case, a valid `parameter` argument must be provided.
             If `True`, and `parameter` argument is provided and valid, then solutions are colored based on the parameter value of a given solution.
             Use the cmap provided in the `plot_kwargs` argument. If no cmap is provided there, use `Blues` cmap by default.
@@ -1645,7 +1645,7 @@ class Continuation(ABC):
         return ax
 
     def plot_solutions_3D(self, variables=(0, 1, 2), ax=None, figsize=(10, 8), markersize=None, marker=None, linestyle=None,
-                       linewidth=None, plot_kwargs=None, labels=None, indices=None, parameter=None, value=None,
+                       linewidth=None, plot_kwargs=None, labels=None, color_solutions=False, indices=None, parameter=None, value=None,
                        variables_name=None, tol=0.01):
         """
         Plots the stored solutions for a given set of variables, using a 3-dimensional projection.
@@ -1671,10 +1671,16 @@ class Continuation(ABC):
             Size of the text plotted to display the bifurcation points. Defaults to `12`.
         marker : str, optional
             The marker style used for plotting fixed points. If `None`, set to default marker.
-        linestyle : str, optional
+        linestyle: str, optional
             The line style used for plotting the periodic orbit solutions. If `None`, set to default marker.
-        linewidth : float, optional
+        linewidth: float, optional
             The width of the lines showing the periodic solutions. If `None`, set to the default.
+        color_solutions: bool, optional
+            Whether to color each solution differently. In this case, a valid `parameter` argument must be provided.
+            If `True`, and `parameter` argument is provided and valid, then solutions are colored based on the parameter value of a given solution.
+            Use the cmap provided in the `plot_kwargs` argument. If no cmap is provided there, use `Blues` cmap by default.
+            If `False`, all solutions are colored identically, controlled using `plot_kwargs`.
+            Default is `False`.
         plot_kwargs: dict or None, optional
             Additional keyword arguments for the plotting function. Default is `None`.
         labels: str or list(str), optional
@@ -1734,38 +1740,62 @@ class Continuation(ABC):
         if plot_kwargs is None:
             plot_kwargs = dict()
 
+        # Colouring solutions dependant on parameter value
+        if 'cmap' in plot_kwargs:
+            cmap = plot_kwargs['cmap']
+            if isinstance(cmap, str):
+                cmap = plt.get_cmap(cmap)
+            plot_kwargs.pop('cmap')
+        else:
+            cmap = plt.get_cmap('Blues')
+        if color_solutions:
+            if parameter is not None:
+                if labels is None:
+                    solutions_types = 'all'
+                else:
+                    solutions_types = labels
+                p_vals = self.solutions_parameters(parameters=parameter, solutions_types=solutions_types)
+                p_min, p_max = np.min(p_vals), np.max(p_vals)
+
+                if value is None:
+                    value = p_vals
+            else:
+                raise ValueError('If `color_solutions` argument is set to true, you must provide the `parameter` argument as well.')
+
         solutions_list = self.get_filtered_solutions_list(labels, indices, parameter, value, None, tol)
 
-        vars = self.config_object.variables
+        keys = self.config_object.variables
 
-        if variables[0] in vars:
+        if variables[0] in keys:
             var1 = variables[0]
         else:
             try:
-                var1 = vars[variables[0]]
+                var1 = keys[variables[0]]
             except:
-                var1 = vars[0]
+                var1 = keys[0]
 
-        if variables[1] in vars:
+        if variables[1] in keys:
             var2 = variables[1]
         else:
             try:
-                var2 = vars[variables[1]]
+                var2 = keys[variables[1]]
             except:
-                var2 = vars[1]
+                var2 = keys[1]
 
-        if variables[2] in vars:
+        if variables[2] in keys:
             var3 = variables[2]
         else:
             try:
-                var3 = vars[variables[2]]
+                var3 = keys[variables[2]]
             except:
-                var3 = vars[2]
+                var3 = keys[2]
 
         for sol in solutions_list:
             x = sol[var1]
             y = sol[var2]
             z = sol[var3]
+            if color_solutions and (parameter is not None):
+                plot_kwargs['color'] = cmap((sol.PAR[parameter] - p_min) / (p_max - p_min))
             line_list = ax.plot(x, y, z, marker=marker, markersize=markersize, linestyle=linestyle, linewidth=linewidth,
                                 **plot_kwargs)
             c = line_list[0].get_color()

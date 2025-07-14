@@ -2452,6 +2452,143 @@ class BifurcationDiagram(object):
 
         return axes
 
+    def plot_single_po_branch_and_solutions_3D(self, branch_number, parameter=None, diagram_variables=(1,), solutions_variables=(0, 1, 2),
+                                               axes=None, figsize=(10, 16), solutions_tol=0.01, cmap=None, branch_diagram_kwargs=None,
+                                               solution_diagram_kwargs=None, point_solutions_types=('HB', 'BP', 'UZ', 'PD', 'TR', 'LP')):
+        """Plots the bifurcation diagram of a single branch with the parameter values of stored solutions plotted on this branch,
+        along with a plot of the projection of all solutions.
+
+        Parameters
+        ----------
+        branch_number: int
+            The number of the branch to plot.
+        parameter: str, optional
+            The parameter along which to plot the diagram and solutions.
+        diagram_variables: tuple(int or str, int or str), optional
+            The index or label of the variables along which the bifurcation diagram is plotted.
+            If labels are used, it should be labels of the available monitored variables during the continuations
+            (if their labels have been defined in the AUTO configuration file) given by :meth:`available_variables`.
+            The first value in the tuple determines the variable plot on the x-axis, and the second the y-axis
+            Defaults to `(1, )`.
+        solutions_variables: tuple(int or str, int or str), optional
+            The index or label of the variables shown in the solution plot.
+            If labels are used, it should be labels of the phase space variables
+            (if they have been defined in the AUTO configuration file) given by :meth:`phase_space_variables`.
+            The first value in the tuple determines the variable plot on the x-axis, the second determines the y-axis.
+            Defaults to the first two variables: `(0, 1)`.
+        axes: numpy.ndarray(matplotlib.axes.Axes) or None, optional
+            An array of two |Matplotlib| axis object to plot on. If `None`, a new figure is created.
+        figsize: tuple(float, float), optional
+            Dimension of the figure that is returned, only used if `ax` is not passed.
+            Defaults to `(10, 16)`.
+        solutions_tol:  float or list(float) or ~numpy.ndarray(float), optional
+            The numerical tolerance used when comparing solutions to display with the selected `solutions_parameter_value`.
+            Default to `0.01`.
+        cmap: matplotlib.colors.Colormap or str or None, optional
+            A colormap that controls the color of the branches.
+            The branches are colored from the colormap based on the value of the branch number.
+            If `None`, defaults to `Reds` colormaps.
+        branch_diagram_kwargs: dict or None, optional
+            Additional keyword arguments for the bifurcation diagram plotting function. Default is `None`.
+        solution_diagram_kwargs: dict or None, optional
+            Additional keyword arguments for the solution plotting function. Default is `None`.
+        point_solutions_types: list(str), optional
+            The types of solution to plot as point if `plot_sol_points` is `True`.
+            Default to `['HB', 'BP', 'UZ', 'PD', 'TR', 'LP']`.
+
+
+        The parameters below can be included in `solutions_kwargs` for controlling the solution plots.
+        See :meth:`auto2.continuations.base.Continuation.plot_solutions` for more details.
+
+        Keyword Arguments
+        -----------------
+        markersize: float, optional
+            Size of the text plotted to display the bifurcation points. Defaults to `12`.
+        marker : str, optional
+            The marker style used for plotting fixed points. If `None`, set to default marker.
+        linestyle : str, optional
+            The line style used for plotting the periodic orbit solutions. If `None`, set to default marker.
+        linewidth : float, optional
+            The width of the lines showing the periodic solutions. If `None`, set to the default.
+        color_solutions : bool, optional
+            Whether to color each solution differently.
+            If `True`, and `parameter` argument is provided and valid, then solutions are colored based on the parameter value of a given solution.
+            Use the cmap provided in the `plot_kwargs` argument. If no cmap is provided there, use `Blues` cmap by default.
+            If `False`, all solutions are colored identically, controlled using `plot_kwargs`.
+            Default is `False`.
+        plot_kwargs: dict or None, optional
+            Additional keyword arguments for the plotting function. Default is `None`.
+        variables_name: list(str) or None, optional
+            The strings used to plot the axis labels. If `None` defaults to the AUTO labels.
+            Defaults to `None`.
+
+
+        Returns
+        -------
+        numpy.ndarray(matplotlib.axes.Axes)
+            An array of two |Matplotlib| axis objects, showing the bifurcation diagram and the solution plot.
+        """
+
+        if isinstance(cmap, str):
+            cmap = plt.get_cmap(cmap)
+
+        if axes is None:
+            axes = list()
+            fig = plt.figure(figsize=figsize)
+            ax = fig.add_subplot(2, 1, 1)
+            axes.append(ax)
+            ax = fig.add_subplot(2, 1, 2, projection='3d')
+            axes.append(ax)
+
+        if branch_diagram_kwargs is None:
+            branch_diagram_kwargs = dict()
+
+        if solution_diagram_kwargs is None:
+            solution_diagram_kwargs = dict()
+
+        if 'plot_kwargs' not in branch_diagram_kwargs:
+            branch_diagram_kwargs['plot_kwargs'] = dict()
+
+        if 'plot_kwargs' not in solution_diagram_kwargs:
+            solution_diagram_kwargs['plot_kwargs'] = dict()
+
+        if parameter is None:
+            if self.po_branches:
+                n = next(iter(self.po_branches))
+                # Defaults to first parameter
+                parameter = self.po_branches[n]['continuation_kwargs']['ICP'][0]
+            else:
+                return None
+
+        if cmap is None:
+            if 'cmap' in solution_diagram_kwargs['plot_kwargs']:
+                cmap = solution_diagram_kwargs['plot_kwargs']['cmap']
+            else:
+                cmap = plt.get_cmap('Reds')
+                solution_diagram_kwargs['plot_kwargs']['cmap'] = cmap
+            branch_diagram_kwargs['plot_kwargs']['color'] = cmap(0.5)
+        else:
+            branch_diagram_kwargs['plot_kwargs']['color'] = cmap(0.5)
+            solution_diagram_kwargs['plot_kwargs']['cmap'] = cmap
+
+        self.po_branches[branch_number]['continuation'].plot_branch_parts(variables=(parameter, diagram_variables[0]),
+                                                                          ax=axes[0],
+                                                                          plot_sol_points=True,
+                                                                          cmap=cmap, **branch_diagram_kwargs)
+
+        # Plot scatter on branch of parameter values
+
+        axes[0].set_title('Bifurcation diagram - Branch ' + str(branch_number))
+
+        # Plot solution
+        hp = self.po_branches[branch_number]['continuation']
+        hp.plot_solutions_3D(solutions_variables, ax=axes[1], parameter=parameter, value=None, labels=point_solutions_types,
+                             color_solutions=True, tol=solutions_tol, **solution_diagram_kwargs)
+
+        axes[1].set_title('Solution in phase space')
+
+        return axes
+
     @property
     def number_of_fp_branches(self):
         """int: Number of fixed points continuation branches
