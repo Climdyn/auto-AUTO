@@ -44,6 +44,8 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
         miniforge-version: latest
+        channel: conda-forge
+        conda-remove-defaults: "true"
         use-mamba: true
         activate-environment: auto2
         environment-file: environment.yml
@@ -55,7 +57,16 @@ jobs:
         pwd
         ./test/install_auto.sh
 
+    - shell: bash -el {0}
+      run: |
+        conda info
+        conda list
+        conda config --show-sources
+        conda config --show
+        printenv | sort
 
     - name: Test with pytest
+      shell: bash -el {0}
       run: |
         python -m pytest --nbmake "./notebooks"
+
