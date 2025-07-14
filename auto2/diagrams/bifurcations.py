@@ -184,6 +184,8 @@ class BifurcationDiagram(object):
         self._figure_legend_handles = list()
         self._figure_3d_legend_handles = list()
 
+        self._default_cmap = 'viridis'  # Should be put in some general config file somewhere later
+
     @property
     def path_name(self):
         """str: The path where the |AUTO| and AUTO² files must be or are stored."""
@@ -1583,6 +1585,10 @@ class BifurcationDiagram(object):
 
         used_colors = dict()
         colors_list = list(TABLEAU_COLORS.keys())
+        if self.number_of_fp_branches > len(colors_list):
+            warnings.warn('The number of fixed point branches is too big to plot without a cmap.'
+                          'Switching to the default cmap.')
+            cmap = plt.get_cmap(self._default_cmap)
         new_handles = list()
         for i, b in enumerate(self.fp_branches):
             if cmap is None:
@@ -1685,6 +1691,10 @@ class BifurcationDiagram(object):
 
         used_colors = dict()
         colors_list = list(TABLEAU_COLORS.keys())
+        if self.number_of_fp_branches > len(colors_list):
+            warnings.warn('The number of fixed point branches is too big to plot without a cmap.'
+                          'Switching to the default cmap.')
+            cmap = plt.get_cmap(self._default_cmap)
         new_handles = list()
         for i, b in enumerate(self.fp_branches):
             if cmap is None:
@@ -1788,6 +1798,10 @@ class BifurcationDiagram(object):
 
         used_colors = dict()
         colors_list = list(TABLEAU_COLORS.keys())
+        if self.number_of_po_branches > len(colors_list):
+            warnings.warn('The number of periodic orbit branches is too big to plot without a cmap.'
+                          'Switching to the default cmap.')
+            cmap = plt.get_cmap(self._default_cmap)
         new_handles = list()
         for i, b in enumerate(self.po_branches):
             if cmap is None:
@@ -1891,6 +1905,10 @@ class BifurcationDiagram(object):
 
         used_colors = dict()
         colors_list = list(TABLEAU_COLORS.keys())
+        if self.number_of_po_branches > len(colors_list):
+            warnings.warn('The number of periodic orbit branches is too big to plot without a cmap.'
+                          'Switching to the default cmap.')
+            cmap = plt.get_cmap(self._default_cmap)
         new_handles = list()
         for i, b in enumerate(self.po_branches):
             if cmap is None:
