@@ -1,0 +1,74 @@
+# This workflow will install Python dependencies, run tests and lint with a single version of Python
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
+
+name: tests
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main", "develop" ]
+    
+permissions:
+  contents: read
+  
+jobs:
+  checks:
+    if: github.event.pull_request.draft == false
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: ["ubuntu-latest", ]
+        python-version: ["3.10", "3.11", "3.12"]
+
+
+    name: Python ${{ matrix.python-version }} on ${{ matrix.platform }}
+    runs-on: ${{ matrix.platform }}
+
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Cache conda
+      uses: actions/cache@v3
+      env:
+        # Increase this value to reset cache if etc/example-environment.yml has not changed
+        CACHE_NUMBER: 0
+      with:
+        path: ~/conda_pkgs_dir
+        key:
+          ${{ runner.os }}-conda-${{ env.CACHE_NUMBER }}-${{
+          hashFiles('environment.yml') }}
+
+    - uses: conda-incubator/setup-miniconda@v3
+      with:
+        python-version: ${{ matrix.python-version }}
+        miniforge-version: latest
+        channels: conda-forge
+        conda-remove-defaults: "true"
+        use-mamba: true
+        activate-environment: auto2
+        environment-file: environment.yml
+        auto-activate-base: false
+        use-only-tar-bz2: true # IMPORTANT: This needs to be set for caching to work properly!
+
+    - shell: bash -el {0} 
+      run: |
+        ./.github/install_auto.sh ../
+
+    - shell: bash -el {0}
+      run: |
+        conda info
+        conda list
+        conda config --show-sources
+        conda config --show
+        printenv | sort
+
+    - name: Test with pytest
+      shell: bash -el {0}
+      run: |
+        cd ../auto-07p/cmds
+        source auto.env.sh
+        cd ../../auto-AUTO
+        python -m pytest --nbmake "./notebooks"
+
