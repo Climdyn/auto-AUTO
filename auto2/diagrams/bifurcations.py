@@ -3252,7 +3252,7 @@ class BifurcationDiagram(object):
                 **solutions_kwargs,
             )
 
-        axes[1].set_title("Solution in phase space")
+        axes[1].set_title("Solutions in phase space")
 
         return axes
 
@@ -3407,7 +3407,7 @@ class BifurcationDiagram(object):
                 **solutions_kwargs,
             )
 
-        axes[1].set_title("Solution in phase space")
+        axes[1].set_title("Solutions in phase space")
 
         return axes
 
@@ -3567,7 +3567,7 @@ class BifurcationDiagram(object):
                 **solutions_kwargs,
             )
 
-        axes[1].set_title("Solution in phase space")
+        axes[1].set_title("Solutions in phase space")
 
         return axes
 
@@ -3721,7 +3721,7 @@ class BifurcationDiagram(object):
             **solution_diagram_kwargs,
         )
 
-        axes[1].set_title("Solution in phase space")
+        axes[1].set_title("Solutions in phase space")
 
         return axes
 
@@ -3880,7 +3880,7 @@ class BifurcationDiagram(object):
             **solution_diagram_kwargs,
         )
 
-        axes[1].set_title("Solution in phase space")
+        axes[1].set_title("Solutions in phase space")
 
         return axes
 
