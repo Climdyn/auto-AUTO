@@ -3189,6 +3189,7 @@ class BifurcationDiagram(object):
             n = next(iter(self.po_branches))
             parameter = self.po_branches[n]["continuation_kwargs"]["ICP"]
         else:
+
             return None
 
         if self.fp_branches:
