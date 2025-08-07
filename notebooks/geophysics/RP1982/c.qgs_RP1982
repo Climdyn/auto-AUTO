@@ -1,0 +1,36 @@
+#Configuration files
+
+#Parameters name
+parnames = {1: 'thetas_1', 2: 'hk_2', 3: 'k_d', 4: 'k_p', 5: 'sigma', 11: 'T', 12: 'theta', 14: 't', 25: 'T_r'}
+#Variables name
+unames = {1: 'psi_a_1', 2: 'psi_a_2', 3: 'psi_a_3', 4: 'psi_a_4', 5: 'psi_a_5', 6: 'psi_a_6', 7: 'psi_a_7', 8: 'psi_a_8', 9: 'psi_a_9', 10: 'psi_a_10', 11: 'theta_a_1', 12: 'theta_a_2', 13: 'theta_a_3', 14: 'theta_a_4', 15: 'theta_a_5', 16: 'theta_a_6', 17: 'theta_a_7', 18: 'theta_a_8', 19: 'theta_a_9', 20: 'theta_a_10'}
+#Dimension of the system
+NDIM = 20
+#Problem type (1 for FP, 2 for PO, -2 for time integration)
+IPS =   1
+#Start solution label
+IRS =   0
+#Continuation parameters (in order of use)
+ICP = ['thetas_1', 'hk_2', 'k_d', 'k_p', 'sigma']
+#Number of mesh intervals
+NTST=   100
+#Print and restart every NPR steps (0 to disable)
+NPR=   0
+#Number of bifurcating branches to compute (negative number means continue only in one direction)
+MXBF=0
+#Detection of Special Points
+ISP=2
+#Maximum number of iteration in the Newton-Chord method
+ITNW=7
+#Arc-length continuation parameters
+DS  =  0.00001, DSMIN= 1e-15, DSMAX=   0.002
+#Precision parameters (Typiq. EPSS = EPSL * 10^-2)
+EPSL=1e-07, EPSU=1e-07, EPSS=1e-05
+#Number of parameter (don't change it)
+NPAR = 36
+#User defined value where to save the solution
+# ! User to input save locations
+UZR = {'thetas_1': [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.11, 0.12, 0.13, 0.14, 0.15, 0.16, 0.17, 0.18, 0.19]}
+#Stop conditions
+# ! User to input variable bounds
+UZSTOP = {'thetas_1': [0.,0.2]}
