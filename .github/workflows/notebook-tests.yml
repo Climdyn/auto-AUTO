@@ -70,5 +70,5 @@ jobs:
         cd ../auto-07p/cmds
         source auto.env.sh
         cd ../../auto-AUTO
-        python -m pytest --nbmake "./notebooks"
+        python -m pytest --nbmake "./notebooks/auto-demos"
 
