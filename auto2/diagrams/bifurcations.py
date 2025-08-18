@@ -9,6 +9,7 @@ This module defines the bifurcation diagram object used in auto-AUTO.
 
 import os
 import sys
+import shutil
 import warnings
 import logging
 import pickle
@@ -165,30 +166,15 @@ class BifurcationDiagram(object):
 
         if isinstance(logger, str):
             self._logger = logging.getLogger(logger)
+            self._log_string = False
         elif isinstance(logger, logging.Logger):
             self._logger = logger
+            self._log_string = False
         elif logger is None:
-            if self.path_name is None:
-                path = './'
-            else:
-                path = self.path_name
-            log_string = f"{os.path.basename(os.path.abspath(path))}_{model_name}"
-            self._logger = logging.getLogger(f"{log_string}_logger")
+            self._logger_string = f"{os.path.basename(os.path.abspath(self.path_name))}_{model_name}"
+            self._log_string = None
+            self._logger = logging.getLogger(f"{self._logger_string}_logger")
             self._logger.setLevel(logging.DEBUG)
-
-            formatter = logging.Formatter(
-                "%(asctime)s %(levelname)s: Model " + log_string + " -- Module %(filename)s -- %(message)s"
-            )
-
-            fh = logging.FileHandler(os.path.join(path, f"auto2_{model_name}.log"), mode="w", encoding="utf-8")
-            fh.setLevel(logging.DEBUG)
-            fh.setFormatter(formatter)
-            self._logger.addHandler(fh)
-
-            ch = logging.StreamHandler()
-            ch.setLevel(logging.INFO)
-            ch.setFormatter(formatter)
-            self._logger.addHandler(ch)
         else:
             raise ValueError('Provided logger not recognized.')
 
@@ -224,7 +210,18 @@ class BifurcationDiagram(object):
     @property
     def path_name(self):
         """str: The path where the |AUTO| and AUTO² files must be or are stored."""
-        return self._path_name
+        if self._path_name is not None:
+            return self._path_name
+        else:
+            return self.absolute_path_name
+
+    @property
+    def absolute_path_name(self):
+        """str: The absolute path where the |AUTO| and AUTO² files must be or are stored."""
+        if self._path_name is not None:
+            return os.path.abspath(self._path_name)
+        else:
+            return os.path.abspath('./')
 
     def set_path_name(self, path_name):
         """Set the path where the |AUTO| and AUTO² files must be or are stored.
@@ -242,6 +239,26 @@ class BifurcationDiagram(object):
                 "Path name given does not exist. Using the current working directory."
             )
             self._path_name = None
+
+    def _define_log_format(self, continuation_kwargs, mode='w', encoding="utf-8"):
+        if 'ICP' in continuation_kwargs:
+            cont_param = str(continuation_kwargs['ICP'][0])
+        else:
+            cont_param = str(self.config_object.continuation_parameters[0])
+        self._log_string = f'{self.model_name} -- Cont. Param. {cont_param}'
+        formatter = logging.Formatter(
+            "%(asctime)s %(levelname)s: Model " + self._log_string + " -- Module %(filename)s -- %(message)s"
+        )
+
+        fh = logging.FileHandler(os.path.join(self.path_name, f"auto2_{self.model_name}_{cont_param}.log"), mode=mode, encoding=encoding)
+        fh.setLevel(logging.DEBUG)
+        fh.setFormatter(formatter)
+        self._logger.addHandler(fh)
+
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.INFO)
+        ch.setFormatter(formatter)
+        self._logger.addHandler(ch)
 
     def compute_fixed_points_diagram(
         self,
@@ -284,6 +301,9 @@ class BifurcationDiagram(object):
             about the available AUTO parameters.
 
         """
+
+        if self._log_string is None:
+            self._define_log_format(continuation_kwargs)
 
         self._logger.info(
             "Starting the computation of the fixed points bifurcation diagram with model "
@@ -594,6 +614,9 @@ class BifurcationDiagram(object):
 
         """
 
+        if self._log_string is None:
+            self._define_log_format(continuation_kwargs)
+
         self._logger.info(
             "Starting the computation of the periodic orbits bifurcation diagram with model "
             + str(self.model_name)
@@ -847,6 +870,9 @@ class BifurcationDiagram(object):
             about the available AUTO parameters.
 
         """
+
+        if self._log_string is None:
+            self._define_log_format(continuation_kwargs)
 
         if self.po_computed:
             self._logger.info(
@@ -1607,40 +1633,48 @@ class BifurcationDiagram(object):
             A new bifurcation diagram object with the computed continuations along the new continuation parameter.
         """
 
+        old_param = self.continuation_parameters()[0]
         if "ICP" not in fixed_points_continuation_kwargs:
             raise ValueError("No ICP continuation parameter provided. Can't continue along a new continuation parameter.")
         else:
-            if fixed_points_continuation_kwargs["ICP"][0] == self.config_object.continuation_parameters[0]:
+            if fixed_points_continuation_kwargs["ICP"][0] == old_param:
                 raise ValueError('The provided continuation parameter is the same as the one of the parent bifurcation diagram object.')
             else:
                 new_param = fixed_points_continuation_kwargs["ICP"][0]
 
         if "ICP" not in periodic_orbits_continuation_kwargs:
             self._logger.info('Periodic orbit continuation parameter not provided during the restart of a new bifurcation diagram along a new continuation parameter.'
-                        'Trying with the continuation parameter provided for the fixed points.')
+                              'Trying with the continuation parameter provided for the fixed points.')
             periodic_orbits_continuation_kwargs['ICP'] = fixed_points_continuation_kwargs["ICP"].copy()
         else:
-            if fixed_points_continuation_kwargs["ICP"][0] == self.config_object.continuation_parameters[0]:
+            if periodic_orbits_continuation_kwargs["ICP"][0] == old_param:
                 raise ValueError('The provided continuation parameter is the same as the one of the parent bifurcation diagram object.')
 
         if path_name is None:
             path_name = f'./from_{self.config_object.continuation_parameters[0]}_{value:1.3f}_continuation_along_{new_param}'
 
         os.makedirs(path_name, exist_ok=True)
+        shutil.copy2(os.path.join(self.path_name, f'c.{self.model_name}'), os.path.abspath(path_name))
+        shutil.copy2(os.path.join(self.path_name, f'{self.model_name}.f90'), os.path.abspath(path_name))
 
         new_bif = BifurcationDiagram(model_name=self.model_name, path_name=path_name)
 
         fixed_points_solutions_list = list()
+        fixed_points_params_list = list()
 
         for branch_number in self.fp_branches:
             fp = self.fp_branches[branch_number]["continuation"]
-            fixed_points_solutions_list.extend(fp.get_filtered_solutions_list(parameters=new_param, values=value))
+            solutions_list = fp.get_filtered_solutions_list(parameters=old_param, values=value)
+            for sol in solutions_list:
+                params = sol.PAR.copy()
+                fixed_points_solutions_list.append(sol)
+                fixed_points_params_list.append(params)
 
         periodic_orbits_solutions_list = list()
 
         for branch_number in self.po_branches:
             po = self.po_branches[branch_number]["continuation"]
-            periodic_orbits_solutions_list.extend(po.get_filtered_solutions_list(parameters=new_param, values=value))
+            periodic_orbits_solutions_list.extend(po.get_filtered_solutions_list(parameters=old_param, values=value))
 
         initial_points = list()
 
@@ -1650,30 +1684,36 @@ class BifurcationDiagram(object):
                         }
             initial_points.append(ini_dict)
 
-        new_bif.compute_fixed_points_diagram(initial_points=initial_points,
-                                             extra_comparison_parameters=extra_comparison_parameters,
-                                             comparison_tol=comparison_tol,
-                                             **fixed_points_continuation_kwargs)
+        if initial_points:
+            new_bif.compute_fixed_points_diagram(initial_points=initial_points,
+                                                 extra_comparison_parameters=extra_comparison_parameters,
+                                                 comparison_tol=comparison_tol,
+                                                 **fixed_points_continuation_kwargs)
 
-        new_bif.compute_periodic_orbits_diagram(end_level=1,
-                                                extra_comparison_parameters=extra_comparison_parameters,
-                                                comparison_tol=comparison_tol,
-                                                remove_dubious_bp=remove_dubious_bp,
-                                                max_number_bp=max_number_bp,
-                                                max_number_bp_detected=max_number_bp_detected,
-                                                backward_bp_continuation=backward_bp_continuation,
-                                                maximum_period=maximum_period,
-                                                **periodic_orbits_continuation_kwargs)
+            new_bif.compute_periodic_orbits_diagram(end_level=1,
+                                                    extra_comparison_parameters=extra_comparison_parameters,
+                                                    comparison_tol=comparison_tol,
+                                                    remove_dubious_bp=remove_dubious_bp,
+                                                    max_number_bp=max_number_bp,
+                                                    max_number_bp_detected=max_number_bp_detected,
+                                                    backward_bp_continuation=backward_bp_continuation,
+                                                    maximum_period=maximum_period,
+                                                    **periodic_orbits_continuation_kwargs)
 
-        for po in periodic_orbits_continuation_kwargs:
-            new_bif.add_periodic_orbit(po,
-                                       extra_comparison_parameters=extra_comparison_parameters,
-                                       comparison_tol=comparison_tol,
-                                       max_number_bp_detected=max_number_bp_detected,
-                                       only_forward=only_forward,
-                                       maximum_period=maximum_period,
-                                       _user_triggered=False,
-                                       **periodic_orbits_continuation_kwargs,)
+        if periodic_orbits_solutions_list:
+            for po in periodic_orbits_solutions_list:
+                new_bif.add_periodic_orbit(po,
+                                           extra_comparison_parameters=extra_comparison_parameters,
+                                           comparison_tol=comparison_tol,
+                                           max_number_bp_detected=max_number_bp_detected,
+                                           only_forward=only_forward,
+                                           maximum_period=maximum_period,
+                                           _user_triggered=False,
+                                           **periodic_orbits_continuation_kwargs,)
+        else:
+            if not initial_points:
+                # maybe should just warn here and return None
+                raise ValueError('Nothing found to compute.')
 
         self._logger.info(
             "Beginning computation of the periodic orbits from detected branching and period doubling points."
@@ -1742,6 +1782,9 @@ class BifurcationDiagram(object):
             :class:`~auto2.continuations.periodic_orbits.PeriodicOrbitContinuation` class for more details
             about the available AUTO parameters.
         """
+
+        if self._log_string is None:
+            self._define_log_format(continuation_kwargs)
 
         if _user_triggered:
             self._logger.info("Continuing manually PO provided by user")
@@ -3919,9 +3962,11 @@ class BifurcationDiagram(object):
             else:
                 cmap = plt.get_cmap("Reds")
                 solution_diagram_kwargs["plot_kwargs"]["cmap"] = cmap
-            branch_diagram_kwargs["plot_kwargs"]["color"] = cmap(0.5)
+            if "color" not in branch_diagram_kwargs["plot_kwargs"]:
+                branch_diagram_kwargs["plot_kwargs"]["color"] = cmap(0.5)
         else:
-            branch_diagram_kwargs["plot_kwargs"]["color"] = cmap(0.5)
+            if "color" not in branch_diagram_kwargs["plot_kwargs"]:
+                branch_diagram_kwargs["plot_kwargs"]["color"] = cmap(0.5)
             solution_diagram_kwargs["plot_kwargs"]["cmap"] = cmap
 
         self.po_branches[branch_number]["continuation"].plot_branch_parts(
@@ -4078,9 +4123,11 @@ class BifurcationDiagram(object):
             else:
                 cmap = plt.get_cmap("Reds")
                 solution_diagram_kwargs["plot_kwargs"]["cmap"] = cmap
-            branch_diagram_kwargs["plot_kwargs"]["color"] = cmap(0.5)
+            if "color" not in branch_diagram_kwargs["plot_kwargs"]:
+                branch_diagram_kwargs["plot_kwargs"]["color"] = cmap(0.5)
         else:
-            branch_diagram_kwargs["plot_kwargs"]["color"] = cmap(0.5)
+            if "color" not in branch_diagram_kwargs["plot_kwargs"]:
+                branch_diagram_kwargs["plot_kwargs"]["color"] = cmap(0.5)
             solution_diagram_kwargs["plot_kwargs"]["cmap"] = cmap
 
         self.po_branches[branch_number]["continuation"].plot_branch_parts(
@@ -4195,3 +4242,13 @@ class BifurcationDiagram(object):
     def phase_space_variables(self):
         """list(str): Return the variables of the phase space of the configured dynamical system."""
         return self.config_object.variables
+
+    def continuation_parameters(self):
+        """dict(list(str)): The continuation parameters of the bifurcation diagram."""
+        for _, branch in self.fp_branches.items():
+            return branch['continuation'].continuation_parameters
+
+        for _, branch in self.po_branches.items():
+            return branch['continuation'].continuation_parameters
+        else:
+            return None
