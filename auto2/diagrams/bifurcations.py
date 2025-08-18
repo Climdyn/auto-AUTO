@@ -766,10 +766,15 @@ class BifurcationDiagram(object):
     ):
         """Method which restarts the computation of the periodic orbits of a bifurcation diagram stopped previously at a certain level
         of the developing tree of the bifurcation diagram.
-        Each computation is done level by level in the the developing tree of the bifurcation diagram.
+        Each computation is done level by level in the developing tree of the bifurcation diagram.
         For instance, fixed point continuation is the level `0`, and the continuations of the Hopf bifurcations form
         the level `1`. Computation stops either if all the bifurcation points have been computed/continued, or if a specified level of the
         tree has been reached.
+
+        Warnings
+        --------
+        This method is not meant to change the continuation parameters. While changing them will work in AUTO, auto-AUTO might lose track of it.
+        To restart and change continuation parameters, please use the dedicated :meth:`restart_and_change_continuation_parameters` method.
 
         Parameters
         ----------
@@ -782,7 +787,7 @@ class BifurcationDiagram(object):
             Otherwise, the specified parameters are added to the two default ones.
             Default to `None`.
         comparison_tol: float or list(float) or ~numpy.ndarray(float), optional
-            The numerical tolerance of the parameters comparison done to check the continuations validity.
+            The numerical tolerance of the parameters comparison done to check the continuations' validity.
             If a single float is provided, assume the same tolerance for each parameter.
             If a list or a 1-D array is passed, it must have the dimension `2+len(extra_comparison_parameters)`, each value in the
             array corresponding to a parameter.
@@ -1482,6 +1487,91 @@ class BifurcationDiagram(object):
             else:
                 self.po_computed = True
                 logger.info("All possible periodic orbit branches have been computed.")
+
+    def restart_and_change_continuation_parameters(
+            self,
+            value,
+            path_name="",
+            end_level=10,
+            extra_comparison_parameters=None,
+            comparison_tol=2.0e-2,
+            remove_dubious_bp=True,
+            max_number_bp=None,
+            max_number_bp_detected=None,
+            backward_bp_continuation=False,
+            maximum_period=None,
+            restart=True,
+            **continuation_kwargs,
+    ):
+        """Method which restarts the computation of the fixed points and periodic orbits of an existing bifurcation diagram object (the parent) along a new continuation parameter.
+        Select all the solutions of the parent bifurcation diagram object at a certain value and continue them along the new continuation parameter, resulting into a
+        new parameter object.
+        Each computation is done level by level in the developing tree of the bifurcation diagram.
+        For instance, fixed point continuation is the level `0`, and the continuations of the Hopf bifurcations form
+        the level `1`. Computation stops either if all the bifurcation points have been computed/continued, or if a specified level of the
+        tree has been reached.
+
+        Warnings
+        --------
+        This method is not meant to continue an existing bifurcation diagram object but rather to change the continuation parameters and start a new one.
+        To restart an existing bifurcation diagram object, please use the dedicated :meth:`restart_periodic_orbits_diagram` method.
+
+        Parameters
+        ----------
+        value: float
+            Value for which the solutions of the parent bifurcation diagram object must be taken to restart and continue them along a new continuation parameter.
+        path_name: str, optional
+            The path where the |AUTO| and AUTO² files of the new bifurcation diagram will be stored.
+            Must be different from the parent bifurcation diagram object.
+            If not provided, a default path will be used.
+        end_level: int, optional
+            Level of the periodic orbits bifurcation diagram tree where the computation must stop.
+            Defaults to `10`.
+        extra_comparison_parameters: list(str or int) or None, optional
+            List of extra parameters labels or numbers to use in the various comparison to determine the validity of the continuations.
+            If `None`, only the defaults parameters will be considered, i.e. the continuation parameter and the `L2` norm.
+            Otherwise, the specified parameters are added to the two default ones.
+            Default to `None`.
+        comparison_tol: float or list(float) or ~numpy.ndarray(float), optional
+            The numerical tolerance of the parameters comparison done to check the continuations' validity.
+            If a single float is provided, assume the same tolerance for each parameter.
+            If a list or a 1-D array is passed, it must have the dimension `2+len(extra_comparison_parameters)`, each value in the
+            array corresponding to a parameter.
+            Default to `0.02`.
+        remove_dubious_bp: bool, optional
+            Do not compute continuation of branching points for which the stability information include HUGE numbers, indicating
+            a possible problem in the parent continuation.
+        max_number_bp: int or None, optional
+            Only continue the first `max_number_bp` branching points of the parent branches.
+            If `None`, continue all the branching points of the parent branches.
+            Defaults to `None`.
+        max_number_bp_detected: int or None, optional
+            Number of branching points detected during the continuations of periodic orbits,
+            before turning off the detection of branching points.
+            If `None`, the detection of branching points is never turned off.
+            Defaults to `None`.
+        backward_bp_continuation: bool, optional
+            Compute also the `backward` continuation at the branching points.
+            Defaults to `False`.
+        maximum_period: float or None, optional
+            Define a maximum period for the continuation of periodic orbits.
+            If this maximum period is reached for a given solution, the continuations will stop at the previous solution.
+            Disabled if `None`. Default to `None`.
+        restart: bool, optional
+            Whether to restart or simply start the computation of the periodic orbits bifurcation diagram.
+            Defaults to `True` which means restart.
+        continuation_kwargs: dict
+            Parameters to pass to AUTO for each continuation.
+            See the :meth:`~auto2.continuations.periodic_orbits.PeriodicOrbitContinuation.make_continuation` method of the
+            :class:`~auto2.continuations.periodic_orbits.PeriodicOrbitContinuation` class for more details
+            about the available AUTO parameters.
+
+        Returns
+        -------
+        BifurcationDiagram
+            A new bifurcation diagram object with the computed continuations along the new continuation parameter.
+        """
+        pass
 
     def add_periodic_orbit(
         self,
