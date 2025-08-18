@@ -171,12 +171,14 @@ class BifurcationDiagram(object):
             self._logger = logger
             self._log_string = False
         elif logger is None:
-            self._logger_string = f"{os.path.basename(os.path.abspath(self.path_name))}_{model_name}"
+            self._logger_string = (
+                f"{os.path.basename(os.path.abspath(self.path_name))}_{model_name}"
+            )
             self._log_string = None
             self._logger = logging.getLogger(f"{self._logger_string}_logger")
             self._logger.setLevel(logging.DEBUG)
         else:
-            raise ValueError('Provided logger not recognized.')
+            raise ValueError("Provided logger not recognized.")
 
         self.fp_branches = dict()
         self.po_branches = dict()
@@ -221,7 +223,7 @@ class BifurcationDiagram(object):
         if self._path_name is not None:
             return os.path.abspath(self._path_name)
         else:
-            return os.path.abspath('./')
+            return os.path.abspath("./")
 
     def set_path_name(self, path_name):
         """Set the path where the |AUTO| and AUTO² files must be or are stored.
@@ -240,17 +242,23 @@ class BifurcationDiagram(object):
             )
             self._path_name = None
 
-    def _define_log_format(self, continuation_kwargs, mode='w', encoding="utf-8"):
-        if 'ICP' in continuation_kwargs:
-            cont_param = str(continuation_kwargs['ICP'][0])
+    def _define_log_format(self, continuation_kwargs, mode="w", encoding="utf-8"):
+        if "ICP" in continuation_kwargs:
+            cont_param = str(continuation_kwargs["ICP"][0])
         else:
             cont_param = str(self.config_object.continuation_parameters[0])
-        self._log_string = f'{self.model_name} -- Cont. Param. {cont_param}'
+        self._log_string = f"{self.model_name} -- Cont. Param. {cont_param}"
         formatter = logging.Formatter(
-            "%(asctime)s %(levelname)s: Model " + self._log_string + " -- Module %(filename)s -- %(message)s"
+            "%(asctime)s %(levelname)s: Model "
+            + self._log_string
+            + " -- Module %(filename)s -- %(message)s"
         )
 
-        fh = logging.FileHandler(os.path.join(self.path_name, f"auto2_{self.model_name}_{cont_param}.log"), mode=mode, encoding=encoding)
+        fh = logging.FileHandler(
+            os.path.join(self.path_name, f"auto2_{self.model_name}_{cont_param}.log"),
+            mode=mode,
+            encoding=encoding,
+        )
         fh.setLevel(logging.DEBUG)
         fh.setFormatter(formatter)
         self._logger.addHandler(fh)
@@ -321,7 +329,9 @@ class BifurcationDiagram(object):
 
         if "NMX" not in continuation_kwargs:
             continuation_kwargs["NMX"] = 9000
-            self._logger.info("NMX parameters was not set, so setting it to 9000 points.")
+            self._logger.info(
+                "NMX parameters was not set, so setting it to 9000 points."
+            )
 
         self._logger.info("Continuing provided fixed points.")
         br_num = 1
@@ -632,7 +642,9 @@ class BifurcationDiagram(object):
 
         if "NMX" not in continuation_kwargs:
             continuation_kwargs["NMX"] = 9000
-            self._logger.info("NMX parameters was not set, so setting it to 9000 points.")
+            self._logger.info(
+                "NMX parameters was not set, so setting it to 9000 points."
+            )
 
         br_num = max(self.fp_branches.keys()) + 1
         self.level_reached = 0
@@ -909,11 +921,15 @@ class BifurcationDiagram(object):
                 self._logger.info(
                     "Restarting the computation of the periodic orbits from detected branching and period doubling points."
                 )
-                self._logger.info("Computing periodic orbits up to level " + str(end_level))
+                self._logger.info(
+                    "Computing periodic orbits up to level " + str(end_level)
+                )
 
             if "NMX" not in continuation_kwargs:
                 continuation_kwargs["NMX"] = 9000
-                self._logger.info("NMX parameters was not set, so setting it to 9000 points.")
+                self._logger.info(
+                    "NMX parameters was not set, so setting it to 9000 points."
+                )
 
             br_num = max(self.po_branches.keys()) + 1
 
@@ -1529,7 +1545,9 @@ class BifurcationDiagram(object):
                     )
                     break
 
-            self._logger.info("Finished computation at level " + str(self.level_reached))
+            self._logger.info(
+                "Finished computation at level " + str(self.level_reached)
+            )
             for bn in self.po_branches:
                 if (
                     bn not in self.po_branches_with_all_bp_computed
@@ -1538,23 +1556,25 @@ class BifurcationDiagram(object):
                     break
             else:
                 self.po_computed = True
-                self._logger.info("All possible periodic orbit branches have been computed.")
+                self._logger.info(
+                    "All possible periodic orbit branches have been computed."
+                )
 
     def restart_and_change_continuation_parameters(
-            self,
-            value,
-            path_name=None,
-            end_level=10,
-            extra_comparison_parameters=None,
-            comparison_tol=2.0e-2,
-            remove_dubious_bp=True,
-            max_number_bp=None,
-            max_number_bp_detected=None,
-            backward_bp_continuation=False,
-            maximum_period=None,
-            only_forward=False,
-            fixed_points_continuation_kwargs=None,
-            periodic_orbits_continuation_kwargs=None,
+        self,
+        value,
+        path_name=None,
+        end_level=10,
+        extra_comparison_parameters=None,
+        comparison_tol=2.0e-2,
+        remove_dubious_bp=True,
+        max_number_bp=None,
+        max_number_bp_detected=None,
+        backward_bp_continuation=False,
+        maximum_period=None,
+        only_forward=False,
+        fixed_points_continuation_kwargs=None,
+        periodic_orbits_continuation_kwargs=None,
     ):
         """Method which restarts the computation of the fixed points and periodic orbits of an existing bifurcation diagram object (the parent) along a new continuation parameter.
         Select all the solutions of the parent bifurcation diagram object at a certain value and continue them along the new continuation parameter, resulting into a
@@ -1635,27 +1655,43 @@ class BifurcationDiagram(object):
 
         old_param = self.continuation_parameters()[0]
         if "ICP" not in fixed_points_continuation_kwargs:
-            raise ValueError("No ICP continuation parameter provided. Can't continue along a new continuation parameter.")
+            raise ValueError(
+                "No ICP continuation parameter provided. Can't continue along a new continuation parameter."
+            )
         else:
             if fixed_points_continuation_kwargs["ICP"][0] == old_param:
-                raise ValueError('The provided continuation parameter is the same as the one of the parent bifurcation diagram object.')
+                raise ValueError(
+                    "The provided continuation parameter is the same as the one of the parent bifurcation diagram object."
+                )
             else:
                 new_param = fixed_points_continuation_kwargs["ICP"][0]
 
         if "ICP" not in periodic_orbits_continuation_kwargs:
-            self._logger.info('Periodic orbit continuation parameter not provided during the restart of a new bifurcation diagram along a new continuation parameter.'
-                              'Trying with the continuation parameter provided for the fixed points.')
-            periodic_orbits_continuation_kwargs['ICP'] = fixed_points_continuation_kwargs["ICP"].copy()
+            self._logger.info(
+                "Periodic orbit continuation parameter not provided during the restart of a new bifurcation diagram along a new continuation parameter."
+                "Trying with the continuation parameter provided for the fixed points."
+            )
+            periodic_orbits_continuation_kwargs["ICP"] = (
+                fixed_points_continuation_kwargs["ICP"].copy()
+            )
         else:
             if periodic_orbits_continuation_kwargs["ICP"][0] == old_param:
-                raise ValueError('The provided continuation parameter is the same as the one of the parent bifurcation diagram object.')
+                raise ValueError(
+                    "The provided continuation parameter is the same as the one of the parent bifurcation diagram object."
+                )
 
         if path_name is None:
-            path_name = f'./from_{self.config_object.continuation_parameters[0]}_{value:1.3f}_continuation_along_{new_param}'
+            path_name = f"./from_{self.config_object.continuation_parameters[0]}_{value:1.3f}_continuation_along_{new_param}"
 
         os.makedirs(path_name, exist_ok=True)
-        shutil.copy2(os.path.join(self.path_name, f'c.{self.model_name}'), os.path.abspath(path_name))
-        shutil.copy2(os.path.join(self.path_name, f'{self.model_name}.f90'), os.path.abspath(path_name))
+        shutil.copy2(
+            os.path.join(self.path_name, f"c.{self.model_name}"),
+            os.path.abspath(path_name),
+        )
+        shutil.copy2(
+            os.path.join(self.path_name, f"{self.model_name}.f90"),
+            os.path.abspath(path_name),
+        )
 
         new_bif = BifurcationDiagram(model_name=self.model_name, path_name=path_name)
 
@@ -1664,7 +1700,9 @@ class BifurcationDiagram(object):
 
         for branch_number in self.fp_branches:
             fp = self.fp_branches[branch_number]["continuation"]
-            solutions_list = fp.get_filtered_solutions_list(parameters=old_param, values=value)
+            solutions_list = fp.get_filtered_solutions_list(
+                parameters=old_param, values=value
+            )
             for sol in solutions_list:
                 params = sol.PAR.copy()
                 fixed_points_solutions_list.append(sol)
@@ -1674,46 +1712,52 @@ class BifurcationDiagram(object):
 
         for branch_number in self.po_branches:
             po = self.po_branches[branch_number]["continuation"]
-            periodic_orbits_solutions_list.extend(po.get_filtered_solutions_list(parameters=old_param, values=value))
+            periodic_orbits_solutions_list.extend(
+                po.get_filtered_solutions_list(parameters=old_param, values=value)
+            )
 
         initial_points = list()
 
         for fp in fixed_points_solutions_list:
-            ini_dict = {'parameters': {new_param: value},
-                        'initial_data': fp
-                        }
+            ini_dict = {"parameters": {new_param: value}, "initial_data": fp}
             initial_points.append(ini_dict)
 
         if initial_points:
-            new_bif.compute_fixed_points_diagram(initial_points=initial_points,
-                                                 extra_comparison_parameters=extra_comparison_parameters,
-                                                 comparison_tol=comparison_tol,
-                                                 **fixed_points_continuation_kwargs)
+            new_bif.compute_fixed_points_diagram(
+                initial_points=initial_points,
+                extra_comparison_parameters=extra_comparison_parameters,
+                comparison_tol=comparison_tol,
+                **fixed_points_continuation_kwargs,
+            )
 
-            new_bif.compute_periodic_orbits_diagram(end_level=1,
-                                                    extra_comparison_parameters=extra_comparison_parameters,
-                                                    comparison_tol=comparison_tol,
-                                                    remove_dubious_bp=remove_dubious_bp,
-                                                    max_number_bp=max_number_bp,
-                                                    max_number_bp_detected=max_number_bp_detected,
-                                                    backward_bp_continuation=backward_bp_continuation,
-                                                    maximum_period=maximum_period,
-                                                    **periodic_orbits_continuation_kwargs)
+            new_bif.compute_periodic_orbits_diagram(
+                end_level=1,
+                extra_comparison_parameters=extra_comparison_parameters,
+                comparison_tol=comparison_tol,
+                remove_dubious_bp=remove_dubious_bp,
+                max_number_bp=max_number_bp,
+                max_number_bp_detected=max_number_bp_detected,
+                backward_bp_continuation=backward_bp_continuation,
+                maximum_period=maximum_period,
+                **periodic_orbits_continuation_kwargs,
+            )
 
         if periodic_orbits_solutions_list:
             for po in periodic_orbits_solutions_list:
-                new_bif.add_periodic_orbit(po,
-                                           extra_comparison_parameters=extra_comparison_parameters,
-                                           comparison_tol=comparison_tol,
-                                           max_number_bp_detected=max_number_bp_detected,
-                                           only_forward=only_forward,
-                                           maximum_period=maximum_period,
-                                           _user_triggered=False,
-                                           **periodic_orbits_continuation_kwargs,)
+                new_bif.add_periodic_orbit(
+                    po,
+                    extra_comparison_parameters=extra_comparison_parameters,
+                    comparison_tol=comparison_tol,
+                    max_number_bp_detected=max_number_bp_detected,
+                    only_forward=only_forward,
+                    maximum_period=maximum_period,
+                    _user_triggered=False,
+                    **periodic_orbits_continuation_kwargs,
+                )
         else:
             if not initial_points:
                 # maybe should just warn here and return None
-                raise ValueError('Nothing found to compute.')
+                raise ValueError("Nothing found to compute.")
 
         self._logger.info(
             "Beginning computation of the periodic orbits from detected branching and period doubling points."
@@ -1793,7 +1837,9 @@ class BifurcationDiagram(object):
 
         if "NMX" not in continuation_kwargs:
             continuation_kwargs["NMX"] = 9000
-            self._logger.info("NMX parameters was not set, so setting it to 9000 points.")
+            self._logger.info(
+                "NMX parameters was not set, so setting it to 9000 points."
+            )
 
         if self.po_branches:
             br_num = max(self.po_branches.keys()) + 1
@@ -1901,7 +1947,9 @@ class BifurcationDiagram(object):
                     break
 
         if not found_solution:
-            self._logger.debug("Point is acceptable for continuation. Launching AUTO...")
+            self._logger.debug(
+                "Point is acceptable for continuation. Launching AUTO..."
+            )
             used_continuation_kwargs = deepcopy(continuation_kwargs)
 
             if "ICP" not in used_continuation_kwargs:
@@ -4246,9 +4294,9 @@ class BifurcationDiagram(object):
     def continuation_parameters(self):
         """dict(list(str)): The continuation parameters of the bifurcation diagram."""
         for _, branch in self.fp_branches.items():
-            return branch['continuation'].continuation_parameters
+            return branch["continuation"].continuation_parameters
 
         for _, branch in self.po_branches.items():
-            return branch['continuation'].continuation_parameters
+            return branch["continuation"].continuation_parameters
         else:
             return None
