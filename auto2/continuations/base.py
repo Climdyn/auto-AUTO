@@ -21,7 +21,7 @@ from contextlib import contextmanager
 import matplotlib.pyplot as plt
 import numpy as np
 
-logger = logging.getLogger("logger")
+logger = logging.getLogger("general_logger")
 
 try:
     auto_directory = os.environ["AUTO_DIR"]
@@ -70,7 +70,6 @@ class Continuation(ABC):
         The initial data used to start the continuation(s).
     auto_filename_suffix: str
         Suffix for the |AUTO| files used to save the continuation(s) data and parameters on disk.
-
     """
 
     def __init__(self, model_name, config_object, path_name=None):

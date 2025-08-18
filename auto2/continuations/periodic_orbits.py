@@ -15,7 +15,7 @@ import traceback
 import glob
 from copy import deepcopy
 
-logger = logging.getLogger("logger")
+logger = logging.getLogger("general_logger")
 
 auto_directory = os.environ["AUTO_DIR"]
 try:

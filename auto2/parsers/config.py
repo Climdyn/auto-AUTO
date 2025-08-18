@@ -12,7 +12,7 @@ import sys
 import logging
 
 # putting the logger creation here since this module is always called
-logger = logging.getLogger("logger")
+logger = logging.getLogger("general_logger")
 logger.setLevel(logging.DEBUG)
 
 formatter = logging.Formatter(
@@ -28,6 +28,14 @@ ch = logging.StreamHandler()
 ch.setLevel(logging.INFO)
 ch.setFormatter(formatter)
 logger.addHandler(ch)
+
+logger.info(
+    "Using auto-AUTO (AUTO² or auto2) -- An AUTO-07p automatic search algorithm codebase"
+)
+logger.info(
+    "Read AUTO-07p manual first before using it. Wishing you a happy continuation, have fun !"
+)
+logger.info('General logging messages related can be found in the file "auto2.log"')
 
 try:
     auto_directory = os.environ["AUTO_DIR"]

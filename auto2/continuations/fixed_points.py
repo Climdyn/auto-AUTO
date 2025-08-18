@@ -14,7 +14,7 @@ import logging
 import traceback
 import glob
 
-logger = logging.getLogger("logger")
+logger = logging.getLogger("general_logger")
 
 try:
     auto_directory = os.environ["AUTO_DIR"]
@@ -65,7 +65,6 @@ class FixedPointContinuation(Continuation):
         The initial data used to start the continuation(s).
     auto_filename_suffix: str
         Suffix for the |AUTO| files used to save the continuation(s) data and parameters on disk.
-
     """
 
     def __init__(self, model_name, config_object, path_name=None):
@@ -127,7 +126,7 @@ class FixedPointContinuation(Continuation):
             The maximum number of steps to be taken along the branch.
         IBR: int, optional
             This constant specifies the initial branch number BR that is used. The default `IBR=0` means that
-            that this number is determined automatically.
+            this number is determined automatically.
         ILP: int, optional
             * If `ILP=0`: No detection of folds. This is the recommended choice in the AUTO documentation.
 
