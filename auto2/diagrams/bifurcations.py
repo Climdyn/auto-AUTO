@@ -1638,8 +1638,8 @@ class BifurcationDiagram(object):
             Default to `False`.
         fixed_points_continuation_kwargs: dict
             Parameters to pass to AUTO for each fixed point continuation.
-            See the :meth:`~auto2.continuations.periodic_orbits.PeriodicOrbitContinuation.make_continuation` method of the
-            :class:`~auto2.continuations.periodic_orbits.PeriodicOrbitContinuation` class for more details
+            See the :meth:`~auto2.continuations.fixed_points.FixedPointContinuation.make_continuation` method of the
+            :class:`~auto2.continuations.fixed_points.FixedPointContinuation` class for more details
             about the available AUTO parameters.
         periodic_orbits_continuation_kwargs: dict
             Parameters to pass to AUTO for each periodic continuation.
