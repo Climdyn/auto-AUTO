@@ -131,4 +131,17 @@ The other defined parameters will be used by default by AUTO for each run, altho
 We refer the user to the |AUTO| documentation for more information on these parameters. Some information are also available in the present documentation,
 in the reference of the :meth:`.FixedPointContinuation.make_continuation` and :meth:`.PeriodicOrbitContinuation.make_continuation`.
 
+2. Scripting using auto-AUTO
+============================
+
+Once your AUTO files are finalized, you can turn to creating a Python script or a `Jupyter`_ notebook.
+Let's create a Jupyter notebook called :code:`lrz.ipynb`. In general, you will start this script by loading some modules:
+
+.. image:: figures/import_numpy.png
+
+
+
+
+.. _Jupyter: https://jupyter.org/
+
 
