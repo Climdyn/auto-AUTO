@@ -255,8 +255,14 @@ where :code:`params` is the parameters dictionary defined previously. Once this 
 
 .. code-block:: python
 
-    b.compute_fixed_points_diagram(initial_points,extra_comparison_parameters=['x', 'y'], comparison_tol=[1.e-1] * 3,
-                               ICP=['rho'], NMX=300, UZSTOP={'rho':[-10.,40.]}, UZR={'rho': list(np.arange(2, 30, 2.5))}, NPR=0)
+    b.compute_fixed_points_diagram(initial_points,
+                                   extra_comparison_parameters=['x', 'y'],
+                                   comparison_tol=[1.e-1] * 3,
+                                   ICP=['rho'],
+                                   NMX=300,
+                                   UZSTOP={'rho':[-10.,40.]},
+                                   UZR={'rho': list(np.arange(2, 30, 2.5))},
+                                   NPR=0)
 
 In addition to the list of initial points, the provided argument can be described as follow:
 
@@ -398,13 +404,75 @@ These plots are interesting because we see that branch 3 emanating initially fro
 the fixed point at the origin with itself. This periodic orbit is thus finally identifying with an *homoclinic orbit*, a point sometimes called an *homoclinic bifurcation* which can lead to
 chaotic behaviors in dynamical systems.
 
-See Barrio et al. 2012 and references therein for more information about these phenomena:
+See Barrio et al. (2012) and references therein for more information about these phenomena:
 
 * Barrio, R., Shilnikov, A., & Shilnikov, L. (2012). Kneadings, symbolic dynamics and painting Lorenz chaos.
   *International Journal of Bifurcation and Chaos*, **22** (04), 1230016. `doi:10.1142/S0218127412300169 <https://doi.org/10.1142/S0218127412300169>`_.
 
 2.4 Changing the continuation parameter and restarting
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Finally, once you have computed the bifurcation diagram along :math:`\rho`, you might want to compute it also along other parameters.
+To do this, you could restart the whole procedure detailed in sections 2.1, 2.2 and 2.3, just changing the continuation parameter.
+However, auto-AUTO also provide another possibility: starting this new bifurcation diagram from all the solutions already found
+for a given value of the continuation parameter of an already existing bifurcation diagram.
+
+For example, here, we are going to start a new bifurcation diagram along the parameter :math:`\sigma` from all the solutions found previously
+at :math:`\rho=24.5`. This is very easy to do in auto-AUTO thanks to the :meth:`.restart_and_change_continuation_parameters` method:
+
+.. code-block:: python
+
+    # for the sake of clarity, putting the parameters that we will provide
+    # to AUTO for this new bifurcation diagram in a dictionary
+    continuation_kwargs = {'ICP':['sigma'],
+                           'NMX': 300,
+                           'UZSTOP': {'sigma':[0.5,50.]},
+                           'UZR': {'sigma': [3.67, 3.7]+list(np.arange(2.5, 45., 2.5))}}
+
+    # starting a new bifurcation diagram from the existing b object
+    new_b = b.restart_and_change_continuation_parameters(value=24.5,
+                                                         end_level=2,
+                                                         extra_comparison_parameters=['x', 'y'],
+                                                         comparison_tol=[1.e-1] * 3,
+                                                         fixed_points_continuation_kwargs=continuation_kwargs,
+                                                         periodic_orbits_continuation_kwargs=continuation_kwargs)
+
+This create a new bifurcation diagram object and perform automatically all the required continuations for you.
+Changing the continuation parameter is often interesting when studying the dynamics of systems, as it gives
+more insight into what's happening and allows sometimes one to find new structures.
+
+Now the results can be plotted again:
+
+.. code-block:: python
+
+    new_b.plot_diagram_and_solutions(20., solutions_variables=(0, 1), fixed_points_diagram_kwargs={'legend': True},
+                                    periodic_orbits_diagram_kwargs={'cmap': 'gist_ncar'})
+
+
+.. image:: figures/branches_solutions_plot_sigma.png
+
+First, we can see from these plot that the three points (branches BR 1, BR 2 and BR 3) do not change when :math:`\sigma` is varied.
+Then, as for the bifurcation diagram along :math:`\rho`, the two periodic orbits (BR 4 and BR 5) connect to the fixed point at
+the origin of the phase space, with for each orbit two
+different homoclinic bifurcations taking place, one close to :math:`\sigma\approx 3`, and the other close to :math:`\sigma\approx 48`.
+This can actually easily be seen by plotting the solutions of
+one of the two branches in 3D with the :meth:`.plot_single_po_branch_and_solutions_3D` method:
+
+.. code-block:: python
+
+    new_b.plot_single_po_branch_and_solutions_3D(4, cmap='coolwarm')
+
+.. image:: figures/branch_solutions_plot_3D_sigma.png
+
+This is consistent with the regime diagram shown in Figure 3 of Barrio et al. (2012) (see above).
+
+.. note::
+
+    A regime diagram is a bifurcation diagram showing the evolution of bifurcation points along two continuation parameters.
+    This kind of diagram can also possess new kind of bifurcations, called co-dimension 2 bifurcations
+    (see the books proposed at the beginning of this userguide for more information).
+    Regime diagram generation is not yet supported by auto-AUTO, but is mentioned on the wishlist for future developments.
+
 
 .. _Jupyter: https://jupyter.org/
 .. _Numba: https://numba.pydata.org/
