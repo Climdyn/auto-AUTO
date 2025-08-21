@@ -143,7 +143,6 @@ In general, you will start this script by loading some modules:
     import numpy as np
     from numba import njit
     from scipy.optimize import root
-    from scipy.integrate import solve_ivp
 
 that will be useful later, and then load the :class:`.BifurcationDiagram` class:
 
@@ -346,7 +345,7 @@ Here is the result:
 .. image:: figures/branches_plot.png
 
 where we can see that three new (periodic orbits) branches have appeared. The last one is not important here (spurious result ?), but the branches 3 and 4 are interesting.
-They emanate from the Hopf bifurcations and their :math:`L_2` norms then tend to zero, i.e. the same value as the fixed point at the origin of the phase space.
+They emanate from the Hopf bifurcations and their :math:`L_2` norm then tend to zero, i.e. the same value as the fixed point at the origin of the phase space.
 On this plot of :math:`\rho` versus the :math:`L_2` norm, they look similar, but actually a 3D plot involving the :math:`x` phase space variable shows that they are not to be confused:
 
 .. code-block::
@@ -357,7 +356,52 @@ On this plot of :math:`\rho` versus the :math:`L_2` norm, they look similar, but
 .. image:: figures/branches_plot_3D.png
 
 What we have seen so far are plots of the branches of solutions as a function of the continuation parameter, but it would be interesting to see the solutions
-embedded in the phase space where they live. To do that, one can use the ...
+embedded in the phase space where they live. To do that, one can use the :meth:`.plot_diagram_and_solutions`:
+
+.. code-block:: python
+
+    b.plot_diagram_and_solutions(solutions_parameter_value=22., solutions_variables=(0, 1), fixed_points_diagram_kwargs={'legend': True},
+                             periodic_orbits_diagram_kwargs={'cmap': 'gist_ncar'});
+
+This method will plot the bifurcation diagram in 2D as before, and its (mandatory) :code:`solutions_parameter_value` argument is used to determine the value of the continuation parameter
+for which the solutions will be plotted a 2D section of the phase space on another plot:
+
+.. image:: figures/solutions_plot.png
+
+Here we see that the value :math:`\rho=22` has been provided, resulting in a dashed vertical black line on the bifurcation diagram, and fixed points (crosses) and periodic orbits (solid curves)
+of the same color as the corresponding branches appears in the phase space plot below.
+
+.. note::
+
+    For these solutions to appear in the phase space, they must have been computed and stored in the first place.
+    Here, the value :math:`\rho=22` appears in the :code:`UZR={'rho': list(np.arange(2, 30, 2.5))}` list provided initially to
+    auto-AUTO. Because of this, along any continuation, at :math:`\rho=22` a solution point is saved, and it can be picked up
+    by auto-AUTO to draw it in the phase space plot. If this value is not present in the :code:`UZR` argument, no solution would
+    appear in the phase space plot.
+
+So, this method is powerful to plot solutions at a given value of the continuation parameter, but what if we want to show the
+evolution of the solutions along a particular branch. For this, auto-AUTO provides the :meth:`.plot_single_po_branch_and_solutions` method,
+to which we must provide the number of the branch that we want to plot:
+
+.. code-block:: python
+
+    # plotting branch 3
+    b.plot_single_po_branch_and_solutions(3, cmap='Blues_r')
+
+It results into a plot of all the periodic orbits of the selected branches:
+
+.. image:: figures/branch_solutions_plot.png
+
+where the user defined solution points are shown by colored dots on the bifurcation diagram, and the solutions corresponding to those dots are plotted on the phase space plot with
+the same color as the dots. The colors being used are specified by the :code:`cmap` argument.
+These plots are interesting because we see that branch 3 emanating initially from a Hopf bifurcation is - as :math:`\rho` decreases - getting closer and closer to an orbit connecting
+the fixed point at the origin with itself. This periodic orbit is thus finally identifying with an *homoclinic orbit*, a point sometimes called an *homoclinic bifurcation* which can lead to
+chaotic behaviors in dynamical systems.
+
+See Barrio et al. 2012 and references therein for more information about these phenomena:
+
+* Barrio, R., Shilnikov, A., & Shilnikov, L. (2012). Kneadings, symbolic dynamics and painting Lorenz chaos.
+  *International Journal of Bifurcation and Chaos*, **22** (04), 1230016. `doi:10.1142/S0218127412300169 <https://doi.org/10.1142/S0218127412300169>`_.
 
 2.4 Changing the continuation parameter and restarting
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
