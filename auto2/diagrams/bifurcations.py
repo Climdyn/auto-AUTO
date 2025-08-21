@@ -271,7 +271,12 @@ class BifurcationDiagram(object):
         self._logger.addHandler(ch)
 
         self._logger.info(
-            f"Starting a new bifurcation diagram along {cont_param}."
+            f"Starting a new bifurcation diagram along parameter {cont_param}."
+        )
+        self._logger.info(
+            f"Files will be loaded from and saved in the folder {self.path_name}."
+        )
+        self._logger.info(
             f"Logs related to this diagram can be found in the {full_fn} file."
         )
 
@@ -321,8 +326,7 @@ class BifurcationDiagram(object):
             self._define_log_format(continuation_kwargs)
 
         self._logger.info(
-            "Starting the computation of the fixed points bifurcation diagram with model "
-            + str(self.model_name)
+            f"Starting the computation of the fixed points bifurcation diagram with model {self.model_name}."
         )
 
         if self.fp_computed:
@@ -635,10 +639,9 @@ class BifurcationDiagram(object):
             self._define_log_format(continuation_kwargs)
 
         self._logger.info(
-            "Starting the computation of the periodic orbits bifurcation diagram with model "
-            + str(self.model_name)
+            f"Starting the computation of the periodic orbits bifurcation diagram with model {self.model_name}."
         )
-        self._logger.info("Computing periodic orbits up to level " + str(end_level))
+        self._logger.info(f"Computing periodic orbits up to level {end_level}")
 
         if not self.fp_computed:
             self._logger.warning(
@@ -929,7 +932,7 @@ class BifurcationDiagram(object):
                     "Restarting the computation of the periodic orbits from detected branching and period doubling points."
                 )
                 self._logger.info(
-                    "Computing periodic orbits up to level " + str(end_level)
+                    f"Computing periodic orbits up to level {end_level}"
                 )
 
             if "NMX" not in continuation_kwargs:
@@ -1675,7 +1678,8 @@ class BifurcationDiagram(object):
 
         if "ICP" not in periodic_orbits_continuation_kwargs:
             self._logger.info(
-                "Periodic orbit continuation parameter not provided during the restart of a new bifurcation diagram along a new continuation parameter."
+                "Periodic orbit continuation parameter not provided during the restart of a new bifurcation diagram "
+                "along a new continuation parameter. "
                 "Trying with the continuation parameter provided for the fixed points."
             )
             periodic_orbits_continuation_kwargs["ICP"] = (
