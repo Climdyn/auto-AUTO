@@ -254,8 +254,10 @@ class BifurcationDiagram(object):
             + " -- Module %(filename)s -- %(message)s"
         )
 
+        file_name = f"auto2_{self.model_name}_{cont_param}.log"
+        full_fn = os.path.join(self.path_name, file_name)
         fh = logging.FileHandler(
-            os.path.join(self.path_name, f"auto2_{self.model_name}_{cont_param}.log"),
+            full_fn,
             mode=mode,
             encoding=encoding,
         )
@@ -267,6 +269,11 @@ class BifurcationDiagram(object):
         ch.setLevel(logging.INFO)
         ch.setFormatter(formatter)
         self._logger.addHandler(ch)
+
+        self._logger.info(
+            f"Starting a new bifurcation diagram along {cont_param}."
+            f"Logs related to this diagram can be found in the {full_fn} file."
+        )
 
     def compute_fixed_points_diagram(
         self,
