@@ -931,9 +931,7 @@ class BifurcationDiagram(object):
                 self._logger.info(
                     "Restarting the computation of the periodic orbits from detected branching and period doubling points."
                 )
-                self._logger.info(
-                    f"Computing periodic orbits up to level {end_level}"
-                )
+                self._logger.info(f"Computing periodic orbits up to level {end_level}")
 
             if "NMX" not in continuation_kwargs:
                 continuation_kwargs["NMX"] = 9000
