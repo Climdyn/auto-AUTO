@@ -299,6 +299,65 @@ Interestingly, AUTO detected additional bifurcation points in the orange branch,
 2.3 Computing the bifurcation diagram of periodic orbits using auto-AUTO
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+The computation of the periodic orbits emanating from the Hopf bifurcations found along the continuations of the fixed points can be processed automatically
+by auto-AUTO. To do so, one must use the :meth:`.compute_periodic_orbits_diagram` method of the :class:`BifurcationDiagram` object were the fixed points
+bifurcation diagram has already been computed:
+
+.. code-block:: python
+
+    b.compute_periodic_orbits_diagram(
+        end_level=3,
+        extra_comparison_parameters=['x', 'y'],
+        max_number_bp=None,
+        comparison_tol=[1.e-3, 1.e-3, 1.e-3],
+        ICP=['rho']
+    )
+
+where all the arguments have been described in the previous section, except :code:`end_level`, which specifies the maximum level that auto-AUTO can reach in the bifurcation tree.
+Indeed, bifurcation diagram can be seen as tree of parents and offspring solutions. auto-AUTO computes all the solutions at a given level and then is presented with the opportunity
+to stop at that level. The :code:`end_level` is thus a stopping condition that ensures that the computations stops at a given level (bifurcation tree can be infinite).
+
+
+In the present case, the bifurcation tree stops at the second level. The messages provided by auto-AUTO indicate that no new bifurcation points were found:
+
+.. image:: figures/stops_at_level_3.png
+
+and the stopping condition :code:`end_level=3` that we provided was a bit superfluous.
+
+.. note::
+
+    Note also that the arguments provided to the method :meth:`compute_fixed_points_diagram` call above and not modified when calling :meth:`compute_periodic_orbits_diagram`
+    are reused by this latter call. It means for example that the computation of the periodic orbits above was done with the AUTO parameters
+    :code:`NMX=300, UZSTOP={'rho':[-10.,40.]}, UZR={'rho': list(np.arange(2, 30, 2.5))}, NPR=0`.
+
+Now that we have computed both bifurcation diagrams (fixed points and periodic orbits), we can plot on the same figure the results:
+
+.. code-block::
+
+    ax = b.plot_fixed_points_diagram()
+    b.plot_periodic_orbits_diagram(ax=ax, cmap='gist_ncar')
+
+were we use the property that every plotting function in auto-AUTO returns the |Matplotlib| axis on which the plotting was done.
+Note also that to plot the periodic orbits branches, we use a color schemes based on the :code:`cmap` parameter. This is done
+to better differentiate the plotting of the fixed points branches (which uses the Tableau color) and the periodic orbits branches.
+
+Here is the result:
+
+.. image:: figures/branches_plot.png
+
+where we can see that three new (periodic orbits) branches have appeared. The last one is not important here (spurious result ?), but the branches 3 and 4 are interesting.
+They emanate from the Hopf bifurcations and their :math:`L_2` norms then tend to zero, i.e. the same value as the fixed point at the origin of the phase space.
+On this plot of :math:`\rho` versus the :math:`L_2` norm, they look similar, but actually a 3D plot involving the :math:`x` phase space variable shows that they are not to be confused:
+
+.. code-block::
+
+    ax = b.plot_fixed_points_diagram_3D()
+    b.plot_periodic_orbits_diagram_3D(ax=ax, cmap='gist_ncar')
+
+.. image:: figures/branches_plot_3D.png
+
+What we have seen so far are plots of the branches of solutions as a function of the continuation parameter, but it would be interesting to see the solutions
+embedded in the phase space where they live. To do that, one can use the ...
 
 2.4 Changing the continuation parameter and restarting
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
