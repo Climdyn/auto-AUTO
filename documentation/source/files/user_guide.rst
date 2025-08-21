@@ -473,6 +473,10 @@ This is consistent with the regime diagram shown in Figure 3 of Barrio et al. (2
     (see the books proposed at the beginning of this userguide for more information).
     Regime diagram generation is not yet supported by auto-AUTO, but is mentioned on the wishlist for future developments.
 
+.. note::
+
+    A Jupyter notebook with the code of this User Guide is available in the :code:`./notebooks/auto-demos/lrz` folder of
+    the auto-AUTO code repository. Many other examples are available in the :code:`./notebooks` folder.
 
 .. _Jupyter: https://jupyter.org/
 .. _Numba: https://numba.pydata.org/
