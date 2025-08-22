@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>auto2.parsers.config &mdash; auto-AUTO v0.5.3 documentation</title>
+  <title>auto2.parsers.config &mdash; auto-AUTO v0.5.4 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
 
@@ -14,7 +14,7 @@
   
         <script src="../../../_static/jquery.js?v=5d32c60e"></script>
         <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../../../_static/documentation_options.js?v=d19b0847"></script>
+        <script src="../../../_static/documentation_options.js?v=1a12988a"></script>
         <script src="../../../_static/doctools.js?v=9a2dae69"></script>
         <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/js/theme.js"></script>
@@ -34,7 +34,7 @@
             auto-AUTO
           </a>
               <div class="version">
-                v0.5.3
+                v0.5.4
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
@@ -77,8 +77,7 @@
            <div itemprop="articleBody">
              
   <h1>Source code for auto2.parsers.config</h1><div class="highlight"><pre>
-<span></span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
 
 <span class="sd">Configuration object definition</span>
 <span class="sd">===============================</span>
@@ -92,12 +91,14 @@
 <span class="kn">import</span> <span class="nn">logging</span>
 
 <span class="c1"># putting the logger creation here since this module is always called</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;logger&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;general_logger&quot;</span><span class="p">)</span>
 <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
 
-<span class="n">formatter</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> </span><span class="si">%(levelname)s</span><span class="s1">: Module </span><span class="si">%(filename)s</span><span class="s1"> -- </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="n">formatter</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span>
+    <span class="s2">&quot;</span><span class="si">%(asctime)s</span><span class="s2"> </span><span class="si">%(levelname)s</span><span class="s2">: Module </span><span class="si">%(filename)s</span><span class="s2"> -- </span><span class="si">%(message)s</span><span class="s2">&quot;</span>
+<span class="p">)</span>
 
-<span class="n">fh</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="s1">&#39;auto2.log&#39;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+<span class="n">fh</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="s2">&quot;auto2.log&quot;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
 <span class="n">fh</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
 <span class="n">fh</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">formatter</span><span class="p">)</span>
 <span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
@@ -107,17 +108,25 @@
 <span class="n">ch</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">formatter</span><span class="p">)</span>
 <span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">ch</span><span class="p">)</span>
 
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+    <span class="s2">&quot;Using auto-AUTO (AUTO² or auto2) -- An AUTO-07p automatic search algorithm codebase&quot;</span>
+<span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+    <span class="s2">&quot;Read AUTO-07p manual first before using it. Wishing you a happy continuation, have fun !&quot;</span>
+<span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;General logging messages related can be found in the file &quot;auto2.log&quot;&#39;</span><span class="p">)</span>
+
 <span class="k">try</span><span class="p">:</span>
-    <span class="n">auto_directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;AUTO_DIR&#39;</span><span class="p">]</span>
+    <span class="n">auto_directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;AUTO_DIR&quot;</span><span class="p">]</span>
 
     <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">auto_directory</span> <span class="ow">in</span> <span class="n">path</span><span class="p">:</span>
             <span class="k">break</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># sys.path.append(auto_directory + &#39;/python/auto&#39;)</span>
-        <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">auto_directory</span> <span class="o">+</span> <span class="s1">&#39;/python&#39;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">auto_directory</span> <span class="o">+</span> <span class="s2">&quot;/python&quot;</span><span class="p">)</span>
 <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Unable to find auto directory environment variable.&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Unable to find auto directory environment variable.&quot;</span><span class="p">)</span>
 
 <span class="kn">import</span> <span class="nn">auto.parseC</span> <span class="k">as</span> <span class="nn">parseC</span>
 
@@ -161,59 +170,58 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">variables</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;list(str): List the names of the variables of the dynamical system.&quot;&quot;&quot;</span>
-        <span class="n">variables_list</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;unames&#39;</span><span class="p">]</span>
+        <span class="n">variables_list</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;unames&quot;</span><span class="p">]</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">v</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">variables_list</span><span class="p">]</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;list(str): List the names of the available continuations parameters.&quot;&quot;&quot;</span>
-        <span class="n">parameters_list</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;parnames&#39;</span><span class="p">]</span>
+        <span class="n">parameters_list</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;parnames&quot;</span><span class="p">]</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">parameters_list</span><span class="p">]</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">variables_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;dict(str): Dictionary of the names of the variables of the dynamical system,</span>
 <span class="sd">        indexed by their AUTO number.&quot;&quot;&quot;</span>
-        <span class="n">variables_list</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;unames&#39;</span><span class="p">]</span>
+        <span class="n">variables_list</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;unames&quot;</span><span class="p">]</span>
         <span class="k">return</span> <span class="p">{</span><span class="n">n</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">variables_list</span><span class="p">}</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">parameters_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;dict(str): Dictionary of the names of the variables of the dynamical system,</span>
 <span class="sd">        indexed by their AUTO number.&quot;&quot;&quot;</span>
-        <span class="n">parameters_list</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;parnames&#39;</span><span class="p">]</span>
+        <span class="n">parameters_list</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;parnames&quot;</span><span class="p">]</span>
         <span class="k">return</span> <span class="p">{</span><span class="n">n</span><span class="p">:</span> <span class="n">p</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">parameters_list</span><span class="p">}</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">parnames</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;list: Link to AUTO parnames structure.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;parnames&#39;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;parnames&quot;</span><span class="p">]</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">unames</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;list: Link to AUTO unames structure.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;unames&#39;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;unames&quot;</span><span class="p">]</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">ndim</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;int: Dimension of the dynamical system.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;NDIM&#39;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;NDIM&quot;</span><span class="p">]</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">continuation_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;list(str): Parameters used by default for continuation.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;ICP&#39;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;ICP&quot;</span><span class="p">]</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">parameters_solution_points</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;list: List of user defined points parameters values.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;UZR&#39;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;UZR&quot;</span><span class="p">]</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">parameters_bounds</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;list: List of user defined parameters bound values.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;UZSTOP&#39;</span><span class="p">]</span></div>
-
+        <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;UZSTOP&quot;</span><span class="p">]</span></div>
 
 </pre></div>
 

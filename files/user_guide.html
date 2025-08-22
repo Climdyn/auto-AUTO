@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>User Guide &mdash; auto-AUTO v0.5.3 documentation</title>
+  <title>User Guide &mdash; auto-AUTO v0.5.4 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
 
@@ -15,9 +15,10 @@
   
         <script src="../_static/jquery.js?v=5d32c60e"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../_static/documentation_options.js?v=d19b0847"></script>
+        <script src="../_static/documentation_options.js?v=1a12988a"></script>
         <script src="../_static/doctools.js?v=9a2dae69"></script>
         <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/latest.js?config=TeX-MML-AM_CHTML"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -37,7 +38,7 @@
             auto-AUTO
           </a>
               <div class="version">
-                v0.5.3
+                v0.5.4
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -51,7 +52,17 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="general_information.html">General Information</a></li>
 <li class="toctree-l1"><a class="reference internal" href="rationale.html">Rationale behind auto-AUTO</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">User Guide</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">User Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#setting-up-the-auto-model-files">1. Setting up the AUTO model files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#scripting-using-auto-auto">2. Scripting using auto-AUTO</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#finding-initial-solutions-of-the-model">2.1 Finding initial solutions of the model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#computing-the-bifurcation-diagram-of-fixed-points-using-auto-auto">2.2 Computing the bifurcation diagram of fixed points using auto-AUTO</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#computing-the-bifurcation-diagram-of-periodic-orbits-using-auto-auto">2.3 Computing the bifurcation diagram of periodic orbits using auto-AUTO</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#changing-the-continuation-parameter-and-restarting">2.4 Changing the continuation parameter and restarting</a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
 </ul>
 
@@ -81,7 +92,403 @@
              
   <section id="user-guide">
 <h1>User Guide<a class="headerlink" href="#user-guide" title="Link to this heading"></a></h1>
-<p>Coming soon…</p>
+<p>The general way to use auto-AUTO (or AUTO²) can be decomposed as follow:</p>
+<ol class="arabic simple">
+<li><p>Writing the AUTO Fortran and configuration files describing the model to be studied. For this, we refer the user to the <span class="raw-html"><a href="https://github.com/auto-07p/auto-07p">AUTO</a></span> manual, although we will provide here an example.</p></li>
+<li><p>Scripting the exploration of the model bifurcation diagrams along different parameters, and representing them on plots.</p></li>
+</ol>
+<p>The second part requires in general the user to have some prerequisite knowledge of dynamical system theory and bifurcation theory.
+Along with the <span class="raw-html"><a href="https://github.com/auto-07p/auto-07p">AUTO</a></span> manual, these two books might help the user to get acquainted with theses theories:</p>
+<ul class="simple">
+<li><p>Strogatz, S. H. (2024). Nonlinear dynamics and chaos: with applications to physics, biology, chemistry, and engineering. Chapman and Hall/CRC.</p></li>
+<li><p>Kuznetsov, Y. A. (1998). Elements of applied bifurcation theory. New York, NY: Springer New York.</p></li>
+</ul>
+<p>Nevertheless, the present User Guide will provide you with a step-by-step detailed example, starting with the <span class="raw-html"><a href="https://github.com/auto-07p/auto-07p">AUTO</a></span> setup.</p>
+<section id="setting-up-the-auto-model-files">
+<h2>1. Setting up the AUTO model files<a class="headerlink" href="#setting-up-the-auto-model-files" title="Link to this heading"></a></h2>
+<p>Running a bifurcation analysis of a model with AUTO requires two different configuration files:</p>
+<ol class="arabic simple">
+<li><p>A Fortran (90) file containing the tendencies of the model, coded as a fortran subroutine. Other procedure might also need to be implemented, depending on the complexity of the problem.</p></li>
+<li><p>A <code class="code docutils literal notranslate"><span class="pre">c.</span></code> configuration file, written with a Python-like synthax, and specifying the AUTO parameters of the runs (not to be confused with the model parameters).</p></li>
+</ol>
+<p>In the following, we shall use the celebrated Lorenz 63 (L63) model as an example to details how auto-AUTO works:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\dot x &amp; = \sigma (y-x) \\
+\dot y &amp; = x \rho - y - x z \\
+\dot z &amp; = x y - \beta z\end{split}\]</div>
+<p>Let’s start by defining the Fortran tendencies file. This file should include a subroutine <code class="code docutils literal notranslate"><span class="pre">FUNC</span></code>.
+Here is such a subroutine for the L63 model:</p>
+<div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span><span class="k">SUBROUTINE </span><span class="n">FUNC</span><span class="p">(</span><span class="n">NDIM</span><span class="p">,</span><span class="n">U</span><span class="p">,</span><span class="n">ICP</span><span class="p">,</span><span class="n">PAR</span><span class="p">,</span><span class="n">IJAC</span><span class="p">,</span><span class="n">F</span><span class="p">,</span><span class="n">DFDU</span><span class="p">,</span><span class="n">DFDP</span><span class="p">)</span>
+
+<span class="k">IMPLICIT NONE</span>
+<span class="kt">INTEGER</span><span class="p">,</span><span class="w"> </span><span class="k">INTENT</span><span class="p">(</span><span class="n">IN</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">NDIM</span><span class="p">,</span><span class="w"> </span><span class="n">ICP</span><span class="p">(</span><span class="o">*</span><span class="p">),</span><span class="w"> </span><span class="n">IJAC</span>
+<span class="kt">DOUBLE PRECISION</span><span class="p">,</span><span class="w"> </span><span class="k">INTENT</span><span class="p">(</span><span class="n">IN</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">U</span><span class="p">(</span><span class="n">NDIM</span><span class="p">),</span><span class="w"> </span><span class="n">PAR</span><span class="p">(</span><span class="o">*</span><span class="p">)</span>
+<span class="kt">DOUBLE PRECISION</span><span class="p">,</span><span class="w"> </span><span class="k">INTENT</span><span class="p">(</span><span class="n">OUT</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">F</span><span class="p">(</span><span class="n">NDIM</span><span class="p">)</span>
+<span class="kt">DOUBLE PRECISION</span><span class="p">,</span><span class="w"> </span><span class="k">INTENT</span><span class="p">(</span><span class="n">INOUT</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">DFDU</span><span class="p">(</span><span class="n">NDIM</span><span class="p">,</span><span class="n">NDIM</span><span class="p">),</span><span class="w"> </span><span class="n">DFDP</span><span class="p">(</span><span class="n">NDIM</span><span class="p">,</span><span class="o">*</span><span class="p">)</span>
+
+<span class="kt">DOUBLE PRECISION </span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">y</span><span class="p">,</span><span class="w"> </span><span class="n">z</span><span class="p">,</span><span class="w"> </span><span class="n">rho</span><span class="p">,</span><span class="w"> </span><span class="n">beta</span><span class="p">,</span><span class="w"> </span><span class="n">sigma</span>
+
+<span class="n">x</span><span class="o">=</span><span class="n">U</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">y</span><span class="o">=</span><span class="n">U</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">z</span><span class="o">=</span><span class="n">U</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+
+<span class="n">rho</span><span class="o">=</span><span class="n">PAR</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">beta</span><span class="o">=</span><span class="n">PAR</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">sigma</span><span class="o">=</span><span class="n">PAR</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+
+<span class="n">F</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">=</span><span class="w"> </span><span class="n">sigma</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="n">y</span><span class="o">-</span><span class="n">x</span><span class="p">)</span>
+<span class="n">F</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">=</span><span class="w"> </span><span class="n">rho</span><span class="o">*</span><span class="n">x</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">x</span><span class="o">*</span><span class="n">z</span>
+<span class="n">F</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="o">=</span><span class="w"> </span><span class="n">x</span><span class="o">*</span><span class="n">y</span><span class="w"> </span><span class="o">-</span><span class="w">  </span><span class="n">beta</span><span class="o">*</span><span class="n">z</span>
+
+<span class="k">END SUBROUTINE </span><span class="n">FUNC</span>
+</pre></div>
+</div>
+<p>We see that this subroutine template has several input arguments, but actually only the <code class="code docutils literal notranslate"><span class="pre">U</span></code> and <code class="code docutils literal notranslate"><span class="pre">PAR</span></code> are used in the code.
+The other arguments just correspond to the subroutine <code class="code docutils literal notranslate"><span class="pre">FUNC</span></code> signature defined by AUTO, but are not used here.
+<code class="code docutils literal notranslate"><span class="pre">U</span></code> is the state vector of the model <span class="math notranslate nohighlight">\(\vec U = (x,y,z)\)</span>, containing the variables defining the <em>phase space</em> of the system.
+<code class="code docutils literal notranslate"><span class="pre">PAR</span></code> is a parameter vector whose dimension is fixed by AUTO to 36, each component corresponding to a
+parameter of the model. Here for example <code class="code docutils literal notranslate"><span class="pre">PAR(1)</span></code> is <span class="math notranslate nohighlight">\(\rho\)</span>, <code class="code docutils literal notranslate"><span class="pre">PAR(2)</span></code> is <span class="math notranslate nohighlight">\(\beta\)</span>, and <code class="code docutils literal notranslate"><span class="pre">PAR(3)</span></code> is <span class="math notranslate nohighlight">\(\sigma\)</span>.</p>
+<p>In addition to <code class="code docutils literal notranslate"><span class="pre">FUNC</span></code>, other subroutines must be provided:</p>
+<div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span><span class="k">SUBROUTINE </span><span class="n">STPNT</span><span class="p">(</span><span class="n">NDIM</span><span class="p">,</span><span class="n">U</span><span class="p">,</span><span class="n">PAR</span><span class="p">,</span><span class="n">T</span><span class="p">)</span>
+
+<span class="k">IMPLICIT NONE</span>
+<span class="kt">INTEGER</span><span class="p">,</span><span class="w"> </span><span class="k">INTENT</span><span class="p">(</span><span class="n">IN</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">NDIM</span>
+<span class="kt">DOUBLE PRECISION</span><span class="p">,</span><span class="w"> </span><span class="k">INTENT</span><span class="p">(</span><span class="n">INOUT</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">U</span><span class="p">(</span><span class="n">NDIM</span><span class="p">),</span><span class="n">PAR</span><span class="p">(</span><span class="o">*</span><span class="p">)</span>
+<span class="kt">DOUBLE PRECISION</span><span class="p">,</span><span class="w"> </span><span class="k">INTENT</span><span class="p">(</span><span class="n">IN</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">T</span>
+
+<span class="n">PAR</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">=</span><span class="mf">0.</span>
+<span class="n">PAR</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">=</span><span class="w"> </span><span class="mf">8.d0</span><span class="o">/</span><span class="mf">3.d0</span>
+<span class="n">PAR</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="o">=</span><span class="mi">1</span><span class="mf">0.</span>
+
+<span class="n">U</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">=</span><span class="mf">0.</span>
+<span class="n">U</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">=</span><span class="mf">0.</span>
+<span class="n">U</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="o">=</span><span class="mf">0.</span>
+
+<span class="k">END SUBROUTINE </span><span class="n">STPNT</span>
+
+<span class="k">SUBROUTINE </span><span class="n">BCND</span>
+<span class="k">END SUBROUTINE </span><span class="n">BCND</span>
+
+<span class="k">SUBROUTINE </span><span class="n">ICND</span>
+<span class="k">END SUBROUTINE </span><span class="n">ICND</span>
+
+<span class="k">SUBROUTINE </span><span class="n">FOPT</span>
+<span class="k">END SUBROUTINE </span><span class="n">FOPT</span>
+
+<span class="k">SUBROUTINE </span><span class="n">PVLS</span>
+<span class="k">END SUBROUTINE </span><span class="n">PVLS</span>
+</pre></div>
+</div>
+<p>with the most important one being the <code class="code docutils literal notranslate"><span class="pre">STPNT</span></code> subroutine which is run before AUTO starts any continuation.
+Therefore this routine can be used to specify initial default values for <code class="code docutils literal notranslate"><span class="pre">U</span></code> and <code class="code docutils literal notranslate"><span class="pre">PAR</span></code> before any AUTO run.
+However, in auto-AUTO, these initial default values are usually overridden (more on this below).
+The other subroutines are not important in the present case, and we recommend reading the AUTO manual for more information on them.</p>
+<p>All of these subroutines must be written in a file, for example here <code class="code docutils literal notranslate"><span class="pre">lrz.f90</span></code>.</p>
+<p>We can now create a <code class="code docutils literal notranslate"><span class="pre">c.lrz</span></code> specifying the default AUTO continuation parameters that we gonna use, and also linking
+formally the components of the <code class="code docutils literal notranslate"><span class="pre">U</span></code> and <code class="code docutils literal notranslate"><span class="pre">PAR</span></code> to symbolic names used by AUTO:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">parnames</span> <span class="o">=</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="s1">&#39;rho&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="s1">&#39;beta&#39;</span><span class="p">,</span> <span class="mi">3</span><span class="p">:</span> <span class="s1">&#39;sigma&#39;</span><span class="p">,</span> <span class="mi">11</span><span class="p">:</span> <span class="s1">&#39;T&#39;</span><span class="p">}</span>
+<span class="n">unames</span> <span class="o">=</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="mi">3</span><span class="p">:</span> <span class="s1">&#39;z&#39;</span><span class="p">}</span>
+<span class="n">NDIM</span><span class="o">=</span>   <span class="mi">3</span><span class="p">,</span> <span class="n">IPS</span> <span class="o">=</span>   <span class="mi">1</span><span class="p">,</span> <span class="n">IRS</span> <span class="o">=</span>   <span class="mi">0</span><span class="p">,</span> <span class="n">ILP</span> <span class="o">=</span>   <span class="mi">0</span>
+<span class="n">ICP</span> <span class="o">=</span>  <span class="p">[</span><span class="s1">&#39;rho&#39;</span><span class="p">]</span>
+<span class="n">NTST</span><span class="o">=</span>  <span class="mi">35</span><span class="p">,</span> <span class="n">NCOL</span><span class="o">=</span>   <span class="mi">4</span><span class="p">,</span> <span class="n">IAD</span> <span class="o">=</span>   <span class="mi">3</span><span class="p">,</span> <span class="n">ISP</span> <span class="o">=</span>   <span class="mi">2</span><span class="p">,</span> <span class="n">ISW</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">IPLT</span><span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">NBC</span><span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">NINT</span><span class="o">=</span> <span class="mi">0</span>
+<span class="n">NMX</span><span class="o">=</span>   <span class="mi">50</span><span class="p">,</span> <span class="n">NPR</span><span class="o">=</span>  <span class="mi">100</span><span class="p">,</span> <span class="n">MXBF</span><span class="o">=</span>  <span class="mi">10</span><span class="p">,</span> <span class="n">IID</span> <span class="o">=</span>   <span class="mi">2</span><span class="p">,</span> <span class="n">ITMX</span><span class="o">=</span> <span class="mi">8</span><span class="p">,</span> <span class="n">ITNW</span><span class="o">=</span> <span class="mi">7</span><span class="p">,</span> <span class="n">NWTN</span><span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="n">JAC</span><span class="o">=</span> <span class="mi">0</span>
+<span class="n">EPSL</span><span class="o">=</span> <span class="mf">1e-07</span><span class="p">,</span> <span class="n">EPSU</span> <span class="o">=</span> <span class="mf">1e-07</span><span class="p">,</span> <span class="n">EPSS</span> <span class="o">=</span><span class="mf">0.0001</span>
+<span class="n">DS</span>  <span class="o">=</span>   <span class="mf">0.1</span><span class="p">,</span> <span class="n">DSMIN</span><span class="o">=</span>  <span class="mf">0.01</span><span class="p">,</span> <span class="n">DSMAX</span><span class="o">=</span>   <span class="mf">0.5</span><span class="p">,</span> <span class="n">IADS</span><span class="o">=</span>   <span class="mi">1</span>
+<span class="n">NPAR</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="n">THL</span> <span class="o">=</span>  <span class="p">{</span><span class="s1">&#39;T&#39;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">},</span> <span class="n">THU</span> <span class="o">=</span>  <span class="p">{}</span>
+<span class="n">UZSTOP</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;rho&#39;</span><span class="p">:</span> <span class="mf">30.0</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>One can see that the syntax here looks like Python scripting, with list and dictionaries being used.
+The <code class="code docutils literal notranslate"><span class="pre">parnames</span></code> dictionary links the parameters components of the <code class="code docutils literal notranslate"><span class="pre">PAR</span></code> vector to parameters names (string), with the keys
+of the dictionary being the indices of the vector.
+The same applies with the <code class="code docutils literal notranslate"><span class="pre">unames</span></code> dictionary, which links the state components of the <code class="code docutils literal notranslate"><span class="pre">U</span></code> vector to model variable names (string), with the keys
+of the dictionary being the indices of the vector.</p>
+<p>The other defined parameters will be used by default by AUTO for each run, although they can be altered during auto-AUTO runs.
+We refer the user to the <span class="raw-html"><a href="https://github.com/auto-07p/auto-07p">AUTO</a></span> documentation for more information on these parameters. Some information are also available in the present documentation,
+in the reference of the <a class="reference internal" href="technical/continuations.html#auto2.continuations.fixed_points.FixedPointContinuation.make_continuation" title="auto2.continuations.fixed_points.FixedPointContinuation.make_continuation"><code class="xref py py-meth docutils literal notranslate"><span class="pre">FixedPointContinuation.make_continuation()</span></code></a> and <a class="reference internal" href="technical/continuations.html#auto2.continuations.periodic_orbits.PeriodicOrbitContinuation.make_continuation" title="auto2.continuations.periodic_orbits.PeriodicOrbitContinuation.make_continuation"><code class="xref py py-meth docutils literal notranslate"><span class="pre">PeriodicOrbitContinuation.make_continuation()</span></code></a>.</p>
+</section>
+<section id="scripting-using-auto-auto">
+<h2>2. Scripting using auto-AUTO<a class="headerlink" href="#scripting-using-auto-auto" title="Link to this heading"></a></h2>
+<p>Once your AUTO files are finalized, you can turn to creating a Python script or a <a class="reference external" href="https://jupyter.org/">Jupyter</a> notebook.
+In general, you will start this script by loading some modules:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">numba</span> <span class="kn">import</span> <span class="n">njit</span>
+<span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">root</span>
+</pre></div>
+</div>
+<p>that will be useful later, and then load the <a class="reference internal" href="technical/diagrams.html#auto2.diagrams.bifurcations.BifurcationDiagram" title="auto2.diagrams.bifurcations.BifurcationDiagram"><code class="xref py py-class docutils literal notranslate"><span class="pre">BifurcationDiagram</span></code></a> class:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">auto2.diagrams.bifurcations</span> <span class="kn">import</span> <span class="n">BifurcationDiagram</span>
+</pre></div>
+</div>
+<section id="finding-initial-solutions-of-the-model">
+<h3>2.1 Finding initial solutions of the model<a class="headerlink" href="#finding-initial-solutions-of-the-model" title="Link to this heading"></a></h3>
+<p>Computing a bifurcation diagram requires continuing solutions along a given parameter, but one needs solutions to start from at a given value of the
+said parameter. One can start from periodic orbit solutions, but the usual way is to start from a list of fixed (stationary) points.</p>
+<p>In our present example, they are the solutions of the equations:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\dot x &amp; = \sigma (y-x) = 0 \\
+\dot y &amp; = x \rho - y - x z = 0 \\
+\dot z &amp; = x y - \beta z = 0\end{split}\]</div>
+<p>i.e. the points <span class="math notranslate nohighlight">\((x_i,y_i,z_i)\)</span> where the tendencies <span class="math notranslate nohighlight">\((\dot x, \dot y, \dot z)\)</span> are zero.
+In the case of the L63 model, one could easily compute these solutions analytically, but here, for
+the sake of generality, we shall compute them numerically. For that we first need to code the tendencies equations:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@njit</span>
+<span class="k">def</span> <span class="nf">lrz</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">rho</span><span class="p">,</span> <span class="n">beta</span><span class="p">,</span> <span class="n">sigma</span><span class="p">):</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">z</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">F</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+    <span class="n">F</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">sigma</span> <span class="o">*</span> <span class="p">(</span><span class="n">y</span> <span class="o">-</span> <span class="n">x</span><span class="p">)</span>
+    <span class="n">F</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">rho</span> <span class="o">*</span> <span class="n">x</span> <span class="o">-</span> <span class="n">y</span> <span class="o">-</span> <span class="n">x</span> <span class="o">*</span> <span class="n">z</span>
+    <span class="n">F</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">y</span> <span class="o">-</span> <span class="n">beta</span> <span class="o">*</span> <span class="n">z</span>
+    <span class="k">return</span> <span class="n">F</span>
+</pre></div>
+</div>
+<p>where we are using <a class="reference external" href="https://numba.pydata.org/">Numba</a> to accelerate our code.
+In the following, we are going to compute the bifurcation diagram along <span class="math notranslate nohighlight">\(\rho\)</span>, with the other parameters
+set to <span class="math notranslate nohighlight">\(\sigma=10\)</span> and <span class="math notranslate nohighlight">\(\beta=8/3\)</span>.
+We are thus going first to find the fixed points for the values <span class="math notranslate nohighlight">\(\rho=0\)</span>, <span class="math notranslate nohighlight">\(\sigma=10\)</span> and <span class="math notranslate nohighlight">\(\beta=8/3\)</span>
+using a <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.root.html">root-finding algorithm</a> provided by <a class="reference external" href="https://scipy.org/">Scipy</a>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># parameters dictionary</span>
+<span class="n">params</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;rho&#39;</span><span class="p">:</span> <span class="mf">0.</span><span class="p">,</span>
+    <span class="s1">&#39;beta&#39;</span><span class="p">:</span> <span class="mf">8.</span><span class="o">/</span><span class="mi">3</span><span class="p">,</span>
+    <span class="s1">&#39;sigma&#39;</span><span class="p">:</span> <span class="mf">10.</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="c1"># number of search to finds the root of the equations</span>
+<span class="n">nsearch</span> <span class="o">=</span> <span class="mi">1000</span>
+
+<span class="c1"># start on nsearch random initial conditions</span>
+<span class="n">ic</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">nsearch</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">*</span> <span class="mf">10.</span>
+
+<span class="c1"># tolerance for the equalities between found solutions</span>
+<span class="n">eps</span> <span class="o">=</span> <span class="mf">1.e-6</span>
+
+<span class="c1"># dictionary to hold to found solutions</span>
+<span class="n">fixed_points</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+
+<span class="c1"># solutions search loop</span>
+<span class="n">sol_idx</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nsearch</span><span class="p">):</span>
+    <span class="c1"># trying to find a new solution</span>
+    <span class="n">sol</span> <span class="o">=</span> <span class="n">root</span><span class="p">(</span><span class="n">lrz</span><span class="p">,</span> <span class="n">ic</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:],</span> <span class="n">args</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
+    <span class="k">if</span> <span class="n">sol</span><span class="o">.</span><span class="n">success</span><span class="p">:</span>
+        <span class="c1"># if we found a solution, check if we already found it before</span>
+        <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">fixed_points</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">fixed_points</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">-</span> <span class="n">sol</span><span class="o">.</span><span class="n">x</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">eps</span><span class="p">:</span>
+                <span class="k">break</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># if not, store the new solution</span>
+            <span class="n">fixed_points</span><span class="p">[</span><span class="n">sol_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">sol</span><span class="o">.</span><span class="n">x</span>
+            <span class="n">sol_idx</span><span class="o">+=</span><span class="mi">1</span>
+</pre></div>
+</div>
+<p>Applying this algorithm for the value of the parameters above actually give only one solution in this case:</p>
+<img alt="../_images/found_points.png" src="../_images/found_points.png" />
+</section>
+<section id="computing-the-bifurcation-diagram-of-fixed-points-using-auto-auto">
+<h3>2.2 Computing the bifurcation diagram of fixed points using auto-AUTO<a class="headerlink" href="#computing-the-bifurcation-diagram-of-fixed-points-using-auto-auto" title="Link to this heading"></a></h3>
+<p>Once we have these fixed points, we can provide them to auto-AUTO to start the computation of the bifurcation diagram along <span class="math notranslate nohighlight">\(\rho\)</span>.
+But first we need to create a <a class="reference internal" href="technical/diagrams.html#auto2.diagrams.bifurcations.BifurcationDiagram" title="auto2.diagrams.bifurcations.BifurcationDiagram"><code class="xref py py-class docutils literal notranslate"><span class="pre">BifurcationDiagram</span></code></a> object:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">b</span> <span class="o">=</span> <span class="n">BifurcationDiagram</span><span class="p">(</span><span class="s1">&#39;lrz&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>providing it the name of the model (related to the files <code class="code docutils literal notranslate"><span class="pre">c.lrz</span></code> and <code class="code docutils literal notranslate"><span class="pre">lrz.f90</span></code>) that we want to use.
+Once this is done, we can use the <a class="reference internal" href="technical/diagrams.html#auto2.diagrams.bifurcations.BifurcationDiagram.compute_fixed_points_diagram" title="auto2.diagrams.bifurcations.BifurcationDiagram.compute_fixed_points_diagram"><code class="xref py py-meth docutils literal notranslate"><span class="pre">compute_fixed_points_diagram()</span></code></a> method of this object to start the computation
+of the fixed points continuation.
+Reading the documentation of this method, you will see that you need to prepare the list of fixed points in specific manner:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">initial_points</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+
+<span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">fixed_points</span><span class="p">:</span>
+    <span class="n">initial_points</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">&#39;parameters&#39;</span><span class="p">:</span> <span class="n">params</span><span class="p">,</span> <span class="s1">&#39;initial_data&#39;</span><span class="p">:</span> <span class="n">fixed_points</span><span class="p">[</span><span class="n">p</span><span class="p">]})</span>
+</pre></div>
+</div>
+<p>where <code class="code docutils literal notranslate"><span class="pre">params</span></code> is the parameters dictionary defined previously. Once this list have been prepared, you can now start the computation:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">b</span><span class="o">.</span><span class="n">compute_fixed_points_diagram</span><span class="p">(</span><span class="n">initial_points</span><span class="p">,</span>
+                               <span class="n">extra_comparison_parameters</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">],</span>
+                               <span class="n">comparison_tol</span><span class="o">=</span><span class="p">[</span><span class="mf">1.e-1</span><span class="p">]</span> <span class="o">*</span> <span class="mi">3</span><span class="p">,</span>
+                               <span class="n">ICP</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;rho&#39;</span><span class="p">],</span>
+                               <span class="n">NMX</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span>
+                               <span class="n">UZSTOP</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;rho&#39;</span><span class="p">:[</span><span class="o">-</span><span class="mf">10.</span><span class="p">,</span><span class="mf">40.</span><span class="p">]},</span>
+                               <span class="n">UZR</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;rho&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">))},</span>
+                               <span class="n">NPR</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In addition to the list of initial points, the provided argument can be described as follow:</p>
+<ul class="simple">
+<li><p><code class="code docutils literal notranslate"><span class="pre">extra_comparison_parameters</span></code>: This argument allows for a finer control of the equalities between solutions.
+Indeed, auto-AUTO will try to compare the solutions found during the continuation to other solutions
+that have already been computed. To do so, it will compare by default the value of the continuation parameter (<span class="math notranslate nohighlight">\(\rho\)</span> here)
+of the solutions. The <code class="code docutils literal notranslate"><span class="pre">extra_comparison_parameters</span></code> argument can be used to specify additional
+variables to compare. Any variable that is tracked during the continuation can be used (for example the <span class="math notranslate nohighlight">\(L_2\)</span> norm is always tracked).
+Here for instance, we require that the <span class="math notranslate nohighlight">\(x\)</span> and <span class="math notranslate nohighlight">\(y\)</span> phase space variables be also compared.</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">comparison_tol</span></code>: Allow to specify the tolerance of the equalities between solutions.
+Can be a number, which then applies for any variable being compared (see <code class="code docutils literal notranslate"><span class="pre">extra_comparison_parameters</span></code> just above).
+Can be also a list of numbers, in which case its length must be <code class="code docutils literal notranslate"><span class="pre">len(extra_comparison_parameters)</span></code> + 1, the first number being used to compare
+the continuation parameter, and subsequent ones being used to compare the variable specified by <code class="code docutils literal notranslate"><span class="pre">extra_comparison_parameters</span></code> argument.</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">ICP</span></code>: This is an argument that is passed to AUTO to specify the continuation parameter.</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">NMX</span></code>: This is an argument that is passed to AUTO to specify after how much continuation steps the continuations must end. This is a hard limit
+being put on the AUTO computations, however the computations might end before due to other conditions. In auto-AUTO, since the comparison and logic are
+applied after AUTO runs have finished, this is an useful option to limit the scope and the length of the computations.
+On the other hand, setting NMX to low might result in an incomplete bifurcation diagram. Maximum value is 9999.</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">UZSTOP</span></code>: This is an argument that is passed to AUTO to specify continuations’ stopping conditions, in the form of parameters bounds.</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">UZR</span></code>: This is an argument that is passed to AUTO to specify user defined solution points, for which AUTO will store the full solution data.
+A list of value can be provided for each continuation parameter.</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">NPR</span></code>: This is an argument that is passed to AUTO to specify the output behavior in the temporary <code class="code docutils literal notranslate"><span class="pre">fort.8</span></code> file. Not very important here.</p></li>
+</ul>
+<p>Running this code will result in the text outputs detailing the processed continuation of the provided solutions. Once it finished, the user can plot the
+results:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">b</span><span class="o">.</span><span class="n">plot_fixed_points_diagram</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>which will show that there are two branches of fixed point solutions here:</p>
+<img alt="../_images/fixed_points.png" src="../_images/fixed_points.png" />
+<p>The first one (in blue above) emanates from the fixed point (0,0,0) that we had previously found. The second one was found automatically by AUTO though
+a branching point at <span class="math notranslate nohighlight">\(\rho=1\)</span> and auto-AUTO made a second AUTO run to switch branch and compute this new one (in orange above).
+Interestingly, AUTO detected additional bifurcation points in the orange branch, namely <a class="reference external" href="http://www.scholarpedia.org/article/Andronov-Hopf_bifurcation">Hopf bifurcations</a> which are known to give birth periodic orbits.</p>
+</section>
+<section id="computing-the-bifurcation-diagram-of-periodic-orbits-using-auto-auto">
+<h3>2.3 Computing the bifurcation diagram of periodic orbits using auto-AUTO<a class="headerlink" href="#computing-the-bifurcation-diagram-of-periodic-orbits-using-auto-auto" title="Link to this heading"></a></h3>
+<p>The computation of the periodic orbits emanating from the Hopf bifurcations found along the continuations of the fixed points can be processed automatically
+by auto-AUTO. To do so, one must use the <a class="reference internal" href="technical/diagrams.html#auto2.diagrams.bifurcations.BifurcationDiagram.compute_periodic_orbits_diagram" title="auto2.diagrams.bifurcations.BifurcationDiagram.compute_periodic_orbits_diagram"><code class="xref py py-meth docutils literal notranslate"><span class="pre">compute_periodic_orbits_diagram()</span></code></a> method of the <code class="xref py py-class docutils literal notranslate"><span class="pre">BifurcationDiagram</span></code> object were the fixed points
+bifurcation diagram has already been computed:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">b</span><span class="o">.</span><span class="n">compute_periodic_orbits_diagram</span><span class="p">(</span>
+    <span class="n">end_level</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+    <span class="n">extra_comparison_parameters</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">],</span>
+    <span class="n">max_number_bp</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">comparison_tol</span><span class="o">=</span><span class="p">[</span><span class="mf">1.e-3</span><span class="p">,</span> <span class="mf">1.e-3</span><span class="p">,</span> <span class="mf">1.e-3</span><span class="p">],</span>
+    <span class="n">ICP</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;rho&#39;</span><span class="p">]</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>where all the arguments have been described in the previous section, except <code class="code docutils literal notranslate"><span class="pre">end_level</span></code>, which specifies the maximum level that auto-AUTO can reach in the bifurcation tree.
+Indeed, bifurcation diagram can be seen as tree of parents and offspring solutions. auto-AUTO computes all the solutions at a given level and then is presented with the opportunity
+to stop at that level. The <code class="code docutils literal notranslate"><span class="pre">end_level</span></code> is thus a stopping condition that ensures that the computations stops at a given level (bifurcation tree can be infinite).</p>
+<p>In the present case, the bifurcation tree stops at the second level. The messages provided by auto-AUTO indicate that no new bifurcation points were found:</p>
+<img alt="../_images/stops_at_level_3.png" src="../_images/stops_at_level_3.png" />
+<p>and the stopping condition <code class="code docutils literal notranslate"><span class="pre">end_level=3</span></code> that we provided was a bit superfluous.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Note also that the arguments provided to the method <code class="xref py py-meth docutils literal notranslate"><span class="pre">compute_fixed_points_diagram()</span></code> call above and not modified when calling <code class="xref py py-meth docutils literal notranslate"><span class="pre">compute_periodic_orbits_diagram()</span></code>
+are reused by this latter call. It means for example that the computation of the periodic orbits above was done with the AUTO parameters
+<code class="code docutils literal notranslate"><span class="pre">NMX=300,</span> <span class="pre">UZSTOP={'rho':[-10.,40.]},</span> <span class="pre">UZR={'rho':</span> <span class="pre">list(np.arange(2,</span> <span class="pre">30,</span> <span class="pre">2.5))},</span> <span class="pre">NPR=0</span></code>.</p>
+</div>
+<p>Now that we have computed both bifurcation diagrams (fixed points and periodic orbits), we can plot on the same figure the results:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ax</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">plot_fixed_points_diagram</span><span class="p">()</span>
+<span class="n">b</span><span class="o">.</span><span class="n">plot_periodic_orbits_diagram</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;gist_ncar&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>were we use the property that every plotting function in auto-AUTO returns the <span class="raw-html"><a href="https://matplotlib.org/">Matplotlib</a></span> axis on which the plotting was done.
+Note also that to plot the periodic orbits branches, we use a color schemes based on the <code class="code docutils literal notranslate"><span class="pre">cmap</span></code> parameter. This is done
+to better differentiate the plotting of the fixed points branches (which uses the Tableau color) and the periodic orbits branches.</p>
+<p>Here is the result:</p>
+<img alt="../_images/branches_plot.png" src="../_images/branches_plot.png" />
+<p>where we can see that three new (periodic orbits) branches have appeared. The last one is not important here (spurious result ?), but the branches 3 and 4 are interesting.
+They emanate from the Hopf bifurcations and their <span class="math notranslate nohighlight">\(L_2\)</span> norm then tend to zero, i.e. the same value as the fixed point at the origin of the phase space.
+On this plot of <span class="math notranslate nohighlight">\(\rho\)</span> versus the <span class="math notranslate nohighlight">\(L_2\)</span> norm, they look similar, but actually a 3D plot involving the <span class="math notranslate nohighlight">\(x\)</span> phase space variable shows that they are not to be confused:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ax</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">plot_fixed_points_diagram_3D</span><span class="p">()</span>
+<span class="n">b</span><span class="o">.</span><span class="n">plot_periodic_orbits_diagram_3D</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;gist_ncar&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<img alt="../_images/branches_plot_3D.png" src="../_images/branches_plot_3D.png" />
+<p>What we have seen so far are plots of the branches of solutions as a function of the continuation parameter, but it would be interesting to see the solutions
+embedded in the phase space where they live. To do that, one can use the <a class="reference internal" href="technical/diagrams.html#auto2.diagrams.bifurcations.BifurcationDiagram.plot_diagram_and_solutions" title="auto2.diagrams.bifurcations.BifurcationDiagram.plot_diagram_and_solutions"><code class="xref py py-meth docutils literal notranslate"><span class="pre">plot_diagram_and_solutions()</span></code></a>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">b</span><span class="o">.</span><span class="n">plot_diagram_and_solutions</span><span class="p">(</span><span class="n">solutions_parameter_value</span><span class="o">=</span><span class="mf">22.</span><span class="p">,</span> <span class="n">solutions_variables</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">fixed_points_diagram_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;legend&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
+                         <span class="n">periodic_orbits_diagram_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;cmap&#39;</span><span class="p">:</span> <span class="s1">&#39;gist_ncar&#39;</span><span class="p">});</span>
+</pre></div>
+</div>
+<p>This method will plot the bifurcation diagram in 2D as before, and its (mandatory) <code class="code docutils literal notranslate"><span class="pre">solutions_parameter_value</span></code> argument is used to determine the value of the continuation parameter
+for which the solutions will be plotted a 2D section of the phase space on another plot:</p>
+<img alt="../_images/solutions_plot.png" src="../_images/solutions_plot.png" />
+<p>Here we see that the value <span class="math notranslate nohighlight">\(\rho=22\)</span> has been provided, resulting in a dashed vertical black line on the bifurcation diagram, and fixed points (crosses) and periodic orbits (solid curves)
+of the same color as the corresponding branches appears in the phase space plot below.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For these solutions to appear in the phase space, they must have been computed and stored in the first place.
+Here, the value <span class="math notranslate nohighlight">\(\rho=22\)</span> appears in the <code class="code docutils literal notranslate"><span class="pre">UZR={'rho':</span> <span class="pre">list(np.arange(2,</span> <span class="pre">30,</span> <span class="pre">2.5))}</span></code> list provided initially to
+auto-AUTO. Because of this, along any continuation, at <span class="math notranslate nohighlight">\(\rho=22\)</span> a solution point is saved, and it can be picked up
+by auto-AUTO to draw it in the phase space plot. If this value is not present in the <code class="code docutils literal notranslate"><span class="pre">UZR</span></code> argument, no solution would
+appear in the phase space plot.</p>
+</div>
+<p>So, this method is powerful to plot solutions at a given value of the continuation parameter, but what if we want to show the
+evolution of the solutions along a particular branch. For this, auto-AUTO provides the <a class="reference internal" href="technical/diagrams.html#auto2.diagrams.bifurcations.BifurcationDiagram.plot_single_po_branch_and_solutions" title="auto2.diagrams.bifurcations.BifurcationDiagram.plot_single_po_branch_and_solutions"><code class="xref py py-meth docutils literal notranslate"><span class="pre">plot_single_po_branch_and_solutions()</span></code></a> method,
+to which we must provide the number of the branch that we want to plot:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># plotting branch 3</span>
+<span class="n">b</span><span class="o">.</span><span class="n">plot_single_po_branch_and_solutions</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;Blues_r&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>It results into a plot of all the periodic orbits of the selected branches:</p>
+<img alt="../_images/branch_solutions_plot.png" src="../_images/branch_solutions_plot.png" />
+<p>where the user defined solution points are shown by colored dots on the bifurcation diagram, and the solutions corresponding to those dots are plotted on the phase space plot with
+the same color as the dots. The colors being used are specified by the <code class="code docutils literal notranslate"><span class="pre">cmap</span></code> argument.
+These plots are interesting because we see that branch 3 emanating initially from a Hopf bifurcation is - as <span class="math notranslate nohighlight">\(\rho\)</span> decreases - getting closer and closer to an orbit connecting
+the fixed point at the origin with itself. This periodic orbit is thus finally identifying with an <em>homoclinic orbit</em>, a point sometimes called an <em>homoclinic bifurcation</em> which can lead to
+chaotic behaviors in dynamical systems.</p>
+<p>See Barrio et al. (2012) and references therein for more information about these phenomena:</p>
+<ul class="simple">
+<li><p>Barrio, R., Shilnikov, A., &amp; Shilnikov, L. (2012). Kneadings, symbolic dynamics and painting Lorenz chaos.
+<em>International Journal of Bifurcation and Chaos</em>, <strong>22</strong> (04), 1230016. <a class="reference external" href="https://doi.org/10.1142/S0218127412300169">doi:10.1142/S0218127412300169</a>.</p></li>
+</ul>
+</section>
+<section id="changing-the-continuation-parameter-and-restarting">
+<h3>2.4 Changing the continuation parameter and restarting<a class="headerlink" href="#changing-the-continuation-parameter-and-restarting" title="Link to this heading"></a></h3>
+<p>Finally, once you have computed the bifurcation diagram along <span class="math notranslate nohighlight">\(\rho\)</span>, you might want to compute it also along other parameters.
+To do this, you could restart the whole procedure detailed in sections 2.1, 2.2 and 2.3, just changing the continuation parameter.
+However, auto-AUTO also provide another possibility: starting this new bifurcation diagram from all the solutions already found
+for a given value of the continuation parameter of an already existing bifurcation diagram.</p>
+<p>For example, here, we are going to start a new bifurcation diagram along the parameter <span class="math notranslate nohighlight">\(\sigma\)</span> from all the solutions found previously
+at <span class="math notranslate nohighlight">\(\rho=24.5\)</span>. This is very easy to do in auto-AUTO thanks to the <a class="reference internal" href="technical/diagrams.html#auto2.diagrams.bifurcations.BifurcationDiagram.restart_and_change_continuation_parameters" title="auto2.diagrams.bifurcations.BifurcationDiagram.restart_and_change_continuation_parameters"><code class="xref py py-meth docutils literal notranslate"><span class="pre">restart_and_change_continuation_parameters()</span></code></a> method:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># for the sake of clarity, putting the parameters that we will provide</span>
+<span class="c1"># to AUTO for this new bifurcation diagram in a dictionary</span>
+<span class="n">continuation_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;ICP&#39;</span><span class="p">:[</span><span class="s1">&#39;sigma&#39;</span><span class="p">],</span>
+                       <span class="s1">&#39;NMX&#39;</span><span class="p">:</span> <span class="mi">300</span><span class="p">,</span>
+                       <span class="s1">&#39;UZSTOP&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;sigma&#39;</span><span class="p">:[</span><span class="mf">0.5</span><span class="p">,</span><span class="mf">50.</span><span class="p">]},</span>
+                       <span class="s1">&#39;UZR&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;sigma&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">3.67</span><span class="p">,</span> <span class="mf">3.7</span><span class="p">]</span><span class="o">+</span><span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">2.5</span><span class="p">,</span> <span class="mf">45.</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">))}}</span>
+
+<span class="c1"># starting a new bifurcation diagram from the existing b object</span>
+<span class="n">new_b</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">restart_and_change_continuation_parameters</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="mf">24.5</span><span class="p">,</span>
+                                                     <span class="n">end_level</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                                                     <span class="n">extra_comparison_parameters</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">],</span>
+                                                     <span class="n">comparison_tol</span><span class="o">=</span><span class="p">[</span><span class="mf">1.e-1</span><span class="p">]</span> <span class="o">*</span> <span class="mi">3</span><span class="p">,</span>
+                                                     <span class="n">fixed_points_continuation_kwargs</span><span class="o">=</span><span class="n">continuation_kwargs</span><span class="p">,</span>
+                                                     <span class="n">periodic_orbits_continuation_kwargs</span><span class="o">=</span><span class="n">continuation_kwargs</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This create a new bifurcation diagram object and perform automatically all the required continuations for you.
+Changing the continuation parameter is often interesting when studying the dynamics of systems, as it gives
+more insight into what’s happening and allows sometimes one to find new structures.</p>
+<p>Now the results can be plotted again:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">new_b</span><span class="o">.</span><span class="n">plot_diagram_and_solutions</span><span class="p">(</span><span class="mf">20.</span><span class="p">,</span> <span class="n">solutions_variables</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">fixed_points_diagram_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;legend&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
+                                <span class="n">periodic_orbits_diagram_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;cmap&#39;</span><span class="p">:</span> <span class="s1">&#39;gist_ncar&#39;</span><span class="p">})</span>
+</pre></div>
+</div>
+<img alt="../_images/branches_solutions_plot_sigma.png" src="../_images/branches_solutions_plot_sigma.png" />
+<p>First, we can see from these plot that the three points (branches BR 1, BR 2 and BR 3) do not change when <span class="math notranslate nohighlight">\(\sigma\)</span> is varied.
+Then, as for the bifurcation diagram along <span class="math notranslate nohighlight">\(\rho\)</span>, the two periodic orbits (BR 4 and BR 5) connect to the fixed point at
+the origin of the phase space, with for each orbit two
+different homoclinic bifurcations taking place, one close to <span class="math notranslate nohighlight">\(\sigma\approx 3\)</span>, and the other close to <span class="math notranslate nohighlight">\(\sigma\approx 48\)</span>.
+This can actually easily be seen by plotting the solutions of
+one of the two branches in 3D with the <a class="reference internal" href="technical/diagrams.html#auto2.diagrams.bifurcations.BifurcationDiagram.plot_single_po_branch_and_solutions_3D" title="auto2.diagrams.bifurcations.BifurcationDiagram.plot_single_po_branch_and_solutions_3D"><code class="xref py py-meth docutils literal notranslate"><span class="pre">plot_single_po_branch_and_solutions_3D()</span></code></a> method:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">new_b</span><span class="o">.</span><span class="n">plot_single_po_branch_and_solutions_3D</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;coolwarm&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<img alt="../_images/branch_solutions_plot_3D_sigma.png" src="../_images/branch_solutions_plot_3D_sigma.png" />
+<p>This is consistent with the regime diagram shown in Figure 3 of Barrio et al. (2012) (see above).</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>A regime diagram is a bifurcation diagram showing the evolution of bifurcation points along two continuation parameters.
+This kind of diagram can also possess new kind of bifurcations, called co-dimension 2 bifurcations
+(see the books proposed at the beginning of this userguide for more information).
+Regime diagram generation is not yet supported by auto-AUTO, but is mentioned on the wishlist for future developments.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>A Jupyter notebook with the code of this User Guide is available in the <code class="code docutils literal notranslate"><span class="pre">./notebooks/auto-demos/lrz</span></code> folder of
+the auto-AUTO code repository. Many other examples are available in the <code class="code docutils literal notranslate"><span class="pre">./notebooks</span></code> folder.</p>
+</div>
+</section>
+</section>
 </section>
 
 

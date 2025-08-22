@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>auto2.continuations.fixed_points &mdash; auto-AUTO v0.5.3 documentation</title>
+  <title>auto2.continuations.fixed_points &mdash; auto-AUTO v0.5.4 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
 
@@ -14,7 +14,7 @@
   
         <script src="../../../_static/jquery.js?v=5d32c60e"></script>
         <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../../../_static/documentation_options.js?v=d19b0847"></script>
+        <script src="../../../_static/documentation_options.js?v=1a12988a"></script>
         <script src="../../../_static/doctools.js?v=9a2dae69"></script>
         <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/js/theme.js"></script>
@@ -34,7 +34,7 @@
             auto-AUTO
           </a>
               <div class="version">
-                v0.5.3
+                v0.5.4
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
@@ -79,10 +79,10 @@
   <h1>Source code for auto2.continuations.fixed_points</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;</span>
 
-<span class="sd">    Fixed Point Continuation class definition</span>
-<span class="sd">    =========================================</span>
+<span class="sd">Fixed Point Continuation class definition</span>
+<span class="sd">=========================================</span>
 
-<span class="sd">    This module implements the fixed point continuation methods.</span>
+<span class="sd">This module implements the fixed point continuation methods.</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
 
@@ -93,19 +93,19 @@
 <span class="kn">import</span> <span class="nn">traceback</span>
 <span class="kn">import</span> <span class="nn">glob</span>
 
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;logger&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;general_logger&quot;</span><span class="p">)</span>
 
 <span class="k">try</span><span class="p">:</span>
-    <span class="n">auto_directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;AUTO_DIR&#39;</span><span class="p">]</span>
+    <span class="n">auto_directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;AUTO_DIR&quot;</span><span class="p">]</span>
 
     <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">auto_directory</span> <span class="ow">in</span> <span class="n">path</span><span class="p">:</span>
             <span class="k">break</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># sys.path.append(auto_directory + &#39;/python/auto&#39;)</span>
-        <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">auto_directory</span> <span class="o">+</span> <span class="s1">&#39;/python&#39;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">auto_directory</span> <span class="o">+</span> <span class="s2">&quot;/python&quot;</span><span class="p">)</span>
 <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Unable to find auto directory environment variable.&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Unable to find auto directory environment variable.&quot;</span><span class="p">)</span>
 
 <span class="kn">import</span> <span class="nn">auto.AUTOCommands</span> <span class="k">as</span> <span class="nn">ac</span>
 <span class="kn">import</span> <span class="nn">auto.runAUTO</span> <span class="k">as</span> <span class="nn">ra</span>
@@ -146,7 +146,6 @@
 <span class="sd">        The initial data used to start the continuation(s).</span>
 <span class="sd">    auto_filename_suffix: str</span>
 <span class="sd">        Suffix for the |AUTO| files used to save the continuation(s) data and parameters on disk.</span>
-
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_name</span><span class="p">,</span> <span class="n">config_object</span><span class="p">,</span> <span class="n">path_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -154,14 +153,16 @@
         <span class="n">Continuation</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_name</span><span class="p">,</span> <span class="n">config_object</span><span class="p">,</span> <span class="n">path_name</span><span class="p">)</span>
 
         <span class="c1"># plots default behaviours</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_default_marker</span> <span class="o">=</span> <span class="s1">&#39;x&#39;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_default_markersize</span> <span class="o">=</span> <span class="mf">6.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_default_linestyle</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_default_marker</span> <span class="o">=</span> <span class="s2">&quot;x&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_default_markersize</span> <span class="o">=</span> <span class="mf">6.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_default_linestyle</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_default_linewidth</span> <span class="o">=</span> <span class="mf">1.2</span>
 
 <div class="viewcode-block" id="FixedPointContinuation.make_continuation">
 <a class="viewcode-back" href="../../../files/technical/continuations.html#auto2.continuations.fixed_points.FixedPointContinuation.make_continuation">[docs]</a>
-    <span class="k">def</span> <span class="nf">make_continuation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">initial_data</span><span class="p">,</span> <span class="n">auto_suffix</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">only_forward</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">continuation_kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">make_continuation</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">initial_data</span><span class="p">,</span> <span class="n">auto_suffix</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">only_forward</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">continuation_kwargs</span>
+    <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Make both forward and backward (if possible) continuation of fixed points.</span>
 
 <span class="sd">        Parameters</span>
@@ -208,7 +209,7 @@
 <span class="sd">            The maximum number of steps to be taken along the branch.</span>
 <span class="sd">        IBR: int, optional</span>
 <span class="sd">            This constant specifies the initial branch number BR that is used. The default `IBR=0` means that</span>
-<span class="sd">            that this number is determined automatically.</span>
+<span class="sd">            this number is determined automatically.</span>
 <span class="sd">        ILP: int, optional</span>
 <span class="sd">            * If `ILP=0`: No detection of folds. This is the recommended choice in the AUTO documentation.</span>
 
@@ -310,7 +311,9 @@
 
 <div class="viewcode-block" id="FixedPointContinuation.make_forward_continuation">
 <a class="viewcode-back" href="../../../files/technical/continuations.html#auto2.continuations.fixed_points.FixedPointContinuation.make_forward_continuation">[docs]</a>
-    <span class="k">def</span> <span class="nf">make_forward_continuation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">initial_data</span><span class="p">,</span> <span class="n">auto_suffix</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">continuation_kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">make_forward_continuation</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">initial_data</span><span class="p">,</span> <span class="n">auto_suffix</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">continuation_kwargs</span>
+    <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Make the forward continuation of fixed points.</span>
 
 <span class="sd">        Parameters</span>
@@ -334,12 +337,14 @@
         <span class="n">runner</span> <span class="o">=</span> <span class="n">ra</span><span class="o">.</span><span class="n">runAUTO</span><span class="p">()</span>
         <span class="n">ac</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_name</span><span class="p">,</span> <span class="n">runner</span><span class="o">=</span><span class="n">runner</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="s1">&#39;MXBF&#39;</span> <span class="ow">in</span> <span class="n">continuation_kwargs</span><span class="p">:</span>
-            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Disabling automatic continuation of branch points (MXBF set to 0)&#39;</span><span class="p">)</span>
-        <span class="n">continuation_kwargs</span><span class="p">[</span><span class="s1">&#39;MXBF&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="s2">&quot;MXBF&quot;</span> <span class="ow">in</span> <span class="n">continuation_kwargs</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="s2">&quot;Disabling automatic continuation of branch points (MXBF set to 0)&quot;</span>
+            <span class="p">)</span>
+        <span class="n">continuation_kwargs</span><span class="p">[</span><span class="s2">&quot;MXBF&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
 
-        <span class="k">if</span> <span class="s1">&#39;IBR&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">continuation_kwargs</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">branch_number</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">continuation_kwargs</span><span class="p">[</span><span class="s1">&#39;IBR&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">branch_number</span>
+        <span class="k">if</span> <span class="s2">&quot;IBR&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">continuation_kwargs</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">branch_number</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">continuation_kwargs</span><span class="p">[</span><span class="s2">&quot;IBR&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">branch_number</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">initial_data</span> <span class="o">=</span> <span class="n">initial_data</span>
 
@@ -349,34 +354,40 @@
                     <span class="n">cf</span> <span class="o">=</span> <span class="n">ac</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">initial_data</span><span class="p">,</span> <span class="n">runner</span><span class="o">=</span><span class="n">runner</span><span class="p">,</span> <span class="o">**</span><span class="n">continuation_kwargs</span><span class="p">)</span>
                 <span class="k">except</span> <span class="n">AUTORuntimeError</span><span class="p">:</span>
                     <span class="nb">print</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
-                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;AUTO continuation failed, possibly retrying.&#39;</span><span class="p">)</span>
+                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;AUTO continuation failed, possibly retrying.&quot;</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">break</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Problem to complete the forward AUTO continuation, returning nothing.&#39;</span><span class="p">)</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                    <span class="s2">&quot;Problem to complete the forward AUTO continuation, returning nothing.&quot;</span>
+                <span class="p">)</span>
                 <span class="n">cf</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="k">else</span><span class="p">:</span>
             <span class="n">u</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span> <span class="n">initial_data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_object</span><span class="o">.</span><span class="n">ndim</span><span class="p">)}</span>
             <span class="k">for</span> <span class="n">retry</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_retry</span><span class="p">):</span>
                 <span class="k">try</span><span class="p">:</span>
-                    <span class="n">cf</span> <span class="o">=</span> <span class="n">ac</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_name</span><span class="p">,</span> <span class="n">U</span><span class="o">=</span><span class="n">u</span><span class="p">,</span> <span class="n">runner</span><span class="o">=</span><span class="n">runner</span><span class="p">,</span> <span class="o">**</span><span class="n">continuation_kwargs</span><span class="p">)</span>
+                    <span class="n">cf</span> <span class="o">=</span> <span class="n">ac</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">model_name</span><span class="p">,</span> <span class="n">U</span><span class="o">=</span><span class="n">u</span><span class="p">,</span> <span class="n">runner</span><span class="o">=</span><span class="n">runner</span><span class="p">,</span> <span class="o">**</span><span class="n">continuation_kwargs</span>
+                    <span class="p">)</span>
                 <span class="k">except</span> <span class="n">AUTORuntimeError</span><span class="p">:</span>
                     <span class="nb">print</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
-                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;AUTO continuation failed, possibly retrying.&#39;</span><span class="p">)</span>
+                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;AUTO continuation failed, possibly retrying.&quot;</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">break</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Problem to complete the forward AUTO continuation, returning nothing.&#39;</span><span class="p">)</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                    <span class="s2">&quot;Problem to complete the forward AUTO continuation, returning nothing.&quot;</span>
+                <span class="p">)</span>
                 <span class="n">cf</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">continuation</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">continuation</span><span class="p">[</span><span class="s1">&#39;backward&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">continuation</span><span class="p">[</span><span class="s2">&quot;backward&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">continuation</span><span class="p">[</span><span class="s1">&#39;forward&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cf</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">continuation</span><span class="p">[</span><span class="s2">&quot;forward&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cf</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">branch_number</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">branch_number</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">continuation</span><span class="p">[</span><span class="s1">&#39;forward&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">BR</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">branch_number</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">continuation</span><span class="p">[</span><span class="s2">&quot;forward&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">BR</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">auto_suffix</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">auto_save</span><span class="p">(</span><span class="n">auto_suffix</span><span class="p">)</span></div>
@@ -384,7 +395,9 @@
 
 <div class="viewcode-block" id="FixedPointContinuation.make_backward_continuation">
 <a class="viewcode-back" href="../../../files/technical/continuations.html#auto2.continuations.fixed_points.FixedPointContinuation.make_backward_continuation">[docs]</a>
-    <span class="k">def</span> <span class="nf">make_backward_continuation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">initial_data</span><span class="p">,</span> <span class="n">auto_suffix</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">continuation_kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">make_backward_continuation</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">initial_data</span><span class="p">,</span> <span class="n">auto_suffix</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">continuation_kwargs</span>
+    <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Make the backward continuation of fixed points.</span>
 
 <span class="sd">        Parameters</span>
@@ -408,76 +421,96 @@
         <span class="n">runner</span> <span class="o">=</span> <span class="n">ra</span><span class="o">.</span><span class="n">runAUTO</span><span class="p">()</span>
         <span class="n">ac</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_name</span><span class="p">,</span> <span class="n">runner</span><span class="o">=</span><span class="n">runner</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="s1">&#39;MXBF&#39;</span> <span class="ow">in</span> <span class="n">continuation_kwargs</span><span class="p">:</span>
-            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Disabling automatic continuation of branch points (MXBF set to 0)&#39;</span><span class="p">)</span>
-        <span class="n">continuation_kwargs</span><span class="p">[</span><span class="s1">&#39;MXBF&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="s2">&quot;MXBF&quot;</span> <span class="ow">in</span> <span class="n">continuation_kwargs</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="s2">&quot;Disabling automatic continuation of branch points (MXBF set to 0)&quot;</span>
+            <span class="p">)</span>
+        <span class="n">continuation_kwargs</span><span class="p">[</span><span class="s2">&quot;MXBF&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
 
-        <span class="k">if</span> <span class="s1">&#39;IBR&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">continuation_kwargs</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">branch_number</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">continuation_kwargs</span><span class="p">[</span><span class="s1">&#39;IBR&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">branch_number</span>
+        <span class="k">if</span> <span class="s2">&quot;IBR&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">continuation_kwargs</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">branch_number</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">continuation_kwargs</span><span class="p">[</span><span class="s2">&quot;IBR&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">branch_number</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">initial_data</span> <span class="o">=</span> <span class="n">initial_data</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">initial_data</span><span class="p">,</span> <span class="n">AUTOSolution</span><span class="p">):</span>
-            <span class="k">if</span> <span class="s1">&#39;DS&#39;</span> <span class="ow">in</span> <span class="n">continuation_kwargs</span><span class="p">:</span>
-                <span class="n">continuation_kwargs</span><span class="p">[</span><span class="s1">&#39;DS&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span> <span class="n">continuation_kwargs</span><span class="p">[</span><span class="s1">&#39;DS&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="s2">&quot;DS&quot;</span> <span class="ow">in</span> <span class="n">continuation_kwargs</span><span class="p">:</span>
+                <span class="n">continuation_kwargs</span><span class="p">[</span><span class="s2">&quot;DS&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">continuation_kwargs</span><span class="p">[</span><span class="s2">&quot;DS&quot;</span><span class="p">]</span>
                 <span class="k">for</span> <span class="n">retry</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_retry</span><span class="p">):</span>
                     <span class="k">try</span><span class="p">:</span>
                         <span class="n">cb</span> <span class="o">=</span> <span class="n">ac</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">initial_data</span><span class="p">,</span> <span class="n">runner</span><span class="o">=</span><span class="n">runner</span><span class="p">,</span> <span class="o">**</span><span class="n">continuation_kwargs</span><span class="p">)</span>
                     <span class="k">except</span> <span class="n">AUTORuntimeError</span><span class="p">:</span>
                         <span class="nb">print</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
-                        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;AUTO continuation failed, possibly retrying.&#39;</span><span class="p">)</span>
+                        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;AUTO continuation failed, possibly retrying.&quot;</span><span class="p">)</span>
                     <span class="k">else</span><span class="p">:</span>
                         <span class="k">break</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Problem to complete the backward AUTO continuation, returning nothing.&#39;</span><span class="p">)</span>
+                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                        <span class="s2">&quot;Problem to complete the backward AUTO continuation, returning nothing.&quot;</span>
+                    <span class="p">)</span>
                     <span class="n">cb</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">retry</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_retry</span><span class="p">):</span>
                     <span class="k">try</span><span class="p">:</span>
-                        <span class="n">cb</span> <span class="o">=</span> <span class="n">ac</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">initial_data</span><span class="p">,</span> <span class="n">DS</span><span class="o">=</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="n">runner</span><span class="o">=</span><span class="n">runner</span><span class="p">,</span> <span class="o">**</span><span class="n">continuation_kwargs</span><span class="p">)</span>
+                        <span class="n">cb</span> <span class="o">=</span> <span class="n">ac</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+                            <span class="n">initial_data</span><span class="p">,</span> <span class="n">DS</span><span class="o">=</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="n">runner</span><span class="o">=</span><span class="n">runner</span><span class="p">,</span> <span class="o">**</span><span class="n">continuation_kwargs</span>
+                        <span class="p">)</span>
                     <span class="k">except</span> <span class="n">AUTORuntimeError</span><span class="p">:</span>
                         <span class="nb">print</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
-                        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;AUTO continuation failed, possibly retrying.&#39;</span><span class="p">)</span>
+                        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;AUTO continuation failed, possibly retrying.&quot;</span><span class="p">)</span>
                     <span class="k">else</span><span class="p">:</span>
                         <span class="k">break</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Problem to complete the backward AUTO continuation, returning nothing.&#39;</span><span class="p">)</span>
+                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                        <span class="s2">&quot;Problem to complete the backward AUTO continuation, returning nothing.&quot;</span>
+                    <span class="p">)</span>
                     <span class="n">cb</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">u</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span> <span class="n">initial_data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_object</span><span class="o">.</span><span class="n">ndim</span><span class="p">)}</span>
-            <span class="k">if</span> <span class="s1">&#39;DS&#39;</span> <span class="ow">in</span> <span class="n">continuation_kwargs</span><span class="p">:</span>
-                <span class="n">continuation_kwargs</span><span class="p">[</span><span class="s1">&#39;DS&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span> <span class="n">continuation_kwargs</span><span class="p">[</span><span class="s1">&#39;DS&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="s2">&quot;DS&quot;</span> <span class="ow">in</span> <span class="n">continuation_kwargs</span><span class="p">:</span>
+                <span class="n">continuation_kwargs</span><span class="p">[</span><span class="s2">&quot;DS&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">continuation_kwargs</span><span class="p">[</span><span class="s2">&quot;DS&quot;</span><span class="p">]</span>
                 <span class="k">for</span> <span class="n">retry</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_retry</span><span class="p">):</span>
                     <span class="k">try</span><span class="p">:</span>
-                        <span class="n">cb</span> <span class="o">=</span> <span class="n">ac</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_name</span><span class="p">,</span> <span class="n">U</span><span class="o">=</span><span class="n">u</span><span class="p">,</span> <span class="n">runner</span><span class="o">=</span><span class="n">runner</span><span class="p">,</span> <span class="o">**</span><span class="n">continuation_kwargs</span><span class="p">)</span>
+                        <span class="n">cb</span> <span class="o">=</span> <span class="n">ac</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">model_name</span><span class="p">,</span> <span class="n">U</span><span class="o">=</span><span class="n">u</span><span class="p">,</span> <span class="n">runner</span><span class="o">=</span><span class="n">runner</span><span class="p">,</span> <span class="o">**</span><span class="n">continuation_kwargs</span>
+                        <span class="p">)</span>
                     <span class="k">except</span> <span class="n">AUTORuntimeError</span><span class="p">:</span>
                         <span class="nb">print</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
-                        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;AUTO continuation failed, possibly retrying.&#39;</span><span class="p">)</span>
+                        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;AUTO continuation failed, possibly retrying.&quot;</span><span class="p">)</span>
                     <span class="k">else</span><span class="p">:</span>
                         <span class="k">break</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Problem to complete the backward AUTO continuation, returning nothing.&#39;</span><span class="p">)</span>
+                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                        <span class="s2">&quot;Problem to complete the backward AUTO continuation, returning nothing.&quot;</span>
+                    <span class="p">)</span>
                     <span class="n">cb</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">retry</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_retry</span><span class="p">):</span>
                     <span class="k">try</span><span class="p">:</span>
-                        <span class="n">cb</span> <span class="o">=</span> <span class="n">ac</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_name</span><span class="p">,</span> <span class="n">DS</span><span class="o">=</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="n">U</span><span class="o">=</span><span class="n">u</span><span class="p">,</span> <span class="n">runner</span><span class="o">=</span><span class="n">runner</span><span class="p">,</span> <span class="o">**</span><span class="n">continuation_kwargs</span><span class="p">)</span>
+                        <span class="n">cb</span> <span class="o">=</span> <span class="n">ac</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">model_name</span><span class="p">,</span>
+                            <span class="n">DS</span><span class="o">=</span><span class="s2">&quot;-&quot;</span><span class="p">,</span>
+                            <span class="n">U</span><span class="o">=</span><span class="n">u</span><span class="p">,</span>
+                            <span class="n">runner</span><span class="o">=</span><span class="n">runner</span><span class="p">,</span>
+                            <span class="o">**</span><span class="n">continuation_kwargs</span><span class="p">,</span>
+                        <span class="p">)</span>
                     <span class="k">except</span> <span class="n">AUTORuntimeError</span><span class="p">:</span>
                         <span class="nb">print</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
-                        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;AUTO continuation failed, possibly retrying.&#39;</span><span class="p">)</span>
+                        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;AUTO continuation failed, possibly retrying.&quot;</span><span class="p">)</span>
                     <span class="k">else</span><span class="p">:</span>
                         <span class="k">break</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Problem to complete the backward AUTO continuation, returning nothing.&#39;</span><span class="p">)</span>
+                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                        <span class="s2">&quot;Problem to complete the backward AUTO continuation, returning nothing.&quot;</span>
+                    <span class="p">)</span>
                     <span class="n">cb</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">continuation</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">continuation</span><span class="p">[</span><span class="s1">&#39;forward&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">continuation</span><span class="p">[</span><span class="s2">&quot;forward&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">continuation</span><span class="p">[</span><span class="s1">&#39;backward&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cb</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">continuation</span><span class="p">[</span><span class="s2">&quot;backward&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cb</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">branch_number</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">branch_number</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">continuation</span><span class="p">[</span><span class="s1">&#39;backward&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">BR</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">branch_number</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">continuation</span><span class="p">[</span><span class="s2">&quot;backward&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">BR</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">auto_suffix</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">auto_save</span><span class="p">(</span><span class="n">auto_suffix</span><span class="p">)</span></div>
@@ -503,109 +536,149 @@
 <span class="sd">              integers identify points on the forward continuation, while negative integers</span>
 <span class="sd">              identify points on the backward continuation. The zero index identifies the</span>
 <span class="sd">              initial point of the continuations.</span>
-<span class="sd">            </span>
+
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        ~numpy.ndarray</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">idx</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;-&#39;</span><span class="p">:</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">continuation</span><span class="p">[</span><span class="s1">&#39;backward&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">idx</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;-&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">continuation</span><span class="p">[</span><span class="s2">&quot;backward&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_solution_by_label</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
-                    <span class="n">idx</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="s1">&#39;PT&#39;</span><span class="p">]</span>
-                    <span class="n">ix_map</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_index_map</span><span class="p">(</span><span class="n">direction</span><span class="o">=</span><span class="s1">&#39;backward&#39;</span><span class="p">)</span>
+                    <span class="n">idx</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="s2">&quot;PT&quot;</span><span class="p">]</span>
+                    <span class="n">ix_map</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_index_map</span><span class="p">(</span><span class="n">direction</span><span class="o">=</span><span class="s2">&quot;backward&quot;</span><span class="p">)</span>
                     <span class="k">if</span> <span class="n">idx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">continuation</span><span class="p">[</span><span class="s1">&#39;backward&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">diagnostics</span><span class="p">[</span><span class="n">ix_map</span><span class="p">[</span><span class="n">idx</span><span class="p">]][</span><span class="s1">&#39;Eigenvalues&#39;</span><span class="p">]</span>
+                        <span class="k">return</span> <span class="p">(</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">continuation</span><span class="p">[</span><span class="s2">&quot;backward&quot;</span><span class="p">]</span>
+                            <span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                            <span class="o">.</span><span class="n">diagnostics</span><span class="p">[</span><span class="n">ix_map</span><span class="p">[</span><span class="n">idx</span><span class="p">]][</span><span class="s2">&quot;Eigenvalues&quot;</span><span class="p">]</span>
+                        <span class="p">)</span>
                     <span class="k">else</span><span class="p">:</span>
-                        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;No point stability to show.&#39;</span><span class="p">)</span>
+                        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;No point stability to show.&quot;</span><span class="p">)</span>
                         <span class="k">return</span> <span class="kc">None</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;No backward branch to show the stability for.&#39;</span><span class="p">)</span>
+                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;No backward branch to show the stability for.&quot;</span><span class="p">)</span>
                     <span class="k">return</span> <span class="kc">None</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">continuation</span><span class="p">[</span><span class="s1">&#39;forward&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">continuation</span><span class="p">[</span><span class="s2">&quot;forward&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_solution_by_label</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
-                    <span class="n">idx</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="s1">&#39;PT&#39;</span><span class="p">]</span>
-                    <span class="n">ix_map</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_index_map</span><span class="p">(</span><span class="n">direction</span><span class="o">=</span><span class="s1">&#39;forward&#39;</span><span class="p">)</span>
+                    <span class="n">idx</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="s2">&quot;PT&quot;</span><span class="p">]</span>
+                    <span class="n">ix_map</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_index_map</span><span class="p">(</span><span class="n">direction</span><span class="o">=</span><span class="s2">&quot;forward&quot;</span><span class="p">)</span>
                     <span class="k">if</span> <span class="n">idx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">continuation</span><span class="p">[</span><span class="s1">&#39;forward&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">diagnostics</span><span class="p">[</span><span class="n">ix_map</span><span class="p">[</span><span class="n">idx</span><span class="p">]][</span><span class="s1">&#39;Eigenvalues&#39;</span><span class="p">]</span>
+                        <span class="k">return</span> <span class="p">(</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">continuation</span><span class="p">[</span><span class="s2">&quot;forward&quot;</span><span class="p">]</span>
+                            <span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                            <span class="o">.</span><span class="n">diagnostics</span><span class="p">[</span><span class="n">ix_map</span><span class="p">[</span><span class="n">idx</span><span class="p">]][</span><span class="s2">&quot;Eigenvalues&quot;</span><span class="p">]</span>
+                        <span class="p">)</span>
                     <span class="k">else</span><span class="p">:</span>
-                        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;No point stability to show.&#39;</span><span class="p">)</span>
+                        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;No point stability to show.&quot;</span><span class="p">)</span>
                         <span class="k">return</span> <span class="kc">None</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;No forward branch to show the stability for.&#39;</span><span class="p">)</span>
+                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;No forward branch to show the stability for.&quot;</span><span class="p">)</span>
                     <span class="k">return</span> <span class="kc">None</span>
 
         <span class="k">if</span> <span class="n">idx</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">continuation</span><span class="p">[</span><span class="s1">&#39;forward&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">ix_map</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_index_map</span><span class="p">(</span><span class="n">direction</span><span class="o">=</span><span class="s1">&#39;forward&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">continuation</span><span class="p">[</span><span class="s2">&quot;forward&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">ix_map</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_index_map</span><span class="p">(</span><span class="n">direction</span><span class="o">=</span><span class="s2">&quot;forward&quot;</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">ix_map</span><span class="p">:</span>
-                    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">continuation</span><span class="p">[</span><span class="s1">&#39;forward&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">diagnostics</span><span class="p">[</span><span class="n">ix_map</span><span class="p">[</span><span class="n">idx</span><span class="p">]][</span><span class="s1">&#39;Eigenvalues&#39;</span><span class="p">]</span>
+                    <span class="k">return</span> <span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">continuation</span><span class="p">[</span><span class="s2">&quot;forward&quot;</span><span class="p">]</span>
+                        <span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                        <span class="o">.</span><span class="n">diagnostics</span><span class="p">[</span><span class="n">ix_map</span><span class="p">[</span><span class="n">idx</span><span class="p">]][</span><span class="s2">&quot;Eigenvalues&quot;</span><span class="p">]</span>
+                    <span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Point index not found. No point stability to show.&#39;</span><span class="p">)</span>
+                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Point index not found. No point stability to show.&quot;</span><span class="p">)</span>
                     <span class="k">return</span> <span class="kc">None</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;No forward branch to show the stability for.&#39;</span><span class="p">)</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;No forward branch to show the stability for.&quot;</span><span class="p">)</span>
                 <span class="k">return</span> <span class="kc">None</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">continuation</span><span class="p">[</span><span class="s1">&#39;backward&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">ix_map</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_index_map</span><span class="p">(</span><span class="n">direction</span><span class="o">=</span><span class="s1">&#39;backward&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">continuation</span><span class="p">[</span><span class="s2">&quot;backward&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">ix_map</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_index_map</span><span class="p">(</span><span class="n">direction</span><span class="o">=</span><span class="s2">&quot;backward&quot;</span><span class="p">)</span>
                 <span class="k">if</span> <span class="o">-</span><span class="n">idx</span> <span class="ow">in</span> <span class="n">ix_map</span><span class="p">:</span>
-                    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">continuation</span><span class="p">[</span><span class="s1">&#39;backward&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">diagnostics</span><span class="p">[</span><span class="n">ix_map</span><span class="p">[</span><span class="o">-</span><span class="n">idx</span><span class="p">]][</span><span class="s1">&#39;Eigenvalues&#39;</span><span class="p">]</span>
+                    <span class="k">return</span> <span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">continuation</span><span class="p">[</span><span class="s2">&quot;backward&quot;</span><span class="p">]</span>
+                        <span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                        <span class="o">.</span><span class="n">diagnostics</span><span class="p">[</span><span class="n">ix_map</span><span class="p">[</span><span class="o">-</span><span class="n">idx</span><span class="p">]][</span><span class="s2">&quot;Eigenvalues&quot;</span><span class="p">]</span>
+                    <span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Point index not found. No point stability to show.&#39;</span><span class="p">)</span>
+                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Point index not found. No point stability to show.&quot;</span><span class="p">)</span>
                     <span class="k">return</span> <span class="kc">None</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;No backward branch to show the stability for.&#39;</span><span class="p">)</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;No backward branch to show the stability for.&quot;</span><span class="p">)</span>
                 <span class="k">return</span> <span class="kc">None</span></div>
 
 
     <span class="k">def</span> <span class="nf">_set_from_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">load_initial_data</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="c1"># store the pathname to pass to the updated class</span>
-        <span class="n">state</span><span class="p">[</span><span class="s1">&#39;_path_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_path_name</span>
+        <span class="n">state</span><span class="p">[</span><span class="s2">&quot;_path_name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_path_name</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">initial_data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="n">load_initial_data</span><span class="p">:</span>
-            <span class="n">branch_number</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">initial_data</span><span class="p">[</span><span class="s1">&#39;BR&#39;</span><span class="p">])</span>
-            <span class="n">fp_file_list</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s1">&#39;fp*.pickle&#39;</span><span class="p">)</span>
-            <span class="n">fp_branch_numbers</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">filename</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">fp_file_list</span><span class="p">))</span>
+            <span class="n">branch_number</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">initial_data</span><span class="p">[</span><span class="s2">&quot;BR&quot;</span><span class="p">])</span>
+            <span class="n">fp_file_list</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;fp*.pickle&quot;</span><span class="p">)</span>
+            <span class="n">fp_branch_numbers</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+                <span class="nb">map</span><span class="p">(</span>
+                    <span class="k">lambda</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">filename</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]),</span>
+                    <span class="n">fp_file_list</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
             <span class="k">if</span> <span class="n">branch_number</span> <span class="ow">in</span> <span class="n">fp_branch_numbers</span><span class="p">:</span>
-                <span class="n">fp</span> <span class="o">=</span> <span class="n">FixedPointContinuation</span><span class="p">(</span><span class="n">model_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">model_name</span><span class="p">,</span> <span class="n">config_object</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config_object</span><span class="p">,</span> <span class="n">path_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_path_name</span><span class="p">)</span>
+                <span class="n">fp</span> <span class="o">=</span> <span class="n">FixedPointContinuation</span><span class="p">(</span>
+                    <span class="n">model_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">model_name</span><span class="p">,</span>
+                    <span class="n">config_object</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config_object</span><span class="p">,</span>
+                    <span class="n">path_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_path_name</span><span class="p">,</span>
+                <span class="p">)</span>
                 <span class="k">try</span><span class="p">:</span>
-                    <span class="n">fp</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;fp_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">branch_number</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;.pickle&#39;</span><span class="p">,</span> <span class="n">load_initial_data</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                    <span class="n">fp</span><span class="o">.</span><span class="n">load</span><span class="p">(</span>
+                        <span class="s2">&quot;fp_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">branch_number</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;.pickle&quot;</span><span class="p">,</span> <span class="n">load_initial_data</span><span class="o">=</span><span class="kc">False</span>
+                    <span class="p">)</span>
 
                     <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">fp</span><span class="o">.</span><span class="n">full_solutions_list</span><span class="p">:</span>
-                        <span class="k">if</span> <span class="n">s</span><span class="p">[</span><span class="s1">&#39;PT&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_data</span><span class="p">[</span><span class="s1">&#39;PT&#39;</span><span class="p">]:</span>
+                        <span class="k">if</span> <span class="n">s</span><span class="p">[</span><span class="s2">&quot;PT&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_data</span><span class="p">[</span><span class="s2">&quot;PT&quot;</span><span class="p">]:</span>
                             <span class="bp">self</span><span class="o">.</span><span class="n">initial_data</span> <span class="o">=</span> <span class="n">s</span>
                             <span class="k">break</span>
                 <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
-                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Unable to load initial data. Parent branch was not saved.&#39;</span><span class="p">)</span>
+                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                        <span class="s2">&quot;Unable to load initial data. Parent branch was not saved.&quot;</span>
+                    <span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">initial_data</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">po_file_list</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s1">&#39;po*.pickle&#39;</span><span class="p">)</span>
-                <span class="n">po_branch_numbers</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">po_file_list</span><span class="p">))</span>
+                <span class="n">po_file_list</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;po*.pickle&quot;</span><span class="p">)</span>
+                <span class="n">po_branch_numbers</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+                    <span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">po_file_list</span><span class="p">)</span>
+                <span class="p">)</span>
                 <span class="k">if</span> <span class="n">branch_number</span> <span class="ow">in</span> <span class="n">po_branch_numbers</span><span class="p">:</span>
-                    <span class="n">hp</span> <span class="o">=</span> <span class="n">poc</span><span class="o">.</span><span class="n">PeriodicOrbitContinuation</span><span class="p">(</span><span class="n">model_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">model_name</span><span class="p">,</span> <span class="n">config_object</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config_object</span><span class="p">,</span> <span class="n">path_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_path_name</span><span class="p">)</span>
+                    <span class="n">hp</span> <span class="o">=</span> <span class="n">poc</span><span class="o">.</span><span class="n">PeriodicOrbitContinuation</span><span class="p">(</span>
+                        <span class="n">model_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">model_name</span><span class="p">,</span>
+                        <span class="n">config_object</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config_object</span><span class="p">,</span>
+                        <span class="n">path_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_path_name</span><span class="p">,</span>
+                    <span class="p">)</span>
                     <span class="k">try</span><span class="p">:</span>
-                        <span class="n">hp</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;po_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">branch_number</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;.pickle&#39;</span><span class="p">,</span> <span class="n">load_initial_data</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                        <span class="n">hp</span><span class="o">.</span><span class="n">load</span><span class="p">(</span>
+                            <span class="s2">&quot;po_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">branch_number</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;.pickle&quot;</span><span class="p">,</span>
+                            <span class="n">load_initial_data</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                        <span class="p">)</span>
 
                         <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">hp</span><span class="o">.</span><span class="n">full_solutions_list</span><span class="p">:</span>
-                            <span class="k">if</span> <span class="n">s</span><span class="p">[</span><span class="s1">&#39;PT&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_data</span><span class="p">[</span><span class="s1">&#39;PT&#39;</span><span class="p">]:</span>
+                            <span class="k">if</span> <span class="n">s</span><span class="p">[</span><span class="s2">&quot;PT&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_data</span><span class="p">[</span><span class="s2">&quot;PT&quot;</span><span class="p">]:</span>
                                 <span class="bp">self</span><span class="o">.</span><span class="n">initial_data</span> <span class="o">=</span> <span class="n">s</span>
                                 <span class="k">break</span>
                     <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
-                        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Unable to load initial data. Parent branch was not saved.&#39;</span><span class="p">)</span>
+                        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                            <span class="s2">&quot;Unable to load initial data. Parent branch was not saved.&quot;</span>
+                        <span class="p">)</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">initial_data</span> <span class="o">=</span> <span class="kc">None</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Unable to find initial data.&#39;</span><span class="p">)</span>
+                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Unable to find initial data.&quot;</span><span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">initial_data</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">auto_filename_suffix</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">auto_load</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">auto_filename_suffix</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;No AUTO filename suffix specified. Unable to load data.&#39;</span><span class="p">)</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;No AUTO filename suffix specified. Unable to load data.&quot;</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">isfixedpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
