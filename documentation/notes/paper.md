@@ -105,7 +105,8 @@ This project has received funding from the European Union’s Horizon 2020 resea
 the Marie Sklodowska–Curie grant agreement no. 956170. 
 In addition, funding has been provided through the "Fédération Wallonie-Bruxelles" with the 
 instrument "Fonds Spéciaux de Recherche".
-The authors thank the three referees for their constructive review and their suggestions that helped improve the manuscript.
+The authors thank the three referees for their constructive review and their suggestions that helped improve the code 
+and the manuscript.
 
 
 
