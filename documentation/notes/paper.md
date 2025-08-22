@@ -74,7 +74,7 @@ frontend to AUTO, making it easy to continue the solutions to boundary value pro
 equilibria, fixed points and limit cycles [@ermentrout2007].
 
 Another more recent development is [PyCoBi](https://github.com/pyrates-neuroscience/PyCoBi) which 
-*provides a Python interface to Auto-07p [1], allowing for a more intuitive usage of Auto-07p commands within Python scripts.*
+*provides a Python interface to Auto-07p, allowing for a more intuitive usage of Auto-07p commands within Python scripts.*
 [@gast2025]
 
 Other bifurcation analysis software must also be mentioned here:
@@ -85,13 +85,14 @@ Other bifurcation analysis software must also be mentioned here:
 
 However, to the authors knowledge, these tools do not provide automatic continuation features relevant to the 
 problems raised in the [Statement of Need](#statement-of-need). PyCoBi proposes limited automatic generation for 
-codimension-2 bifurcations, a feature that is also planned in auto-AUTO future developments.
+codimension-2 bifurcation diagrams (regime diagrams), a feature that is also planned in auto-AUTO future developments.
 
 # Future Developments
 
 Future developments plan for auto-AUTO includes:
 
-* Automatic continuation of regime diagrams, i.e. codimension-1 branch tracking and detection of codimension-2 bifurcations by AUTO.
+* Automatic continuation of regime diagrams, i.e. codimension-1 bifurcation branch tracking and detection of 
+  codimension-2 bifurcations by AUTO (regime diagrams).
 * Investigate the formalization and abstraction of automatic continuation using graph theory, leveraging the functionalities already 
   available in auto-AUTO, and allowing for a more insightful construction of the diagrams.
 
