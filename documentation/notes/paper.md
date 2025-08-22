@@ -95,7 +95,8 @@ Future developments plan for auto-AUTO includes:
 * Investigate the formalization and abstraction of automatic continuation using graph theory, leveraging the functionalities already 
   available in auto-AUTO, and allowing for a more insightful construction of the diagrams.
 
-The latter development is an obvious way to pursue the development of auto-AUTO, but is out of the scope of the authors research.
+However, while the latter proposed development is an obvious way to pursue the development of auto-AUTO, 
+it is presently out of the scope of the authors research.
 
 # Acknowledgments
 
