@@ -23,7 +23,7 @@ to enhance the original AUTO-07p Python interface with a top layer which allows 
 About
 -----
 
-(c) 2025 Jonathan Demaeyer and Oísin Hamilton. 
+(c) 2025 Jonathan Demaeyer and Oisín Hamilton. 
 
 See [LICENSE.txt](https://raw.githubusercontent.com/Climdyn/auto-AUTO/master/LICENSE.txt) for license information.
 
@@ -97,7 +97,13 @@ and the code is installed.
 
 #### Testing the installation
 
-You can test the Jupyter notebooks present in the 
+Tests are available. Simply run
+
+    python -m pytest --nbmake "./notebooks/auto-demos"
+
+to check your installation.
+
+You can also test yourself the Jupyter notebooks present in the 
 [notebooks folder](./notebooks).
 For instance, running
 
@@ -123,6 +129,7 @@ Forthcoming developments
 ------------------------
 
 * Regime diagrams object
+* Graph theory based construction of the bifurcation trees
 
 Contributing to auto-AUTO
 -------------------------
