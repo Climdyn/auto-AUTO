@@ -15,7 +15,7 @@ authors:
 affiliations:
   - name: Meteorological and Climatological Information Service, Royal Meteorological Institute of Belgium, Brussels, Belgium
     index: 1
-  - name: UCLouvain --- Earth and Life Institute
+  - name: UCLouvain --- Earth and Life Institute, Belgium
     index: 2
 data: 20 February 2025
 bibliography: auto2.bib
@@ -69,12 +69,12 @@ knowledge about tipping points [@wunderling2021].
 
 Over time, and alongside the development of AUTO, many tools were introduced to help the users deal with the complexity 
 of the output data stream of AUTO. We can mention for 
-example [XPPAUT](https://sites.pitt.edu/~phase/bard/bardware/xpp/xpp.html) [@ermentrout2012] which provides a 
+example [XPPAUT](https://sites.pitt.edu/~phase/bard/bardware/xpp/xpp.html) [@ermentrout2012], which provides a 
 frontend to AUTO, making it easy to continue the solutions to boundary value problems as well as 
-equilibria, fixed points and limit cycles [@ermentrout2007].
+equilibria, fixed points, and limit cycles [@ermentrout2007].
 
-Another more recent development is [PyCoBi](https://github.com/pyrates-neuroscience/PyCoBi) which 
-*provides a Python interface to Auto-07p, allowing for a more intuitive usage of Auto-07p commands within Python scripts.*
+Another more recent development is [PyCoBi](https://github.com/pyrates-neuroscience/PyCoBi), which 
+"provides a Python interface to Auto-07p, allowing for a more intuitive usage of Auto-07p commands within Python scripts."
 [@gast2025]
 
 Other bifurcation analysis software must also be mentioned here:
@@ -83,21 +83,21 @@ Other bifurcation analysis software must also be mentioned here:
 * PyDSTool [@clewley2007]
 * Other useful tools can be found at [https://dsweb.siam.org/Software](https://dsweb.siam.org/Software)
 
-However, to the authors knowledge, these tools do not provide automatic continuation features relevant to the 
+However, to the best of the authors' knowledge, these tools do not provide automatic continuation features relevant to the 
 problems raised in the [Statement of Need](#statement-of-need). PyCoBi proposes limited automatic generation for 
 codimension-2 bifurcation diagrams (regime diagrams), a feature that is also planned in auto-AUTO future developments.
 
 # Future Developments
 
-Future developments plan for auto-AUTO includes:
+Future development plans for auto-AUTO include:
 
-* Automatic continuation of regime diagrams, i.e. codimension-1 bifurcation branch tracking and detection of 
-  codimension-2 bifurcations by AUTO (regime diagrams).
-* Investigate the formalization and abstraction of automatic continuation using graph theory, leveraging the functionalities already 
-  available in auto-AUTO, and allowing for a more insightful construction of the diagrams.
+* Automatic continuation of regime diagrams, i.e., codimension-1 bifurcation branch tracking and detection of 
+  codimension-2 bifurcations by AUTO (regime diagrams)
+* Investigation of the formalization and abstraction of automatic continuation using graph theory, leveraging the functionalities already 
+  available in auto-AUTO, and allowing for a more insightful construction of the diagrams
 
 However, while the latter proposed development is an obvious way to pursue the development of auto-AUTO, 
-it is presently out of the scope of the authors research.
+it is presently out of the scope of the authors' research.
 
 # Acknowledgments
 
