@@ -22,5 +22,5 @@ Regime diagrams class development is planned in the future.
 These diagrams classes include the logic to expand and compute the bifurcation tree, and will perform these computations
 up to pre-specified level.
 
-auto-AUTO has been designed with bifurcations of continuous-time dynamical system in mind. algebraïc and discrete-time
+auto-AUTO has been designed with bifurcations of continuous-time dynamical system in mind. Algebraic and discrete-time
 systems could work but have not been tested. Homoclinic continuations are out of the scope of auto-AUTO.
