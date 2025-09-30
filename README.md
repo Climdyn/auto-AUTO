@@ -28,6 +28,10 @@ About
 
 See [LICENSE.txt](https://raw.githubusercontent.com/Climdyn/auto-AUTO/master/LICENSE.txt) for license information.
 
+ **If you use this software, please cite our article in the Journal of Open Source Software:**
+
+ * Demaeyer, J., and Hamilton, O. (2025). auto-AUTO: A Python Layer for Automatically Running the AUTO-07p Continuation Software. Journal of Open Source Software, 10(113), 8079, https://doi.org/10.21105/joss.08079
+
 Please consult the auto-AUTO [code repository](http://www.github.com/Climdyn/auto-AUTO) for updates.
 
 Installation
