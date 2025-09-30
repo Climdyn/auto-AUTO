@@ -4,7 +4,8 @@ auto-AUTO (or AUTO²)
 
 [![PyPI version](https://badge.fury.io/py/auto-auto.svg)](https://badge.fury.io/py/auto-auto)
 [![PyPI pyversions](https://img.shields.io/pypi/pyversions/auto-auto.svg)](https://pypi.org/project/auto-auto/)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14901321.svg)](https://doi.org/10.5281/zenodo.14901321)
+[![DOI](https://joss.theoj.org/papers/10.21105/joss.08079/status.svg)](https://doi.org/10.21105/joss.08079)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14901320.svg)](https://doi.org/10.5281/zenodo.14901320)
 [![Documentation Status](https://img.shields.io/badge/docs-passing-green.svg)](https://climdyn.github.io/auto-AUTO/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -26,6 +27,10 @@ About
 (c) 2025 Jonathan Demaeyer and Oisín Hamilton. 
 
 See [LICENSE.txt](https://raw.githubusercontent.com/Climdyn/auto-AUTO/master/LICENSE.txt) for license information.
+
+ **If you use this software, please cite our article in the Journal of Open Source Software:**
+
+ * Demaeyer, J., and Hamilton, O. (2025). auto-AUTO: A Python Layer for Automatically Running the AUTO-07p Continuation Software. Journal of Open Source Software, 10(113), 8079, https://doi.org/10.21105/joss.08079
 
 Please consult the auto-AUTO [code repository](http://www.github.com/Climdyn/auto-AUTO) for updates.
 
