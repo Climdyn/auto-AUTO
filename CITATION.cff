@@ -1,0 +1,35 @@
+cff-version: "1.2.0"
+authors:
+- family-names: Demaeyer
+  given-names: Jonathan
+  orcid: "https://orcid.org/0000-0002-5098-404X"
+- family-names: Hamilton
+  given-names: Oisín
+  orcid: "https://orcid.org/0000-0002-0447-1657"
+doi: 10.5281/zenodo.17182449
+message: If you use this software, please cite our article in the
+  Journal of Open Source Software.
+preferred-citation:
+  authors:
+  - family-names: Demaeyer
+    given-names: Jonathan
+    orcid: "https://orcid.org/0000-0002-5098-404X"
+  - family-names: Hamilton
+    given-names: Oisín
+    orcid: "https://orcid.org/0000-0002-0447-1657"
+  date-published: 2025-09-27
+  doi: 10.21105/joss.08079
+  issn: 2475-9066
+  issue: 113
+  journal: Journal of Open Source Software
+  publisher:
+    name: Open Journals
+  start: 8079
+  title: "auto-AUTO: A Python Layer for Automatically Running the
+    AUTO-07p Continuation Software"
+  type: article
+  url: "https://joss.theoj.org/papers/10.21105/joss.08079"
+  volume: 10
+title: "auto-AUTO: A Python Layer for Automatically Running the AUTO-07p
+  Continuation Software"
+  
