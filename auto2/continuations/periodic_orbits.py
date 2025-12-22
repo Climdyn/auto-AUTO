@@ -341,7 +341,11 @@ class PeriodicOrbitContinuation(Continuation):
                             if "BP" in sp:
                                 recontinuation_kwargs["SP"].pop(i)
                         recontinuation_kwargs["SP"].append("BP0")
-                        cf2 = ac.run(runner=runner, data=cf.getIndex(-1)['solution'], SP=recontinuation_kwargs['SP'])
+                        cf2 = ac.run(
+                            runner=runner,
+                            data=cf.getIndex(-1)["solution"],
+                            SP=recontinuation_kwargs["SP"],
+                        )
                         cf.data[0].append(cf2.data[0])
                 except AUTORuntimeError:
                     print(traceback.format_exc())
