@@ -92,6 +92,38 @@ For instance, running ::
 
 will lead you to your favorite browser where you can load and run the examples.
 
+Configuring Jupyter kernel environment (important for AUTO-07p and gfortran)
+----------------------------------------------------------------------------
+
+If you use Jupyter notebooks (including in VS Code), you may need to ensure that the kernel environment can find both the AUTO-07p Python package and a Fortran compiler (such as gfortran). This is especially important if you installed gfortran via Homebrew or Linuxbrew, or if your shell environment is not inherited by Jupyter.
+
+**Recommended: set environment variables in your Jupyter kernel.json**
+
+Find your active kernel's ``kernel.json`` (for example, in ``.venv/share/jupyter/kernels/python3/kernel.json`` or ``~/.local/share/jupyter/kernels/python3/kernel.json``) and add an ``env`` section like this:
+
+.. code-block:: json
+
+        {
+            "argv": [
+                "python",
+                "-m",
+                "ipykernel_launcher",
+                "-f",
+                "{connection_file}"
+            ],
+            "display_name": "Python 3 (ipykernel)",
+            "env": {
+                "AUTO_DIR": "/path/to/auto-07p",
+                "FC": "/path/to/gfortran",
+                "PATH": "/path/to/gfortran/bin:/path/to/auto-07p/bin:/usr/local/bin:/usr/bin:/bin"
+            },
+            "language": "python"
+        }
+
+Replace ``/path/to/auto-07p`` and ``/path/to/gfortran`` with the actual install locations on your system. This ensures that ``import auto`` works and that AUTO-07p can always find a Fortran compiler.
+
+After editing, restart your Jupyter kernel for changes to take effect.
+
 Documentation
 -------------
 
