@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>General Information &mdash; auto-AUTO v0.5.4 documentation</title>
+  <title>General Information &mdash; auto-AUTO v0.5.7 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
 
@@ -15,7 +15,7 @@
   
         <script src="../_static/jquery.js?v=5d32c60e"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../_static/documentation_options.js?v=1a12988a"></script>
+        <script src="../_static/documentation_options.js?v=2dea12e0"></script>
         <script src="../_static/doctools.js?v=9a2dae69"></script>
         <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/js/theme.js"></script>
@@ -37,7 +37,7 @@
             auto-AUTO
           </a>
               <div class="version">
-                v0.5.4
+                v0.5.7
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -57,6 +57,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#testing-the-installation">Testing the installation</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#configuring-jupyter-kernel-environment-important-for-auto-07p-and-gfortran">Configuring Jupyter kernel environment (important for AUTO-07p and gfortran)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#documentation">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#forthcoming-developments">Forthcoming developments</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#contributing-to-auto-auto">Contributing to auto-AUTO</a></li>
@@ -180,6 +181,32 @@ For instance, running</p>
 </div>
 <p>will lead you to your favorite browser where you can load and run the examples.</p>
 </section>
+</section>
+<section id="configuring-jupyter-kernel-environment-important-for-auto-07p-and-gfortran">
+<h2>Configuring Jupyter kernel environment (important for AUTO-07p and gfortran)<a class="headerlink" href="#configuring-jupyter-kernel-environment-important-for-auto-07p-and-gfortran" title="Link to this heading"></a></h2>
+<p>If you use Jupyter notebooks (including in VS Code), you may need to ensure that the kernel environment can find both the AUTO-07p Python package and a Fortran compiler (such as gfortran). This is especially important if you installed gfortran via Homebrew or Linuxbrew, or if your shell environment is not inherited by Jupyter.</p>
+<p><strong>Recommended: set environment variables in your Jupyter kernel.json</strong></p>
+<p>Find your active kernel’s <code class="docutils literal notranslate"><span class="pre">kernel.json</span></code> (for example, in <code class="docutils literal notranslate"><span class="pre">.venv/share/jupyter/kernels/python3/kernel.json</span></code> or <code class="docutils literal notranslate"><span class="pre">~/.local/share/jupyter/kernels/python3/kernel.json</span></code>) and add an <code class="docutils literal notranslate"><span class="pre">env</span></code> section like this:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;argv&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">        </span><span class="s2">&quot;python&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="s2">&quot;-m&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="s2">&quot;ipykernel_launcher&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="s2">&quot;-f&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="s2">&quot;{connection_file}&quot;</span>
+<span class="w">    </span><span class="p">],</span>
+<span class="w">    </span><span class="nt">&quot;display_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Python 3 (ipykernel)&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;env&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;AUTO_DIR&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/path/to/auto-07p&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;FC&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/path/to/gfortran&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;PATH&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/path/to/gfortran/bin:/path/to/auto-07p/bin:/usr/local/bin:/usr/bin:/bin&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;language&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;python&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Replace <code class="docutils literal notranslate"><span class="pre">/path/to/auto-07p</span></code> and <code class="docutils literal notranslate"><span class="pre">/path/to/gfortran</span></code> with the actual install locations on your system. This ensures that <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">auto</span></code> works and that AUTO-07p can always find a Fortran compiler.</p>
+<p>After editing, restart your Jupyter kernel for changes to take effect.</p>
 </section>
 <section id="documentation">
 <h2>Documentation<a class="headerlink" href="#documentation" title="Link to this heading"></a></h2>

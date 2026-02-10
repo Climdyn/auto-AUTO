@@ -38,7 +38,7 @@ auto-AUTO is licensed under the `MIT`_ license:
 
    The MIT License (MIT)
 
-   Copyright (c) 2025 Jonathan Demaeyer and Oísin Hamilton.
+   Copyright (c) 2025 Jonathan Demaeyer and Oisín Hamilton.
 
 
    Permission is hereby granted, free of charge, to any person obtaining a copy
